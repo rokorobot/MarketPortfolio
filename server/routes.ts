@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer } from "http";
 import { storage } from "./storage";
-import { PORTFOLIO_CATEGORIES } from "@shared/schema";
+import { PORTFOLIO_CATEGORIES, insertPortfolioItemSchema } from "@shared/schema";
 
 export function registerRoutes(app: Express) {
   app.get("/api/items", async (req, res) => {
@@ -27,6 +27,16 @@ export function registerRoutes(app: Express) {
       return;
     }
     res.json(item);
+  });
+
+  app.post("/api/items", async (req, res) => {
+    try {
+      const newItem = insertPortfolioItemSchema.parse(req.body);
+      const item = await storage.createItem(newItem);
+      res.status(201).json(item);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid item data" });
+    }
   });
 
   return createServer(app);

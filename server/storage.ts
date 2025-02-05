@@ -6,6 +6,7 @@ export interface IStorage {
   getItems(): Promise<PortfolioItem[]>;
   getItem(id: number): Promise<PortfolioItem | undefined>;
   getItemsByCategory(category: string): Promise<PortfolioItem[]>;
+  createItem(item: InsertPortfolioItem): Promise<PortfolioItem>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -20,6 +21,11 @@ export class DatabaseStorage implements IStorage {
 
   async getItemsByCategory(category: string): Promise<PortfolioItem[]> {
     return await db.select().from(portfolioItems).where(eq(portfolioItems.category, category));
+  }
+
+  async createItem(item: InsertPortfolioItem): Promise<PortfolioItem> {
+    const [newItem] = await db.insert(portfolioItems).values(item).returning();
+    return newItem;
   }
 
   // Initialize with sample data
