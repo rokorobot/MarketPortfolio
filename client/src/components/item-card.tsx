@@ -7,13 +7,15 @@ import { ExternalLink } from "lucide-react";
 export function ItemCard({ item }: { item: PortfolioItem }) {
   return (
     <Card className="overflow-hidden h-full flex flex-col">
-      <div className="relative aspect-[4/3]">
-        <img
-          src={item.imageUrl}
-          alt={item.title}
-          className="object-cover w-full h-full hover:scale-105 transition-transform"
-        />
-      </div>
+      <Link href={`/item/${item.id}`}>
+        <a className="relative aspect-[4/3] block">
+          <img
+            src={item.imageUrl}
+            alt={item.title}
+            className="object-cover w-full h-full hover:scale-105 transition-transform"
+          />
+        </a>
+      </Link>
       <CardContent className="flex-1 p-4">
         <Link href={`/item/${item.id}`}>
           <a className="text-xl font-semibold hover:text-primary">{item.title}</a>
