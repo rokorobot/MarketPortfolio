@@ -2,7 +2,8 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { type PortfolioItem } from "@shared/schema";
-import { SiAmazon, SiEtsy } from "react-icons/si";
+import { SiHiveBlockchain } from "react-icons/si";
+import { Wallet } from "lucide-react";
 
 export function ItemCard({ item }: { item: PortfolioItem }) {
   return (
@@ -21,29 +22,29 @@ export function ItemCard({ item }: { item: PortfolioItem }) {
         <p className="text-muted-foreground mt-2">{item.description}</p>
       </CardContent>
       <CardFooter className="p-4 pt-0 gap-2">
-        {item.amazonUrl && (
+        {item.objktUrl && (
           <Button
             variant="outline"
             size="sm"
             className="flex-1"
             asChild
           >
-            <a href={item.amazonUrl} target="_blank" rel="noopener noreferrer">
-              <SiAmazon className="mr-2" />
-              Amazon
+            <a href={item.objktUrl} target="_blank" rel="noopener noreferrer">
+              <SiHiveBlockchain className="mr-2" />
+              OBJKT
             </a>
           </Button>
         )}
-        {item.etsyUrl && (
+        {item.openSeaUrl && (
           <Button
             variant="outline"
             size="sm"
             className="flex-1"
             asChild
           >
-            <a href={item.etsyUrl} target="_blank" rel="noopener noreferrer">
-              <SiEtsy className="mr-2" />
-              Etsy
+            <a href={item.openSeaUrl} target="_blank" rel="noopener noreferrer">
+              <Wallet className="mr-2" />
+              OpenSea
             </a>
           </Button>
         )}

@@ -7,8 +7,8 @@ export const portfolioItems = pgTable("portfolio_items", {
   title: text("title").notNull(),
   description: text("description").notNull(),
   imageUrl: text("image_url").notNull(),
-  amazonUrl: text("amazon_url"),
-  etsyUrl: text("etsy_url"),
+  objktUrl: text("objkt_url"),
+  openSeaUrl: text("opensea_url"),
 });
 
 export const insertPortfolioItemSchema = createInsertSchema(portfolioItems).omit({

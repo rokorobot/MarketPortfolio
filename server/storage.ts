@@ -23,25 +23,25 @@ export class DatabaseStorage implements IStorage {
     if (items.length === 0) {
       await db.insert(portfolioItems).values([
         {
-          title: "Professional Workspace",
-          description: "Modern office setup featuring minimalist design",
+          title: "Digital Art Collection #1",
+          description: "Unique digital artwork featuring abstract patterns",
           imageUrl: "https://images.unsplash.com/photo-1493723843671-1d655e66ac1c",
-          amazonUrl: "https://amazon.com/sample",
-          etsyUrl: "https://etsy.com/sample"
+          objktUrl: "https://objkt.com/sample1",
+          openSeaUrl: "https://opensea.io/sample1"
         },
         {
-          title: "Creative Workspace",
-          description: "Artistic workspace with natural lighting",
+          title: "NFT Series: Creative Space",
+          description: "Part of the creative space collection",
           imageUrl: "https://images.unsplash.com/photo-1472289065668-ce650ac443d2",
-          amazonUrl: "https://amazon.com/sample2",
-          etsyUrl: "https://etsy.com/sample2"
+          objktUrl: "https://objkt.com/sample2",
+          openSeaUrl: "https://opensea.io/sample2"
         },
         {
-          title: "Business Meeting",
-          description: "Corporate meeting space with modern amenities",
+          title: "Digital Masterpiece",
+          description: "Unique digital creation with modern elements",
           imageUrl: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40",
-          amazonUrl: "https://amazon.com/sample3",
-          etsyUrl: "https://etsy.com/sample3"
+          objktUrl: "https://objkt.com/sample3",
+          openSeaUrl: "https://opensea.io/sample3"
         }
       ]);
     }
