@@ -31,7 +31,7 @@ export function ItemCard({ item }: { item: PortfolioItem }) {
           >
             <a href={item.objktUrl} target="_blank" rel="noopener noreferrer">
               <SiHiveBlockchain className="mr-2" />
-              OBJKT
+              View
             </a>
           </Button>
         )}
@@ -44,7 +44,7 @@ export function ItemCard({ item }: { item: PortfolioItem }) {
           >
             <a href={item.openSeaUrl} target="_blank" rel="noopener noreferrer">
               <Wallet className="mr-2" />
-              OpenSea
+              View
             </a>
           </Button>
         )}
