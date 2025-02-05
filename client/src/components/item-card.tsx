@@ -2,8 +2,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { type PortfolioItem } from "@shared/schema";
-import { SiHiveBlockchain } from "react-icons/si";
-import { Wallet } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 
 export function ItemCard({ item }: { item: PortfolioItem }) {
   return (
@@ -22,29 +21,29 @@ export function ItemCard({ item }: { item: PortfolioItem }) {
         <p className="text-muted-foreground mt-2">{item.description}</p>
       </CardContent>
       <CardFooter className="p-4 pt-0 gap-2">
-        {item.objktUrl && (
+        {item.marketplaceUrl1 && (
           <Button
             variant="outline"
             size="sm"
             className="flex-1"
             asChild
           >
-            <a href={item.objktUrl} target="_blank" rel="noopener noreferrer">
-              <SiHiveBlockchain className="mr-2" />
-              View
+            <a href={item.marketplaceUrl1} target="_blank" rel="noopener noreferrer">
+              <ExternalLink className="mr-2 h-4 w-4" />
+              {item.marketplaceName1}
             </a>
           </Button>
         )}
-        {item.openSeaUrl && (
+        {item.marketplaceUrl2 && (
           <Button
             variant="outline"
             size="sm"
             className="flex-1"
             asChild
           >
-            <a href={item.openSeaUrl} target="_blank" rel="noopener noreferrer">
-              <Wallet className="mr-2" />
-              View
+            <a href={item.marketplaceUrl2} target="_blank" rel="noopener noreferrer">
+              <ExternalLink className="mr-2 h-4 w-4" />
+              {item.marketplaceName2}
             </a>
           </Button>
         )}

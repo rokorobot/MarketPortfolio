@@ -4,8 +4,7 @@ import { Layout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { SiHiveBlockchain } from "react-icons/si";
-import { Wallet } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import type { PortfolioItem } from "@shared/schema";
 
 export default function Item() {
@@ -44,19 +43,19 @@ export default function Item() {
           <h1 className="text-3xl font-bold mt-6">{item.title}</h1>
           <p className="text-lg text-muted-foreground mt-4">{item.description}</p>
           <div className="flex gap-4 mt-6">
-            {item.objktUrl && (
+            {item.marketplaceUrl1 && (
               <Button asChild className="flex-1">
-                <a href={item.objktUrl} target="_blank" rel="noopener noreferrer">
-                  <SiHiveBlockchain className="mr-2" />
-                  View on OBJKT
+                <a href={item.marketplaceUrl1} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="mr-2 h-4 w-4" />
+                  View on {item.marketplaceName1}
                 </a>
               </Button>
             )}
-            {item.openSeaUrl && (
+            {item.marketplaceUrl2 && (
               <Button asChild className="flex-1" variant="secondary">
-                <a href={item.openSeaUrl} target="_blank" rel="noopener noreferrer">
-                  <Wallet className="mr-2" />
-                  View on OpenSea
+                <a href={item.marketplaceUrl2} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="mr-2 h-4 w-4" />
+                  View on {item.marketplaceName2}
                 </a>
               </Button>
             )}

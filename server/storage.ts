@@ -26,22 +26,28 @@ export class DatabaseStorage implements IStorage {
           title: "Digital Art Collection #1",
           description: "Unique digital artwork featuring abstract patterns",
           imageUrl: "https://images.unsplash.com/photo-1493723843671-1d655e66ac1c",
-          objktUrl: "https://objkt.com/sample1",
-          openSeaUrl: "https://opensea.io/sample1"
+          marketplaceUrl1: "https://objkt.com/asset/123456",
+          marketplaceUrl2: "https://opensea.io/assets/ethereum/123456",
+          marketplaceName1: "OBJKT",
+          marketplaceName2: "OpenSea"
         },
         {
           title: "NFT Series: Creative Space",
           description: "Part of the creative space collection",
           imageUrl: "https://images.unsplash.com/photo-1472289065668-ce650ac443d2",
-          objktUrl: "https://objkt.com/sample2",
-          openSeaUrl: "https://opensea.io/sample2"
+          marketplaceUrl1: "https://objkt.com/asset/789012",
+          marketplaceUrl2: "https://foundation.app/123456",
+          marketplaceName1: "OBJKT",
+          marketplaceName2: "Foundation"
         },
         {
           title: "Digital Masterpiece",
           description: "Unique digital creation with modern elements",
           imageUrl: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40",
-          objktUrl: "https://objkt.com/sample3",
-          openSeaUrl: "https://opensea.io/sample3"
+          marketplaceUrl1: "https://superrare.com/artwork/123456",
+          marketplaceUrl2: "https://opensea.io/assets/ethereum/789012",
+          marketplaceName1: "SuperRare",
+          marketplaceName2: "OpenSea"
         }
       ]);
     }
