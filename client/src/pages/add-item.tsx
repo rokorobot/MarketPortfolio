@@ -29,7 +29,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 export default function AddItem() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
-  
+
   const form = useForm<InsertPortfolioItem>({
     resolver: zodResolver(insertPortfolioItemSchema),
     defaultValues: {
@@ -128,7 +128,7 @@ export default function AddItem() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Category</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a category" />
