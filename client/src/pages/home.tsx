@@ -48,6 +48,7 @@ export default function Home() {
     const query = debouncedSearchQuery.toLowerCase();
     const filtered = items.filter(item => 
       item.title.toLowerCase().includes(query) || 
+      item.description.toLowerCase().includes(query) ||
       (item.tags && item.tags.some(tag => tag.toLowerCase().includes(query)))
     );
     
@@ -69,7 +70,7 @@ export default function Home() {
         <div className="relative w-full md:w-72">
           <Input
             type="text"
-            placeholder="Search by title or tags..."
+            placeholder="Search title, description, tags..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pr-10"
