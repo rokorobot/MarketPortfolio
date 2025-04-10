@@ -81,91 +81,102 @@ export default function Item() {
 
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <Card>
           <CardContent className="p-6">
-            {/* Large Image Section */}
-            <div className="relative rounded-lg">
-              <img
-                src={item.imageUrl}
-                alt={item.title}
-                className="object-contain w-full max-h-[500px] hover:scale-105 transition-transform duration-300 rounded-lg mx-auto"
-              />
-            </div>
-
-            {/* Title and Category */}
-            <div className="mt-6 flex items-center justify-between">
-              <h1 className="text-3xl font-bold">{item.title}</h1>
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary" className="text-sm">
-                  <Tag className="w-4 h-4 mr-1" />
-                  {item.category}
-                </Badge>
-                {isAdmin && (
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="outline" size="icon" className="text-destructive hover:bg-destructive/10">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Portfolio Item</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Are you sure you want to delete "{item.title}"? This action cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction 
-                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          onClick={() => deleteItemMutation.mutate()}
-                          disabled={deleteItemMutation.isPending}
-                        >
-                          {deleteItemMutation.isPending ? "Deleting..." : "Delete"}
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                )}
-              </div>
-            </div>
-
-            {/* Description */}
-            <p className="text-lg text-muted-foreground mt-4">{item.description}</p>
-            
-            {/* Tags */}
-            {item.tags && item.tags.length > 0 && (
-              <div className="mt-4">
-                <h3 className="text-sm font-medium mb-2">Tags</h3>
-                <div className="flex flex-wrap gap-2">
-                  {item.tags.map((tag, index) => (
-                    <Badge key={index} variant="outline" className="text-xs py-0">
-                      {tag}
-                    </Badge>
-                  ))}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+              {/* Left side - Large Image */}
+              <div className="md:col-span-7 relative">
+                <div className="sticky top-6">
+                  <img
+                    src={item.imageUrl}
+                    alt={item.title}
+                    className="object-contain w-full max-h-[700px] hover:scale-105 transition-transform duration-300 rounded-lg mx-auto"
+                  />
                 </div>
               </div>
-            )}
+              
+              {/* Right side - Content */}
+              <div className="md:col-span-5">
+                {/* Title and Category */}
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <h1 className="text-3xl font-bold">{item.title}</h1>
+                    <Badge variant="secondary" className="text-sm mt-2">
+                      <Tag className="w-4 h-4 mr-1" />
+                      {item.category}
+                    </Badge>
+                  </div>
+                  {isAdmin && (
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="outline" size="icon" className="text-destructive hover:bg-destructive/10">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Portfolio Item</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete "{item.title}"? This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction 
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            onClick={() => deleteItemMutation.mutate()}
+                            disabled={deleteItemMutation.isPending}
+                          >
+                            {deleteItemMutation.isPending ? "Deleting..." : "Delete"}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
+                </div>
 
-            {/* Marketplace Links */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-              {item.marketplaceUrl1 && (
-                <Button asChild size="lg" className="w-full">
-                  <a href={item.marketplaceUrl1} target="_blank" rel="noopener noreferrer">
-                    <ExternalLink className="mr-2 h-5 w-5" />
-                    View on {item.marketplaceName1}
-                  </a>
-                </Button>
-              )}
-              {item.marketplaceUrl2 && (
-                <Button asChild size="lg" variant="secondary" className="w-full">
-                  <a href={item.marketplaceUrl2} target="_blank" rel="noopener noreferrer">
-                    <ExternalLink className="mr-2 h-5 w-5" />
-                    View on {item.marketplaceName2}
-                  </a>
-                </Button>
-              )}
+                {/* Description */}
+                <div className="mt-6">
+                  <h3 className="text-sm font-medium mb-2">Description</h3>
+                  <p className="text-muted-foreground">{item.description}</p>
+                </div>
+                
+                {/* Tags */}
+                {item.tags && item.tags.length > 0 && (
+                  <div className="mt-6">
+                    <h3 className="text-sm font-medium mb-2">Tags</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {item.tags.map((tag, index) => (
+                        <Badge key={index} variant="outline" className="text-xs py-0">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Marketplace Links */}
+                <div className="mt-8 space-y-3">
+                  <h3 className="text-sm font-medium mb-3">Available on</h3>
+                  {item.marketplaceUrl1 && (
+                    <Button asChild size="lg" className="w-full">
+                      <a href={item.marketplaceUrl1} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="mr-2 h-5 w-5" />
+                        View on {item.marketplaceName1}
+                      </a>
+                    </Button>
+                  )}
+                  {item.marketplaceUrl2 && (
+                    <Button asChild size="lg" variant="secondary" className="w-full">
+                      <a href={item.marketplaceUrl2} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="mr-2 h-5 w-5" />
+                        View on {item.marketplaceName2}
+                      </a>
+                    </Button>
+                  )}
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
