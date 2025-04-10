@@ -49,13 +49,13 @@
   }
 
   .grey {
-    --background: 220 20% 97%;
+    --background: 220 20% 85%;
     --foreground: 220 10% 20%;
     
-    --card: 220 15% 95%;
+    --card: 220 15% 90%;
     --card-foreground: 220 10% 15%;
     
-    --popover: 220 15% 95%;
+    --popover: 220 15% 90%;
     --popover-foreground: 220 10% 15%;
     
     --primary: 220 70% 50%;
@@ -67,14 +67,14 @@
     --muted: 220 15% 90%;
     --muted-foreground: 220 10% 40%;
     
-    --accent: 220 15% 85%;
+    --accent: 220 15% 80%;
     --accent-foreground: 220 10% 15%;
     
     --destructive: 0 80% 50%;
     --destructive-foreground: 0 0% 100%;
     
-    --border: 220 15% 85%;
-    --input: 220 15% 85%;
+    --border: 220 15% 75%;
+    --input: 220 15% 75%;
     --ring: 220 70% 50%;
   }
 

@@ -97,6 +97,7 @@ export default {
     require("tailwindcss-animate"), 
     require("@tailwindcss/typography"),
     function({ addVariant }) {
+      // Add grey variant that works properly
       addVariant('grey', '.grey &');
     },
   ],
