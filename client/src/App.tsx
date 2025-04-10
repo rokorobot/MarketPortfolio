@@ -12,6 +12,7 @@ import LoginPage from "@/pages/login";
 import SharePage from "@/pages/share";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/components/protected-route";
+import { ThemeProvider } from "@/components/theme-provider";
 
 function Router() {
   return (
@@ -43,10 +44,12 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Router />
-        <Toaster />
-      </AuthProvider>
+      <ThemeProvider defaultTheme="light" storageKey="portfolio-theme">
+        <AuthProvider>
+          <Router />
+          <Toaster />
+        </AuthProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

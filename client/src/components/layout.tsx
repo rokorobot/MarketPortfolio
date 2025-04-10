@@ -10,6 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [, navigate] = useLocation();
@@ -30,6 +31,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
             Portfolio
           </div>
           <div className="flex items-center gap-3">
+            <ThemeToggle />
+            
             {isAdmin && (
               <>
                 <Button onClick={() => navigate("/add-item")}>
