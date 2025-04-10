@@ -1,4 +1,4 @@
-import { portfolioItems, type PortfolioItem, type InsertPortfolioItem, users, type User, type InsertUser, shareLinks, type ShareLink, type InsertShareLink } from "@shared/schema";
+import { portfolioItems, type PortfolioItem, type InsertPortfolioItem, users, type User, type InsertUser, shareLinks, type ShareLink, type InsertShareLink, categories, type Category, type InsertCategory } from "@shared/schema";
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";

@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -33,7 +33,7 @@ export const PORTFOLIO_CATEGORIES = [
 ] as const;
 
 export const categorySchema = z.enum(PORTFOLIO_CATEGORIES);
-export type Category = z.infer<typeof categorySchema>;
+export type CategoryEnum = z.infer<typeof categorySchema>;
 
 // User roles
 export const USER_ROLES = ["admin", "guest"] as const;
@@ -81,3 +81,20 @@ export const insertShareLinkSchema = createInsertSchema(shareLinks).omit({
 
 export type InsertShareLink = z.infer<typeof insertShareLinkSchema>;
 export type ShareLink = typeof shareLinks.$inferSelect;
+
+// Categories table
+export const categories = pgTable("categories", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  description: text("description"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  createdById: integer("created_by_id").notNull(),
+});
+
+export const insertCategorySchema = createInsertSchema(categories).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCategory = z.infer<typeof insertCategorySchema>;
+export type Category = typeof categories.$inferSelect;

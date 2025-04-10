@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Plus, UserCircle, LogOut } from "lucide-react";
+import { Plus, UserCircle, LogOut, FolderPlus } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { 
   DropdownMenu,
@@ -31,10 +31,17 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </div>
           <div className="flex items-center gap-3">
             {isAdmin && (
-              <Button onClick={() => navigate("/add-item")}>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Item
-              </Button>
+              <>
+                <Button onClick={() => navigate("/add-item")}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Item
+                </Button>
+                
+                <Button onClick={() => navigate("/add-collection")} variant="outline">
+                  <FolderPlus className="mr-2 h-4 w-4" />
+                  Add Collection
+                </Button>
+              </>
             )}
             
             {user ? (
