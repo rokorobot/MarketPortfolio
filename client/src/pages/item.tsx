@@ -4,8 +4,8 @@ import { Layout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ExternalLink, Tag, Trash2, Share2, Twitter } from "lucide-react";
-import type { PortfolioItem } from "@shared/schema";
+import { ExternalLink, Tag, Trash2, Share2, Twitter, Edit, Save, X } from "lucide-react";
+import { PORTFOLIO_CATEGORIES, type PortfolioItem } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
@@ -24,6 +24,22 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ShareLinkGenerator } from "@/components/share-link-generator";
 import { ShareImageGenerator } from "@/components/share-image-generator";
+import { useState } from "react";
+import { 
+  Form, 
+  FormControl, 
+  FormField, 
+  FormItem, 
+  FormLabel, 
+  FormMessage 
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { TagInput } from "@/components/tag-input";
 
 export default function Item() {
   const [, params] = useRoute("/item/:id");

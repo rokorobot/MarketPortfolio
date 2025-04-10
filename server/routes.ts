@@ -262,6 +262,41 @@ export function registerRoutes(app: Express) {
     }
   });
   
+  // Update portfolio item (admin only)
+  app.patch("/api/items/:id", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid item ID" });
+      }
+      
+      // Get current item to ensure it exists
+      const existingItem = await storage.getItem(id);
+      if (!existingItem) {
+        return res.status(404).json({ message: "Item not found" });
+      }
+      
+      // Only allow updating specific fields
+      const updateData = {
+        title: req.body.title || existingItem.title,
+        description: req.body.description || existingItem.description,
+        category: req.body.category || existingItem.category,
+        tags: req.body.tags || existingItem.tags,
+        marketplaceUrl1: req.body.marketplaceUrl1 || existingItem.marketplaceUrl1,
+        marketplaceUrl2: req.body.marketplaceUrl2 || existingItem.marketplaceUrl2,
+        marketplaceName1: req.body.marketplaceName1 || existingItem.marketplaceName1,
+        marketplaceName2: req.body.marketplaceName2 || existingItem.marketplaceName2,
+      };
+      
+      // Update the item
+      const updatedItem = await storage.updateItem(id, updateData);
+      res.status(200).json(updatedItem);
+    } catch (error) {
+      console.error("Error updating item:", error);
+      res.status(500).json({ message: "Failed to update item" });
+    }
+  });
+  
   // Share link endpoints
   
   // Create a share link for an item

@@ -25,6 +25,7 @@ export interface IStorage {
   getItem(id: number): Promise<PortfolioItem | undefined>;
   getItemsByCategory(category: string): Promise<PortfolioItem[]>;
   createItem(item: InsertPortfolioItem): Promise<PortfolioItem>;
+  updateItem(id: number, item: Partial<PortfolioItem>): Promise<PortfolioItem>;
   deleteItem(id: number): Promise<boolean>;
   
   // Users
@@ -71,6 +72,19 @@ export class DatabaseStorage implements IStorage {
       console.error("Error deleting item:", error);
       return false;
     }
+  }
+  
+  async updateItem(id: number, itemData: Partial<PortfolioItem>): Promise<PortfolioItem> {
+    // Clean up any unwanted properties that shouldn't be updated (like id)
+    const { id: _, ...dataToUpdate } = itemData as any;
+    
+    // Update the item
+    const [updatedItem] = await db.update(portfolioItems)
+      .set(dataToUpdate)
+      .where(eq(portfolioItems.id, id))
+      .returning();
+    
+    return updatedItem;
   }
 
   // User methods
