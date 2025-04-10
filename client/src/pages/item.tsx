@@ -29,6 +29,7 @@ import React, { useState } from "react";
 import { 
   Form, 
   FormControl, 
+  FormDescription,
   FormField, 
   FormItem, 
   FormLabel, 
@@ -80,6 +81,7 @@ export default function Item() {
     title: z.string().min(1, { message: "Title is required" }),
     description: z.string().min(1, { message: "Description is required" }),
     author: z.string().optional().nullable(),
+    authorUrl: z.string().optional().nullable(),
     category: z.string().min(1, { message: "Category is required" }),
     tags: z.array(z.string()).optional().nullable(),
     imageUrl: z.string().optional(),
@@ -96,6 +98,7 @@ export default function Item() {
       title: item?.title || "",
       description: item?.description || "",
       author: item?.author || "",
+      authorUrl: item?.authorUrl || "",
       category: item?.category || "",
       tags: item?.tags || [],
       marketplaceUrl1: item?.marketplaceUrl1 || "",
@@ -436,6 +439,28 @@ export default function Item() {
                             <FormControl>
                               <Input {...field} value={field.value || ''} placeholder="Creator or artist name" />
                             </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="authorUrl"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Author Website/URL</FormLabel>
+                            <FormControl>
+                              <Input 
+                                {...field} 
+                                value={field.value || ''}
+                                placeholder="https://artist-website.com" 
+                                type="url"
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              If provided, the author name will be clickable and link to this URL
+                            </FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
