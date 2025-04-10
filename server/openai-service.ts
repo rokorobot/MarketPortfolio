@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { createReadStream } from "fs";
+import fs from "fs/promises";
 import { log } from "./vite";
 import path from "path";
 
@@ -17,7 +18,7 @@ export async function generateTagsFromImage(imagePath: string, title: string, de
       : path.join(process.cwd(), imagePath.replace(/^\//, ''));
 
     // Read the image file
-    const imageBuffer = await fs.promises.readFile(absolutePath);
+    const imageBuffer = await fs.readFile(absolutePath);
     const base64Image = imageBuffer.toString('base64');
 
     const response = await openai.chat.completions.create({
