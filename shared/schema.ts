@@ -55,3 +55,25 @@ export const insertUserSchema = createInsertSchema(users).omit({
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+
+// Share links table
+export const shareLinks = pgTable("share_links", {
+  id: serial("id").primaryKey(),
+  itemId: integer("item_id").notNull(),
+  shareCode: text("share_code").notNull().unique(),
+  customTitle: text("custom_title"),
+  customDescription: text("custom_description"),
+  customImageUrl: text("custom_image_url"),
+  createdAt: text("created_at").notNull().default(new Date().toISOString()),
+  expiresAt: text("expires_at"),
+  clicks: integer("clicks").notNull().default(0),
+});
+
+export const insertShareLinkSchema = createInsertSchema(shareLinks).omit({
+  id: true,
+  createdAt: true,
+  clicks: true,
+});
+
+export type InsertShareLink = z.infer<typeof insertShareLinkSchema>;
+export type ShareLink = typeof shareLinks.$inferSelect;

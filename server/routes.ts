@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer } from "http";
 import { storage } from "./storage";
-import { PORTFOLIO_CATEGORIES, insertPortfolioItemSchema, insertUserSchema } from "@shared/schema";
+import { PORTFOLIO_CATEGORIES, insertPortfolioItemSchema, insertUserSchema, insertShareLinkSchema } from "@shared/schema";
 import { UploadedFile } from "express-fileupload";
 import path from "path";
 import crypto from "crypto";
@@ -258,6 +258,123 @@ export function registerRoutes(app: Express) {
       }
     } catch (error) {
       console.error("Error deleting item:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+  
+  // Share link endpoints
+  
+  // Create a share link for an item
+  app.post("/api/share-links", requireAuth, async (req, res) => {
+    try {
+      const shareData = insertShareLinkSchema.parse(req.body);
+      
+      // Verify that the item exists
+      const item = await storage.getItem(shareData.itemId);
+      if (!item) {
+        return res.status(404).json({ message: "Item not found" });
+      }
+      
+      // Generate a unique share code if not provided
+      if (!shareData.shareCode) {
+        shareData.shareCode = crypto.randomBytes(6).toString('hex');
+      }
+      
+      const shareLink = await storage.createShareLink(shareData);
+      
+      // Construct the full shareable URL
+      const protocol = req.get('x-forwarded-proto') || req.protocol;
+      const host = req.get('host');
+      const shareUrl = `${protocol}://${host}/share/${shareLink.shareCode}`;
+      
+      res.status(201).json({
+        ...shareLink,
+        shareUrl
+      });
+    } catch (error) {
+      console.error("Error creating share link:", error);
+      res.status(400).json({ message: "Invalid share link data" });
+    }
+  });
+  
+  // Get all share links for an item
+  app.get("/api/items/:id/share-links", requireAuth, async (req, res) => {
+    try {
+      const itemId = parseInt(req.params.id);
+      if (isNaN(itemId)) {
+        return res.status(400).json({ message: "Invalid item ID" });
+      }
+      
+      const shareLinks = await storage.getShareLinksByItemId(itemId);
+      
+      // Add the full URL to each share link
+      const protocol = req.get('x-forwarded-proto') || req.protocol;
+      const host = req.get('host');
+      const shareLinksWithUrl = shareLinks.map(link => ({
+        ...link,
+        shareUrl: `${protocol}://${host}/share/${link.shareCode}`
+      }));
+      
+      res.json(shareLinksWithUrl);
+    } catch (error) {
+      console.error("Error fetching share links:", error);
+      res.status(500).json({ message: "Failed to fetch share links" });
+    }
+  });
+  
+  // Get a shared item by share code
+  app.get("/api/share/:shareCode", async (req, res) => {
+    try {
+      const { shareCode } = req.params;
+      
+      // Look up the share link
+      const shareLink = await storage.getShareLinkByCode(shareCode);
+      if (!shareLink) {
+        return res.status(404).json({ message: "Share link not found or expired" });
+      }
+      
+      // Increment the click counter
+      await storage.incrementShareLinkClicks(shareCode);
+      
+      // Get the original item
+      const item = await storage.getItem(shareLink.itemId);
+      if (!item) {
+        return res.status(404).json({ message: "Item not found" });
+      }
+      
+      // Return the original item with custom preview info if available
+      const sharedItem = {
+        ...item,
+        customTitle: shareLink.customTitle || item.title,
+        customDescription: shareLink.customDescription || item.description,
+        customImageUrl: shareLink.customImageUrl || item.imageUrl,
+        shareCode: shareLink.shareCode,
+        clicks: shareLink.clicks + 1 // Include the incremented click count
+      };
+      
+      res.json(sharedItem);
+    } catch (error) {
+      console.error("Error fetching shared item:", error);
+      res.status(500).json({ message: "Failed to fetch shared item" });
+    }
+  });
+  
+  // Delete a share link
+  app.delete("/api/share-links/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid share link ID" });
+      }
+      
+      const success = await storage.deleteShareLink(id);
+      if (success) {
+        res.status(200).json({ message: "Share link deleted successfully" });
+      } else {
+        res.status(500).json({ message: "Failed to delete share link" });
+      }
+    } catch (error) {
+      console.error("Error deleting share link:", error);
       res.status(500).json({ message: "Server error" });
     }
   });

@@ -1,6 +1,6 @@
-import { portfolioItems, type PortfolioItem, type InsertPortfolioItem, users, type User, type InsertUser } from "@shared/schema";
+import { portfolioItems, type PortfolioItem, type InsertPortfolioItem, users, type User, type InsertUser, shareLinks, type ShareLink, type InsertShareLink } from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 
@@ -32,6 +32,13 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   validateUser(username: string, password: string): Promise<User | null>;
+  
+  // Share links
+  createShareLink(shareLink: InsertShareLink): Promise<ShareLink>;
+  getShareLinkByCode(shareCode: string): Promise<ShareLink | undefined>;
+  getShareLinksByItemId(itemId: number): Promise<ShareLink[]>;
+  deleteShareLink(id: number): Promise<boolean>;
+  incrementShareLinkClicks(shareCode: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -93,6 +100,64 @@ export class DatabaseStorage implements IStorage {
     if (!isValidPassword) return null;
     
     return user;
+  }
+  
+  // Share links methods
+  async createShareLink(shareLink: InsertShareLink): Promise<ShareLink> {
+    // Create a unique share code if not provided
+    if (!shareLink.shareCode) {
+      shareLink.shareCode = randomBytes(6).toString('hex');
+    }
+    
+    const [newShareLink] = await db.insert(shareLinks)
+      .values(shareLink)
+      .returning();
+      
+    return newShareLink;
+  }
+  
+  async getShareLinkByCode(shareCode: string): Promise<ShareLink | undefined> {
+    const [shareLink] = await db.select()
+      .from(shareLinks)
+      .where(eq(shareLinks.shareCode, shareCode));
+    
+    // Check if the link has expired
+    if (shareLink && shareLink.expiresAt) {
+      const expiryDate = new Date(shareLink.expiresAt);
+      if (expiryDate < new Date()) {
+        return undefined; // Link has expired
+      }
+    }
+    
+    return shareLink;
+  }
+  
+  async getShareLinksByItemId(itemId: number): Promise<ShareLink[]> {
+    return await db.select()
+      .from(shareLinks)
+      .where(eq(shareLinks.itemId, itemId));
+  }
+  
+  async deleteShareLink(id: number): Promise<boolean> {
+    try {
+      const deleted = await db.delete(shareLinks)
+        .where(eq(shareLinks.id, id))
+        .returning();
+      
+      return deleted.length > 0;
+    } catch (error) {
+      console.error("Error deleting share link:", error);
+      return false;
+    }
+  }
+  
+  async incrementShareLinkClicks(shareCode: string): Promise<void> {
+    const shareLink = await this.getShareLinkByCode(shareCode);
+    if (!shareLink) return;
+    
+    await db.update(shareLinks)
+      .set({ clicks: shareLink.clicks + 1 })
+      .where(eq(shareLinks.shareCode, shareCode));
   }
 
   async initialize() {
