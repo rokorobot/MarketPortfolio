@@ -61,6 +61,7 @@ export default function Item() {
   // Get category options from API (combines built-in and custom categories)
   const { data: categoryOptions, isLoading: isLoadingCategories } = useQuery<string[]>({
     queryKey: ['/api/category-options'],
+    initialData: [], // Initialize with empty array to avoid undefined errors
   });
   
   // Debug log category options
@@ -352,9 +353,26 @@ export default function Item() {
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
+                                {/* Hard-coded categories first for testing */}
+                                <SelectItem value="Test Category">Test Category</SelectItem>
+                                <SelectItem value="Robot Face">Robot Face</SelectItem>
+                                <SelectItem value="Digital Art">Digital Art</SelectItem>
+                                <SelectItem value="Photography">Photography</SelectItem>
+                                <SelectItem value="3D Models">3D Models</SelectItem>
+                                <SelectItem value="Music">Music</SelectItem>
+                                <SelectItem value="Collectibles">Collectibles</SelectItem>
+                                <SelectItem value="Gaming Assets">Gaming Assets</SelectItem>
+                                
+                                {/* Map dynamic categories if the above doesn't work */}
+                                {categoryOptions && categoryOptions.length > 0 && (
+                                  <SelectItem value="__DIVIDER__" disabled>
+                                    ───────────────
+                                  </SelectItem>
+                                )}
+                                
                                 {categoryOptions?.map((category) => (
-                                  <SelectItem key={category} value={category}>
-                                    {category}
+                                  <SelectItem key={`dynamic-${category}`} value={category}>
+                                    {category} (Dynamic)
                                   </SelectItem>
                                 ))}
                               </SelectContent>
