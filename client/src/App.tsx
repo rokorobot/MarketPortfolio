@@ -6,13 +6,21 @@ import Home from "@/pages/home";
 import Item from "@/pages/item";
 import AddItem from "@/pages/add-item";
 import NotFound from "@/pages/not-found";
+import LoginPage from "@/pages/login";
+import { AuthProvider } from "@/hooks/use-auth";
+import { ProtectedRoute } from "@/components/protected-route";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/item/:id" component={Item} />
-      <Route path="/add" component={AddItem} />
+      <Route path="/login" component={LoginPage} />
+      <Route path="/add-item">
+        <ProtectedRoute requireAdmin>
+          <AddItem />
+        </ProtectedRoute>
+      </Route>
       <Route component={NotFound} />
     </Switch>
   );
@@ -21,8 +29,10 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router />
-      <Toaster />
+      <AuthProvider>
+        <Router />
+        <Toaster />
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
