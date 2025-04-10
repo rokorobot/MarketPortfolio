@@ -1,13 +1,13 @@
 .grey {
-  /* Background colors - making it more noticeably grey */
-  --background: 220 20% 85%;
-  --foreground: 220 10% 20%;
+  /* Background colors - making it darker grey */
+  --background: 220 15% 55%;
+  --foreground: 220 10% 15%;
   
   /* Card and component colors */
-  --card: 220 15% 90%;
+  --card: 220 15% 75%;
   --card-foreground: 220 10% 15%;
   
-  --popover: 220 15% 90%;
+  --popover: 220 15% 75%;
   --popover-foreground: 220 10% 15%;
   
   /* Primary and secondary colors */

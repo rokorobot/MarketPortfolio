@@ -49,13 +49,13 @@
   }
 
   .grey {
-    --background: 220 20% 85%;
-    --foreground: 220 10% 20%;
+    --background: 220 15% 55%;
+    --foreground: 220 10% 15%;
     
-    --card: 220 15% 90%;
+    --card: 220 15% 75%;
     --card-foreground: 220 10% 15%;
     
-    --popover: 220 15% 90%;
+    --popover: 220 15% 75%;
     --popover-foreground: 220 10% 15%;
     
     --primary: 220 70% 50%;
