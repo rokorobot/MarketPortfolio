@@ -327,6 +327,7 @@ export function registerRoutes(app: Express) {
       const updateData = {
         title: req.body.title || existingItem.title,
         description: req.body.description || existingItem.description,
+        author: req.body.author !== undefined ? req.body.author : existingItem.author, // Handle null/empty author values
         category: req.body.category || existingItem.category,
         tags: req.body.tags || existingItem.tags,
         marketplaceUrl1: req.body.marketplaceUrl1 || existingItem.marketplaceUrl1,
