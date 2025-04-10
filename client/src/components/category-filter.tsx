@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
-import type { Category } from "@shared/schema";
+import type { CategoryModel } from "@shared/schema";
 
 interface CategoryFilterProps {
   selectedCategory: string | null;
@@ -8,11 +8,19 @@ interface CategoryFilterProps {
 }
 
 export function CategoryFilter({ selectedCategory, onCategorySelect }: CategoryFilterProps) {
-  const { data: categories } = useQuery<Category[]>({
+  // Get categories from the database
+  const { data: categories, isLoading } = useQuery<CategoryModel[]>({
     queryKey: ["/api/categories"],
+    initialData: [], // Default to empty array if no data
   });
 
-  if (!categories) return null;
+  // Get category options (hardcoded + from database)
+  const { data: categoryOptions } = useQuery<string[]>({
+    queryKey: ["/api/category-options"],
+    initialData: [], // Default to empty array if no data
+  });
+
+  if (isLoading || (!categories && !categoryOptions)) return null;
 
   return (
     <div className="flex gap-2 flex-wrap mb-6">
@@ -22,7 +30,7 @@ export function CategoryFilter({ selectedCategory, onCategorySelect }: CategoryF
       >
         All
       </Button>
-      {categories.map((category) => (
+      {categoryOptions?.map((category) => (
         <Button
           key={category}
           variant={selectedCategory === category ? "default" : "outline"}

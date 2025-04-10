@@ -159,8 +159,23 @@ export function registerRoutes(app: Express) {
   });
 
   // Get all category options for the dropdown menu
-  app.get("/api/category-options", (_req, res) => {
-    res.json(PORTFOLIO_CATEGORIES);
+  app.get("/api/category-options", async (_req, res) => {
+    try {
+      // Get all categories from the database
+      const categories = await storage.getCategories();
+      
+      // Extract the category names
+      const categoryNames = categories.map(cat => cat.name);
+      
+      // Combine with built-in categories
+      const allCategoryOptions = Array.from(new Set([...categoryNames, ...PORTFOLIO_CATEGORIES]));
+      
+      res.json(allCategoryOptions);
+    } catch (error) {
+      console.error("Error fetching category options:", error);
+      // Fallback to built-in categories if database query fails
+      res.json(PORTFOLIO_CATEGORIES);
+    }
   });
   
   // Get all categories from the database
