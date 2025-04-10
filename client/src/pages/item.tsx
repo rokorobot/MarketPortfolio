@@ -4,7 +4,7 @@ import { Layout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ExternalLink, Tag, Trash2, Share2 } from "lucide-react";
+import { ExternalLink, Tag, Trash2, Share2, Twitter } from "lucide-react";
 import type { PortfolioItem } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -112,16 +112,33 @@ export default function Item() {
                     </Badge>
                   </div>
                   <div className="flex space-x-2">
+                    {/* Share on X button */}
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        const text = `Check out "${item.title}" in this portfolio`;
+                        const url = window.location.href;
+                        const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+                        window.open(shareUrl, '_blank', 'noopener,noreferrer');
+                      }}
+                      title="Share on X (Twitter)"
+                    >
+                      <Twitter className="h-4 w-4" />
+                    </Button>
+                    
                     {/* Share button - only shows for logged in users */}
                     {user && (
                       <Button 
                         variant="outline" 
-                        size="icon" 
+                        size="icon"
+                        title="Custom Sharing Options" 
                         onClick={() => document.getElementById('share-tab')?.click()}
                       >
                         <Share2 className="h-4 w-4" />
                       </Button>
                     )}
+                    
                     {/* Delete button - only shows for admins */}
                     {isAdmin && (
                       <AlertDialog>

@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, Tag, Eye } from "lucide-react";
+import { ExternalLink, Tag, Eye, Twitter } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
@@ -166,12 +166,27 @@ export default function SharePage() {
                 <Separator className="my-8" />
                 
                 {/* View original link */}
-                <div className="text-center">
+                <div className="flex flex-col space-y-3 items-center">
                   <Link href={`/item/${item.id}`}>
                     <Button variant="outline">
                       View Original Item
                     </Button>
                   </Link>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const text = `Check out "${title}" in this portfolio`;
+                      const url = window.location.href;
+                      const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+                      window.open(shareUrl, '_blank', 'noopener,noreferrer');
+                    }}
+                    className="mt-2"
+                  >
+                    <Twitter className="h-4 w-4 mr-2" />
+                    Share on X
+                  </Button>
                 </div>
               </div>
             </div>
