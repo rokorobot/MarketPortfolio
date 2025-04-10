@@ -59,9 +59,14 @@ export default function Item() {
   });
 
   // Get category options from API (combines built-in and custom categories)
-  const { data: categoryOptions } = useQuery<string[]>({
+  const { data: categoryOptions, isLoading: isLoadingCategories } = useQuery<string[]>({
     queryKey: ['/api/category-options'],
   });
+  
+  // Debug log category options
+  React.useEffect(() => {
+    console.log("Category options loaded:", categoryOptions);
+  }, [categoryOptions]);
   
   // Define form schema for editing
   const formSchema = z.object({
