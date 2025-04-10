@@ -26,9 +26,9 @@ export function ShareImageGenerator({ item }: ShareImageGeneratorProps) {
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
       
-      // Canvas dimensions
+      // Canvas dimensions - Use a more square aspect ratio for better social sharing
       const width = 1200;
-      const height = 630;
+      const height = 1200;
       canvas.width = width;
       canvas.height = height;
       
@@ -55,46 +55,44 @@ export function ShareImageGenerator({ item }: ShareImageGeneratorProps) {
       });
       
       // Calculate image position and size to maintain aspect ratio
-      const imageWidth = 500;
-      const imgAspectRatio = img.width / img.height;
-      const imageHeight = imageWidth / imgAspectRatio;
-      const imageX = 50;
-      const imageY = (height - imageHeight) / 2;
+      const maxImageWidth = width - 120; // Padding on both sides
+      const maxImageHeight = height - 220; // Leave room for title and footer
       
-      // Draw image with a border
-      ctx.fillStyle = "#fff";
+      const imgAspectRatio = img.width / img.height;
+      let imageWidth, imageHeight;
+      
+      if (imgAspectRatio > 1) {
+        // Landscape image
+        imageWidth = maxImageWidth;
+        imageHeight = imageWidth / imgAspectRatio;
+      } else {
+        // Portrait or square image
+        imageHeight = maxImageHeight;
+        imageWidth = imageHeight * imgAspectRatio;
+      }
+      
+      // Center the image
+      const imageX = (width - imageWidth) / 2;
+      const imageY = (height - imageHeight - 100) / 2; // Adjust to move up slightly to make room for title
+      
+      // Draw image with a subtle border
+      ctx.fillStyle = "#222";
       ctx.fillRect(imageX - 5, imageY - 5, imageWidth + 10, imageHeight + 10);
       ctx.drawImage(img, imageX, imageY, imageWidth, imageHeight);
       
-      // Title
+      // Title at the bottom
       ctx.font = "bold 48px system-ui, sans-serif";
       ctx.fillStyle = "#fff";
       ctx.textBaseline = "top";
-      wrapText(ctx, item.title, 600, 100, width - 650, 60);
-      
-      // Description
-      ctx.font = "24px system-ui, sans-serif";
-      ctx.fillStyle = "#aaa";
-      wrapText(ctx, item.description, 600, 240, width - 650, 30);
-      
-      // Category
-      ctx.font = "bold 30px system-ui, sans-serif";
-      ctx.fillStyle = "#9333ea";
-      ctx.fillText(`#${item.category.replace(/\s+/g, "")}`, 600, 400);
-      
-      // Tags
-      if (item.tags && item.tags.length > 0) {
-        ctx.font = "20px system-ui, sans-serif";
-        ctx.fillStyle = "#666";
-        let tagText = item.tags.map(tag => `#${tag.replace(/\s+/g, "")}`).join("  ");
-        wrapText(ctx, tagText, 600, 450, width - 650, 30);
-      }
+      ctx.textAlign = "center";
+      wrapText(ctx, item.title, width / 2, imageY + imageHeight + 30, width - 100, 60);
       
       // Footer with website URL
-      ctx.font = "22px system-ui, sans-serif";
+      ctx.font = "24px system-ui, sans-serif";
       ctx.fillStyle = "#666";
       ctx.textBaseline = "bottom";
-      ctx.fillText(window.location.host, 600, height - 50);
+      ctx.textAlign = "center";
+      ctx.fillText(window.location.host, width / 2, height - 30);
       
       // Convert canvas to image URL
       const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
@@ -116,6 +114,7 @@ export function ShareImageGenerator({ item }: ShareImageGeneratorProps) {
     const words = text.split(" ");
     let line = "";
     let dy = 0;
+    const originalTextAlign = ctx.textAlign;
     
     for (let i = 0; i < words.length; i++) {
       const testLine = line + words[i] + " ";
@@ -163,7 +162,7 @@ export function ShareImageGenerator({ item }: ShareImageGeneratorProps) {
         <DialogTrigger asChild>
           <Button variant="outline" className="w-full mt-4">
             <Share className="mr-2 h-4 w-4" />
-            Create Shareable Image
+            Generate Shareable Image Card
           </Button>
         </DialogTrigger>
         
