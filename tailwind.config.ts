@@ -1,7 +1,14 @@
 import type { Config } from "tailwindcss";
 
 export default {
-  darkMode: ["class"],
+  darkMode: ["class", '[class="dark"]'],
+  variants: {
+    extend: {
+      backgroundColor: ['dark', 'grey'],
+      textColor: ['dark', 'grey'],
+      borderColor: ['dark', 'grey']
+    },
+  },
   content: ["./client/index.html", "./client/src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
@@ -86,5 +93,11 @@ export default {
       },
     },
   },
-  plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
+  plugins: [
+    require("tailwindcss-animate"), 
+    require("@tailwindcss/typography"),
+    function({ addVariant }) {
+      addVariant('grey', '.grey &');
+    },
+  ],
 } satisfies Config;
