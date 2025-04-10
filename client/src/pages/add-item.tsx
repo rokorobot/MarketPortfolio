@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -26,7 +26,8 @@ import {
 import { insertPortfolioItemSchema, type InsertPortfolioItem, type Category } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Image, Upload, Loader2 } from "lucide-react";
+import { Image, Upload, Loader2, TagIcon } from "lucide-react";
+import { TagInput } from "@/components/tag-input";
 
 export default function AddItem() {
   const [, navigate] = useLocation();
@@ -34,6 +35,9 @@ export default function AddItem() {
   const [uploading, setUploading] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagSuggestions, setTagSuggestions] = useState<string[]>([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
   const form = useForm<InsertPortfolioItem>({
     resolver: zodResolver(insertPortfolioItemSchema),
@@ -127,6 +131,66 @@ export default function AddItem() {
       setUploading(false);
     }
   };
+  
+  const generateTagSuggestions = async () => {
+    // Check if there's enough content to generate meaningful tags
+    const title = form.getValues("title");
+    const description = form.getValues("description");
+    const imagePath = uploadedImage;
+    
+    if (!title && !description && !imagePath) {
+      toast({
+        title: "Missing content",
+        description: "Please add a title, description, or upload an image first.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setLoadingSuggestions(true);
+    
+    try {
+      const response = await fetch("/api/suggest-tags", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title,
+          description,
+          imagePath,
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to generate tag suggestions");
+      }
+      
+      const data = await response.json();
+      
+      if (Array.isArray(data.tags) && data.tags.length > 0) {
+        setTagSuggestions(data.tags);
+        toast({
+          title: "Suggestions generated",
+          description: "Tag suggestions have been generated based on your content.",
+        });
+      } else {
+        toast({
+          title: "No suggestions found",
+          description: "Couldn't generate tag suggestions. Try adding more details or a different image.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error generating suggestions",
+        description: error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingSuggestions(false);
+    }
+  };
 
   const triggerFileInput = () => {
     if (fileInputRef.current) {
@@ -135,7 +199,12 @@ export default function AddItem() {
   };
 
   async function onSubmit(data: InsertPortfolioItem) {
-    createItemMutation.mutate(data);
+    // Include tags in the submission
+    const itemWithTags = {
+      ...data,
+      tags: tags,
+    };
+    createItemMutation.mutate(itemWithTags);
   }
 
   return (
@@ -261,6 +330,24 @@ export default function AddItem() {
                 </FormItem>
               )}
             />
+            
+            <FormItem>
+              <FormLabel className="flex items-center gap-2">
+                <TagIcon className="h-4 w-4" />
+                Tags
+              </FormLabel>
+              <TagInput
+                value={tags}
+                onChange={setTags}
+                suggestions={tagSuggestions}
+                onRequestSuggestions={generateTagSuggestions}
+                isLoading={loadingSuggestions}
+                disabled={createItemMutation.isPending}
+              />
+              <FormDescription>
+                Add tags to make your portfolio item more discoverable. Tags help categorize and find your work.
+              </FormDescription>
+            </FormItem>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-4">

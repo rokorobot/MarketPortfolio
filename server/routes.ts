@@ -5,6 +5,7 @@ import { PORTFOLIO_CATEGORIES, insertPortfolioItemSchema } from "@shared/schema"
 import { UploadedFile } from "express-fileupload";
 import path from "path";
 import crypto from "crypto";
+import { generateTagsFromImage, generateTagsFromText } from "./openai-service";
 
 // Type definition for the extended request with files
 interface FileRequest extends Request {
@@ -68,6 +69,31 @@ export function registerRoutes(app: Express) {
       });
     } catch (error) {
       res.status(500).json({ message: "Error processing upload", error });
+    }
+  });
+
+  // API endpoint for tag suggestions from image
+  app.post("/api/suggest-tags", async (req, res) => {
+    try {
+      const { imagePath, title, description } = req.body;
+      
+      if (!imagePath) {
+        // If no image is provided, generate tags based on text only
+        if (!title && !description) {
+          return res.status(400).json({ message: "No content provided for tag suggestions" });
+        }
+        
+        const tags = await generateTagsFromText(title || "", description || "");
+        return res.json({ tags });
+      }
+      
+      // If image path is provided, use it for tag generation along with text
+      const absoluteImagePath = path.join(process.cwd(), imagePath.replace(/^\//, ''));
+      const tags = await generateTagsFromImage(absoluteImagePath, title || "", description || "");
+      res.json({ tags });
+    } catch (error) {
+      console.error("Error suggesting tags:", error);
+      res.status(500).json({ message: "Error generating tag suggestions" });
     }
   });
 
