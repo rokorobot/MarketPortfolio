@@ -4,7 +4,7 @@ import { Layout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ExternalLink, Tag, Trash2 } from "lucide-react";
+import { ExternalLink, Tag, Trash2, Share2 } from "lucide-react";
 import type { PortfolioItem } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -21,6 +21,8 @@ import {
   AlertDialogTrigger
 } from "@/components/ui/alert-dialog";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ShareLinkGenerator } from "@/components/share-link-generator";
 
 export default function Item() {
   const [, params] = useRoute("/item/:id");
@@ -79,9 +81,11 @@ export default function Item() {
 
   if (!item) return null;
 
+  const { user } = useAuth(); // Get user data to check if logged in
+
   return (
     <Layout>
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-6xl mx-auto space-y-6">
         <Card>
           <CardContent className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
@@ -107,33 +111,46 @@ export default function Item() {
                       {item.category}
                     </Badge>
                   </div>
-                  {isAdmin && (
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="outline" size="icon" className="text-destructive hover:bg-destructive/10">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Delete Portfolio Item</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Are you sure you want to delete "{item.title}"? This action cannot be undone.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction 
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            onClick={() => deleteItemMutation.mutate()}
-                            disabled={deleteItemMutation.isPending}
-                          >
-                            {deleteItemMutation.isPending ? "Deleting..." : "Delete"}
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  )}
+                  <div className="flex space-x-2">
+                    {/* Share button - only shows for logged in users */}
+                    {user && (
+                      <Button 
+                        variant="outline" 
+                        size="icon" 
+                        onClick={() => document.getElementById('share-tab')?.click()}
+                      >
+                        <Share2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                    {/* Delete button - only shows for admins */}
+                    {isAdmin && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="outline" size="icon" className="text-destructive hover:bg-destructive/10">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Portfolio Item</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete "{item.title}"? This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction 
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              onClick={() => deleteItemMutation.mutate()}
+                              disabled={deleteItemMutation.isPending}
+                            >
+                              {deleteItemMutation.isPending ? "Deleting..." : "Delete"}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
+                  </div>
                 </div>
 
                 {/* Description */}
@@ -180,6 +197,26 @@ export default function Item() {
             </div>
           </CardContent>
         </Card>
+        
+        {/* Share Link Generator Section (for logged in users only) */}
+        {user && (
+          <Tabs defaultValue="details" className="w-full">
+            <div className="flex justify-center mb-4">
+              <TabsList>
+                <TabsTrigger value="details">Details</TabsTrigger>
+                <TabsTrigger value="share" id="share-tab">Share Options</TabsTrigger>
+              </TabsList>
+            </div>
+            
+            <TabsContent value="details">
+              {/* No content needed for details tab as it's already displayed above */}
+            </TabsContent>
+            
+            <TabsContent value="share">
+              <ShareLinkGenerator item={item} />
+            </TabsContent>
+          </Tabs>
+        )}
       </div>
     </Layout>
   );

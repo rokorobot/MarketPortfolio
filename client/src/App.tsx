@@ -7,6 +7,7 @@ import Item from "@/pages/item";
 import AddItem from "@/pages/add-item";
 import NotFound from "@/pages/not-found";
 import LoginPage from "@/pages/login";
+import SharePage from "@/pages/share";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/components/protected-route";
 
@@ -15,6 +16,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/item/:id" component={Item} />
+      <Route path="/share/:shareCode" component={SharePage} />
       <Route path="/login" component={LoginPage} />
       <Route path="/add-item">
         <ProtectedRoute requireAdmin>
