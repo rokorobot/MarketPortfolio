@@ -9,6 +9,7 @@ import { ExternalLink, Tag, Eye, Twitter } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
+import { ShareImageGenerator } from "@/components/share-image-generator";
 
 interface SharedItem {
   id: number;
@@ -175,7 +176,6 @@ export default function SharePage() {
                   
                   <Button
                     variant="outline"
-                    size="sm"
                     onClick={() => {
                       const text = `Check out "${title}" in this portfolio`;
                       const url = window.location.href;
@@ -187,6 +187,13 @@ export default function SharePage() {
                     <Twitter className="h-4 w-4 mr-2" />
                     Share on X
                   </Button>
+                  
+                  <ShareImageGenerator item={{
+                    ...item,
+                    title,
+                    description,
+                    imageUrl
+                  }} />
                 </div>
               </div>
             </div>

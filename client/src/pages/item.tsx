@@ -23,6 +23,7 @@ import {
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ShareLinkGenerator } from "@/components/share-link-generator";
+import { ShareImageGenerator } from "@/components/share-image-generator";
 
 export default function Item() {
   const [, params] = useRoute("/item/:id");
@@ -228,7 +229,24 @@ export default function Item() {
             </TabsContent>
             
             <TabsContent value="share">
-              <ShareLinkGenerator item={item} />
+              <div className="space-y-6">
+                <Card>
+                  <CardContent className="p-6">
+                    <h3 className="text-lg font-semibold mb-4">Create Custom Share Link</h3>
+                    <ShareLinkGenerator item={item} />
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardContent className="p-6">
+                    <h3 className="text-lg font-semibold mb-4">Create Shareable Image Card</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Generate a custom image card that combines the portfolio item image with details for sharing on social media platforms.
+                    </p>
+                    <ShareImageGenerator item={item} />
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
           </Tabs>
         )}
