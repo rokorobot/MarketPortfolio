@@ -7,6 +7,7 @@ export const portfolioItems = pgTable("portfolio_items", {
   title: text("title").notNull(),
   description: text("description").notNull(),
   author: text("author"),
+  authorUrl: text("author_url"),
   imageUrl: text("image_url").notNull(),
   category: text("category").notNull(),
   tags: text("tags").array(),

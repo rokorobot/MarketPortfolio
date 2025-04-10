@@ -16,6 +16,7 @@ interface SharedItem {
   title: string;
   description: string;
   author: string | null;
+  authorUrl: string | null;
   imageUrl: string;
   category: string;
   tags: string[] | null;
@@ -202,7 +203,8 @@ export default function SharePage() {
                     title,
                     description,
                     imageUrl,
-                    author: item.author || null
+                    author: item.author || null,
+                    authorUrl: item.authorUrl || null
                   }} />
                 </div>
               </div>
