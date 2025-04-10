@@ -251,7 +251,7 @@ export default function AddItem() {
                 <FormItem>
                   <FormLabel>Author</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="Creator or artist name" />
+                    <Input {...field} placeholder="Creator or artist name" value={field.value || ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

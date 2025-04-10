@@ -79,6 +79,7 @@ export default function Item() {
   const formSchema = z.object({
     title: z.string().min(1, { message: "Title is required" }),
     description: z.string().min(1, { message: "Description is required" }),
+    author: z.string().optional().nullable(),
     category: z.string().min(1, { message: "Category is required" }),
     tags: z.array(z.string()).optional().nullable(),
     imageUrl: z.string().optional(),

@@ -15,6 +15,7 @@ interface SharedItem {
   id: number;
   title: string;
   description: string;
+  author: string | null;
   imageUrl: string;
   category: string;
   tags: string[] | null;
@@ -129,6 +130,14 @@ export default function SharePage() {
                   <p className="text-muted-foreground">{description}</p>
                 </div>
                 
+                {/* Author */}
+                {item.author && (
+                  <div className="mt-6">
+                    <h3 className="text-sm font-medium mb-2">Author</h3>
+                    <p className="text-muted-foreground font-medium">{item.author}</p>
+                  </div>
+                )}
+                
                 {/* Tags */}
                 {item.tags && item.tags.length > 0 && (
                   <div className="mt-6">
@@ -192,7 +201,8 @@ export default function SharePage() {
                     ...item,
                     title,
                     description,
-                    imageUrl
+                    imageUrl,
+                    author: item.author || null
                   }} />
                 </div>
               </div>
