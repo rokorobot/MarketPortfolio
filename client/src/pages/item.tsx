@@ -95,6 +95,7 @@ export default function Item() {
     defaultValues: {
       title: item?.title || "",
       description: item?.description || "",
+      author: item?.author || "",
       category: item?.category || "",
       tags: item?.tags || [],
       marketplaceUrl1: item?.marketplaceUrl1 || "",
@@ -110,6 +111,7 @@ export default function Item() {
       form.reset({
         title: item.title,
         description: item.description,
+        author: item.author || "",
         category: item.category,
         tags: item.tags,
         imageUrl: item.imageUrl, // Add imageUrl to form values
