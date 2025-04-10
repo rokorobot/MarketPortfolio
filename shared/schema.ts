@@ -94,6 +94,8 @@ export const categories = pgTable("categories", {
 export const insertCategorySchema = createInsertSchema(categories).omit({
   id: true,
   createdAt: true,
+}).extend({
+  createdById: z.number().optional(), // Make optional for client-side usage, server will set it
 });
 
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
