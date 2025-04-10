@@ -40,13 +40,14 @@ export function registerRoutes(app: Express) {
   });
 
   // Upload image endpoint
-  app.post("/api/upload", function(req: FileRequest, res: Response) {
+  app.post("/api/upload", (req: Request, res: Response) => {
     try {
-      if (!req.files || !req.files.image) {
+      const filesReq = req as FileRequest;
+      if (!filesReq.files || !filesReq.files.image) {
         return res.status(400).json({ message: "No file uploaded" });
       }
       
-      const imageFile = req.files.image as UploadedFile;
+      const imageFile = filesReq.files.image as UploadedFile;
       
       // Generate unique filename
       const fileExtension = path.extname(imageFile.name);

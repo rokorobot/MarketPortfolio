@@ -271,7 +271,11 @@ export default function AddItem() {
                     <FormItem>
                       <FormLabel>Primary Marketplace Name</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="e.g., OpenSea" />
+                        <Input 
+                          {...field} 
+                          placeholder="e.g., OpenSea" 
+                          value={field.value || ''} 
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -285,7 +289,12 @@ export default function AddItem() {
                     <FormItem>
                       <FormLabel>Primary Marketplace URL</FormLabel>
                       <FormControl>
-                        <Input {...field} type="url" placeholder="https://..." />
+                        <Input 
+                          {...field} 
+                          type="url" 
+                          placeholder="https://..." 
+                          value={field.value || ''} 
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -301,7 +310,11 @@ export default function AddItem() {
                     <FormItem>
                       <FormLabel>Secondary Marketplace Name</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="e.g., Foundation" />
+                        <Input 
+                          {...field} 
+                          placeholder="e.g., Foundation" 
+                          value={field.value || ''} 
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -315,7 +328,12 @@ export default function AddItem() {
                     <FormItem>
                       <FormLabel>Secondary Marketplace URL</FormLabel>
                       <FormControl>
-                        <Input {...field} type="url" placeholder="https://..." />
+                        <Input 
+                          {...field} 
+                          type="url" 
+                          placeholder="https://..." 
+                          value={field.value || ''} 
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
