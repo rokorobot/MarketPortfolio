@@ -1,4 +1,4 @@
-import { portfolioItems, type PortfolioItem, type InsertPortfolioItem, users, type User, type InsertUser, shareLinks, type ShareLink, type InsertShareLink, categories, type Category, type InsertCategory } from "@shared/schema";
+import { portfolioItems, type PortfolioItem, type InsertPortfolioItem, users, type User, type InsertUser, shareLinks, type ShareLink, type InsertShareLink, categories, type CategoryModel, type InsertCategory } from "@shared/schema";
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
@@ -40,6 +40,14 @@ export interface IStorage {
   getShareLinksByItemId(itemId: number): Promise<ShareLink[]>;
   deleteShareLink(id: number): Promise<boolean>;
   incrementShareLinkClicks(shareCode: string): Promise<void>;
+  
+  // Categories
+  getCategories(): Promise<CategoryModel[]>;
+  getCategory(id: number): Promise<CategoryModel | undefined>;
+  getCategoryByName(name: string): Promise<CategoryModel | undefined>;
+  createCategory(category: InsertCategory): Promise<CategoryModel>;
+  updateCategory(id: number, category: Partial<CategoryModel>): Promise<CategoryModel>;
+  deleteCategory(id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -177,6 +185,52 @@ export class DatabaseStorage implements IStorage {
     await db.update(shareLinks)
       .set({ clicks: shareLink.clicks + 1 })
       .where(eq(shareLinks.shareCode, shareCode));
+  }
+  
+  // Category methods
+  async getCategories(): Promise<CategoryModel[]> {
+    return await db.select().from(categories);
+  }
+  
+  async getCategory(id: number): Promise<CategoryModel | undefined> {
+    const [category] = await db.select().from(categories).where(eq(categories.id, id));
+    return category;
+  }
+  
+  async getCategoryByName(name: string): Promise<CategoryModel | undefined> {
+    const [category] = await db.select().from(categories).where(eq(categories.name, name));
+    return category;
+  }
+  
+  async createCategory(category: InsertCategory): Promise<CategoryModel> {
+    const [newCategory] = await db.insert(categories).values(category).returning();
+    return newCategory;
+  }
+  
+  async updateCategory(id: number, categoryData: Partial<CategoryModel>): Promise<CategoryModel> {
+    // Clean up any unwanted properties that shouldn't be updated (like id)
+    const { id: _, ...dataToUpdate } = categoryData as any;
+    
+    // Update the category
+    const [updatedCategory] = await db.update(categories)
+      .set(dataToUpdate)
+      .where(eq(categories.id, id))
+      .returning();
+    
+    return updatedCategory;
+  }
+  
+  async deleteCategory(id: number): Promise<boolean> {
+    try {
+      const deleted = await db.delete(categories)
+        .where(eq(categories.id, id))
+        .returning();
+      
+      return deleted.length > 0;
+    } catch (error) {
+      console.error("Error deleting category:", error);
+      return false;
+    }
   }
 
   async initialize() {

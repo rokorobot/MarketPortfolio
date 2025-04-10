@@ -97,4 +97,4 @@ export const insertCategorySchema = createInsertSchema(categories).omit({
 });
 
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
-export type Category = typeof categories.$inferSelect;
+export type CategoryModel = typeof categories.$inferSelect;
