@@ -44,10 +44,17 @@ export function ShareLinkGenerator({ item }: ShareLinkGeneratorProps) {
         customTitle: customTitle || null,
         customDescription: customDescription || null,
         customImageUrl: customImageUrl || null,
-        expiresAt: expiryDate ? new Date(expiryDate).toISOString() : null
+        expiresAt: expiryDate ? new Date(expiryDate).toISOString() : null,
+        // shareCode is intentionally omitted as it will be generated server-side
       };
       
       const res = await apiRequest("POST", "/api/share-links", shareData);
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to create share link");
+      }
+      
       return await res.json();
     },
     onSuccess: () => {

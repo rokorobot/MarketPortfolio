@@ -73,6 +73,10 @@ export const insertShareLinkSchema = createInsertSchema(shareLinks).omit({
   id: true,
   createdAt: true,
   clicks: true,
+})
+.extend({
+  // Make shareCode optional since we will generate it on the server if not provided
+  shareCode: z.string().optional(),
 });
 
 export type InsertShareLink = z.infer<typeof insertShareLinkSchema>;

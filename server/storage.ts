@@ -104,13 +104,18 @@ export class DatabaseStorage implements IStorage {
   
   // Share links methods
   async createShareLink(shareLink: InsertShareLink): Promise<ShareLink> {
-    // Create a unique share code if not provided
-    if (!shareLink.shareCode) {
-      shareLink.shareCode = randomBytes(6).toString('hex');
-    }
+    // Prepare the data to insert with a share code
+    const dataToInsert = {
+      itemId: shareLink.itemId,
+      shareCode: shareLink.shareCode || randomBytes(6).toString('hex'),
+      customTitle: shareLink.customTitle,
+      customDescription: shareLink.customDescription,
+      customImageUrl: shareLink.customImageUrl,
+      expiresAt: shareLink.expiresAt
+    };
     
     const [newShareLink] = await db.insert(shareLinks)
-      .values(shareLink)
+      .values(dataToInsert)
       .returning();
       
     return newShareLink;
