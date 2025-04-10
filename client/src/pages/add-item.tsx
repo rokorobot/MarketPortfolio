@@ -55,6 +55,8 @@ export default function AddItem() {
 
   const { data: categories } = useQuery<string[]>({
     queryKey: ["/api/category-options"],
+    // Default to empty array if no data
+    initialData: [],
   });
 
   const createItemMutation = useMutation({
