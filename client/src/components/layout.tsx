@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Plus, UserCircle, LogOut, FolderPlus } from "lucide-react";
+import { Plus, UserCircle, LogOut, FolderPlus, Settings } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { 
   DropdownMenu,
@@ -57,6 +57,17 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   <DropdownMenuItem disabled>
                     Role: {user.role}
                   </DropdownMenuItem>
+                  
+                  {isAdmin && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => navigate("/manage-categories")}>
+                        <Settings className="h-4 w-4 mr-2" />
+                        Manage Categories
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout}>
                     <LogOut className="h-4 w-4 mr-2" />

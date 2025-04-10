@@ -6,6 +6,7 @@ import Home from "@/pages/home";
 import Item from "@/pages/item";
 import AddItem from "@/pages/add-item";
 import AddCollection from "@/pages/add-collection";
+import ManageCategories from "@/pages/manage-categories";
 import NotFound from "@/pages/not-found";
 import LoginPage from "@/pages/login";
 import SharePage from "@/pages/share";
@@ -27,6 +28,11 @@ function Router() {
       <Route path="/add-collection">
         <ProtectedRoute requireAdmin>
           <AddCollection />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/manage-categories">
+        <ProtectedRoute requireAdmin>
+          <ManageCategories />
         </ProtectedRoute>
       </Route>
       <Route component={NotFound} />
