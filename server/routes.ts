@@ -9,6 +9,15 @@ import { generateTagsFromImage, generateTagsFromText } from "./openai-service";
 import session from "express-session";
 import { z } from "zod";
 
+// Extend express-session with our custom properties
+declare module 'express-session' {
+  interface SessionData {
+    userId?: number;
+    username?: string;
+    userRole?: string;
+  }
+}
+
 // Type definition for the extended request with files
 interface FileRequest extends Request {
   files?: {
@@ -16,7 +25,127 @@ interface FileRequest extends Request {
   };
 }
 
+// Session-enabled request type
+declare global {
+  namespace Express {
+    interface User {
+      id: number;
+      username: string;
+      role: string;
+    }
+  }
+}
+
+// Auth middleware
+function requireAuth(req: Request, res: Response, next: NextFunction) {
+  if (req.session && req.session.userId) {
+    return next();
+  }
+  return res.status(401).json({ message: "Authentication required" });
+}
+
+// Admin role middleware
+function requireAdmin(req: Request, res: Response, next: NextFunction) {
+  if (req.session && req.session.userRole === 'admin') {
+    return next();
+  }
+  return res.status(403).json({ message: "Admin access required" });
+}
+
 export function registerRoutes(app: Express) {
+  // Set up session
+  app.use(session({
+    secret: process.env.SESSION_SECRET || 'portfolio-secret-key',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 1000 * 60 * 60 * 24 // 1 day
+    }
+  }));
+  
+  // Authentication routes
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      if (!username || !password) {
+        return res.status(400).json({ message: "Username and password required" });
+      }
+      
+      const user = await storage.validateUser(username, password);
+      if (!user) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+      
+      // Set session data
+      req.session.userId = user.id;
+      req.session.username = user.username;
+      req.session.userRole = user.role;
+      
+      return res.json({
+        id: user.id,
+        username: user.username,
+        role: user.role
+      });
+    } catch (error) {
+      console.error("Login error:", error);
+      return res.status(500).json({ message: "Login failed" });
+    }
+  });
+  
+  app.post("/api/auth/logout", (req, res) => {
+    req.session.destroy((err) => {
+      if (err) {
+        return res.status(500).json({ message: "Logout failed" });
+      }
+      res.clearCookie('connect.sid');
+      return res.json({ message: "Logged out successfully" });
+    });
+  });
+  
+  app.post("/api/auth/register", async (req, res) => {
+    try {
+      // Only admin can create new users
+      if (req.session.userRole !== 'admin') {
+        return res.status(403).json({ message: "Admin access required for registration" });
+      }
+      
+      const userData = insertUserSchema.parse(req.body);
+      const existingUser = await storage.getUserByUsername(userData.username);
+      
+      if (existingUser) {
+        return res.status(400).json({ message: "Username already exists" });
+      }
+      
+      const user = await storage.createUser(userData);
+      return res.status(201).json({
+        id: user.id,
+        username: user.username,
+        role: user.role
+      });
+    } catch (error) {
+      console.error("Registration error:", error);
+      return res.status(400).json({ message: "Invalid user data" });
+    }
+  });
+  
+  app.get("/api/auth/me", async (req, res) => {
+    if (!req.session || !req.session.userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    
+    const user = await storage.getUser(req.session.userId);
+    if (!user) {
+      req.session.destroy(() => {});
+      return res.status(401).json({ message: "User not found" });
+    }
+    
+    return res.json({
+      id: user.id,
+      username: user.username,
+      role: user.role
+    });
+  });
   app.get("/api/items", async (req, res) => {
     const { category } = req.query;
 
@@ -42,8 +171,8 @@ export function registerRoutes(app: Express) {
     res.json(item);
   });
 
-  // Upload image endpoint
-  app.post("/api/upload", (req: Request, res: Response) => {
+  // Upload image endpoint - admin only
+  app.post("/api/upload", requireAuth, requireAdmin, (req: Request, res: Response) => {
     try {
       const filesReq = req as FileRequest;
       if (!filesReq.files || !filesReq.files.image) {
@@ -99,7 +228,7 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  app.post("/api/items", async (req, res) => {
+  app.post("/api/items", requireAuth, requireAdmin, async (req, res) => {
     try {
       const newItem = insertPortfolioItemSchema.parse(req.body);
       const item = await storage.createItem(newItem);
@@ -109,7 +238,7 @@ export function registerRoutes(app: Express) {
     }
   });
   
-  app.delete("/api/items/:id", async (req, res) => {
+  app.delete("/api/items/:id", requireAuth, requireAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
