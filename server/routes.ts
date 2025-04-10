@@ -106,6 +106,30 @@ export function registerRoutes(app: Express) {
       res.status(400).json({ message: "Invalid item data" });
     }
   });
+  
+  app.delete("/api/items/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid item ID" });
+      }
+      
+      const item = await storage.getItem(id);
+      if (!item) {
+        return res.status(404).json({ message: "Item not found" });
+      }
+      
+      const success = await storage.deleteItem(id);
+      if (success) {
+        res.status(200).json({ message: "Item deleted successfully" });
+      } else {
+        res.status(500).json({ message: "Failed to delete item" });
+      }
+    } catch (error) {
+      console.error("Error deleting item:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
 
   return createServer(app);
 }

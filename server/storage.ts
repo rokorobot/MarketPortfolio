@@ -7,6 +7,7 @@ export interface IStorage {
   getItem(id: number): Promise<PortfolioItem | undefined>;
   getItemsByCategory(category: string): Promise<PortfolioItem[]>;
   createItem(item: InsertPortfolioItem): Promise<PortfolioItem>;
+  deleteItem(id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -26,6 +27,19 @@ export class DatabaseStorage implements IStorage {
   async createItem(item: InsertPortfolioItem): Promise<PortfolioItem> {
     const [newItem] = await db.insert(portfolioItems).values(item).returning();
     return newItem;
+  }
+  
+  async deleteItem(id: number): Promise<boolean> {
+    try {
+      const deleted = await db.delete(portfolioItems)
+        .where(eq(portfolioItems.id, id))
+        .returning();
+      
+      return deleted.length > 0;
+    } catch (error) {
+      console.error("Error deleting item:", error);
+      return false;
+    }
   }
 
   // Initialize with sample data
