@@ -10,6 +10,8 @@ import ManageCategories from "@/pages/manage-categories";
 import NotFound from "@/pages/not-found";
 import LoginPage from "@/pages/login";
 import SharePage from "@/pages/share";
+import AboutPage from "@/pages/about";
+import ContactPage from "@/pages/contact";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/components/protected-route";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -21,6 +23,8 @@ function Router() {
       <Route path="/item/:id" component={Item} />
       <Route path="/share/:shareCode" component={SharePage} />
       <Route path="/login" component={LoginPage} />
+      <Route path="/about" component={AboutPage} />
+      <Route path="/contact" component={ContactPage} />
       <Route path="/add-item">
         <ProtectedRoute requireAdmin>
           <AddItem />
