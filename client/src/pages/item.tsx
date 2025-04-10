@@ -4,11 +4,12 @@ import { Layout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ExternalLink, Tag, Trash2, Share2, Twitter, Edit, Save, X, Loader2 } from "lucide-react";
+import { ExternalLink, Tag, Trash2, Share2, Twitter, Edit, Save, X, Loader2, Upload, Image } from "lucide-react";
 import { type PortfolioItem } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
+import { useRef } from "react";
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -53,6 +54,11 @@ export default function Item() {
   const { isAdmin, user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   
+  // Image upload states
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [newImageUrl, setNewImageUrl] = useState<string | null>(null);
+  
   // Get item data
   const { data: item, isLoading } = useQuery<PortfolioItem>({
     queryKey: [`/api/items/${params?.id}`],
@@ -75,6 +81,7 @@ export default function Item() {
     description: z.string().min(1, { message: "Description is required" }),
     category: z.string().min(1, { message: "Category is required" }),
     tags: z.array(z.string()).optional().nullable(),
+    imageUrl: z.string().optional(),
     marketplaceUrl1: z.string().optional().transform(v => v || ""),
     marketplaceUrl2: z.string().optional().transform(v => v || ""),
     marketplaceName1: z.string().optional().transform(v => v || ""),
@@ -104,6 +111,7 @@ export default function Item() {
         description: item.description,
         category: item.category,
         tags: item.tags,
+        imageUrl: item.imageUrl, // Add imageUrl to form values
         marketplaceUrl1: item.marketplaceUrl1 || "",
         marketplaceUrl2: item.marketplaceUrl2 || "",
         marketplaceName1: item.marketplaceName1 || "",
@@ -167,9 +175,74 @@ export default function Item() {
     },
   });
   
+  // Handle image upload
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const file = files[0];
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload a JPEG, PNG, GIF, or WebP image.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Set uploading state
+    setUploading(true);
+    
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to upload image");
+      }
+
+      const data = await response.json();
+      setNewImageUrl(data.imagePath);
+      
+      toast({
+        title: "Upload successful",
+        description: "Your image has been uploaded. Save the item to apply changes.",
+      });
+    } catch (error) {
+      toast({
+        title: "Upload failed",
+        description: error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+  
+  const triggerFileInput = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+  
   // Handle form submission
   function onSubmit(data: z.infer<typeof formSchema>) {
-    updateItemMutation.mutate(data);
+    // If there's a new image, include it in the update
+    if (newImageUrl) {
+      updateItemMutation.mutate({
+        ...data,
+        imageUrl: newImageUrl
+      });
+    } else {
+      updateItemMutation.mutate(data);
+    }
   }
 
   if (isLoading) {
@@ -398,6 +471,64 @@ export default function Item() {
                           </FormItem>
                         )}
                       />
+                      
+                      {/* Image Upload Component */}
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-sm font-medium">Image</h3>
+                          <p className="text-xs text-muted-foreground">
+                            Supported formats: JPG, PNG, GIF, WebP
+                          </p>
+                        </div>
+                        
+                        <div className="flex flex-col space-y-4">
+                          {/* Current Image Preview */}
+                          <div className="relative aspect-[4/3] w-full max-w-md mx-auto overflow-hidden rounded-lg border border-border">
+                            <img 
+                              src={newImageUrl || item.imageUrl} 
+                              alt={item.title} 
+                              className="object-contain w-full h-full"
+                            />
+                          </div>
+                          
+                          {/* Upload Button */}
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="w-full max-w-md mx-auto"
+                            onClick={triggerFileInput}
+                            disabled={uploading}
+                          >
+                            {uploading ? (
+                              <span className="flex items-center">
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Uploading...
+                              </span>
+                            ) : (
+                              <span className="flex items-center">
+                                <Upload className="mr-2 h-4 w-4" />
+                                {newImageUrl ? "Change Image" : "Upload New Image"}
+                              </span>
+                            )}
+                          </Button>
+                          
+                          {/* Hidden File Input */}
+                          <input 
+                            type="file" 
+                            ref={fileInputRef}
+                            className="hidden" 
+                            accept="image/jpeg,image/png,image/gif,image/webp"
+                            onChange={handleFileUpload}
+                          />
+                          
+                          {/* Status Message */}
+                          {newImageUrl && (
+                            <p className="text-sm text-center text-primary">
+                              New image uploaded. Save changes to apply.
+                            </p>
+                          )}
+                        </div>
+                      </div>
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormField
