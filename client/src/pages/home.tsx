@@ -4,7 +4,7 @@ import { CategoryFilter } from "@/components/category-filter";
 import { Layout } from "@/components/layout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, X, User } from "lucide-react";
+import { Search, X, User, Tag } from "lucide-react";
 import type { PortfolioItem } from "@shared/schema";
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
@@ -16,14 +16,23 @@ export default function Home() {
   const [filteredItems, setFilteredItems] = useState<PortfolioItem[]>([]);
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [selectedAuthor, setSelectedAuthor] = useState<string | null>(null);
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [, setLocation] = useLocation();
   
   // Get URL parameters on component mount
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    
+    // Handle author parameter
     const authorParam = params.get('author');
     if (authorParam) {
       setSelectedAuthor(authorParam);
+    }
+    
+    // Handle tag parameter
+    const tagParam = params.get('tag');
+    if (tagParam) {
+      setSelectedTag(tagParam);
     }
   }, []);
 
@@ -49,7 +58,7 @@ export default function Home() {
     },
   });
 
-  // Filter items based on search query and selected author
+  // Filter items based on search query, selected author, and tag
   useEffect(() => {
     if (!items) return;
 
@@ -59,6 +68,15 @@ export default function Home() {
     if (selectedAuthor) {
       filtered = filtered.filter(item => 
         item.author && item.author.toLowerCase() === selectedAuthor.toLowerCase()
+      );
+    }
+    
+    // Filter by tag if selected
+    if (selectedTag) {
+      filtered = filtered.filter(item => 
+        item.tags && item.tags.some(tag => 
+          tag.toLowerCase() === selectedTag.toLowerCase()
+        )
       );
     }
     
@@ -73,7 +91,7 @@ export default function Home() {
     }
     
     setFilteredItems(filtered);
-  }, [items, debouncedSearchQuery, selectedAuthor]);
+  }, [items, debouncedSearchQuery, selectedAuthor, selectedTag]);
 
   return (
     <Layout>
@@ -111,9 +129,10 @@ export default function Home() {
         </div>
       </div>
       
-      {/* Show active author filter if any */}
-      {selectedAuthor && (
-        <div className="mb-4 flex items-center">
+      {/* Active filters section */}
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        {/* Show active author filter if any */}
+        {selectedAuthor && (
           <Badge variant="secondary" className="flex gap-2 py-1.5 pl-2">
             <User className="h-4 w-4" />
             <span>Author: {selectedAuthor}</span>
@@ -123,14 +142,39 @@ export default function Home() {
               className="h-5 w-5 -mr-1.5 hover:bg-muted" 
               onClick={() => {
                 setSelectedAuthor(null);
-                setLocation("/"); // Clear the URL parameter
+                const params = new URLSearchParams(window.location.search);
+                params.delete('author');
+                const newUrl = params.toString() ? `/?${params.toString()}` : '/';
+                setLocation(newUrl);
               }}
             >
               <X className="h-3 w-3" />
             </Button>
           </Badge>
-        </div>
-      )}
+        )}
+        
+        {/* Show active tag filter if any */}
+        {selectedTag && (
+          <Badge variant="secondary" className="flex gap-2 py-1.5 pl-2">
+            <Tag className="h-4 w-4" />
+            <span>Tag: {selectedTag}</span>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-5 w-5 -mr-1.5 hover:bg-muted" 
+              onClick={() => {
+                setSelectedTag(null);
+                const params = new URLSearchParams(window.location.search);
+                params.delete('tag');
+                const newUrl = params.toString() ? `/?${params.toString()}` : '/';
+                setLocation(newUrl);
+              }}
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </Badge>
+        )}
+      </div>
       
       {isLoading ? (
         <PortfolioGridSkeleton />
@@ -144,11 +188,13 @@ export default function Home() {
             </p>
           )}
           
-          {/* Show author filter results if no items found */}
-          {selectedAuthor && filteredItems.length === 0 && !debouncedSearchQuery && (
+          {/* Show filter results message if no items found */}
+          {filteredItems.length === 0 && !debouncedSearchQuery && (
             <div className="py-8 text-center">
               <p className="text-muted-foreground">
-                No works found by author "{selectedAuthor}".
+                {selectedAuthor && `No works found by author "${selectedAuthor}".`}
+                {selectedTag && `No items found with tag "${selectedTag}".`}
+                {!selectedAuthor && !selectedTag && "No items found matching the current filters."}
               </p>
             </div>
           )}

@@ -709,9 +709,18 @@ export default function Item() {
                         <h3 className="text-sm font-medium mb-2">Tags</h3>
                         <div className="flex flex-wrap gap-2">
                           {item.tags.map((tag, index) => (
-                            <Badge key={index} variant="outline" className="text-xs py-0">
-                              {tag}
-                            </Badge>
+                            <a 
+                              key={index} 
+                              href={`/?tag=${encodeURIComponent(tag)}`}
+                              title={`Search for items with tag: ${tag}`}
+                            >
+                              <Badge 
+                                variant="outline" 
+                                className="text-xs py-0 hover:bg-primary/10 cursor-pointer transition-colors"
+                              >
+                                {tag}
+                              </Badge>
+                            </a>
                           ))}
                         </div>
                       </div>
