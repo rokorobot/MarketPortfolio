@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { insertPortfolioItemSchema, type InsertPortfolioItem, type Category } from "@shared/schema";
+import { insertPortfolioItemSchema, type InsertPortfolioItem, type CategoryEnum } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Image, Upload, Loader2, TagIcon } from "lucide-react";
@@ -53,8 +53,8 @@ export default function AddItem() {
     },
   });
 
-  const { data: categories } = useQuery<Category[]>({
-    queryKey: ["/api/categories"],
+  const { data: categories } = useQuery<string[]>({
+    queryKey: ["/api/category-options"],
   });
 
   const createItemMutation = useMutation({

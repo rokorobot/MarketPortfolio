@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer } from "http";
 import { storage } from "./storage";
-import { PORTFOLIO_CATEGORIES, insertPortfolioItemSchema, insertUserSchema, insertShareLinkSchema } from "@shared/schema";
+import { PORTFOLIO_CATEGORIES, insertPortfolioItemSchema, insertUserSchema, insertShareLinkSchema, insertCategorySchema } from "@shared/schema";
 import { UploadedFile } from "express-fileupload";
 import path from "path";
 import crypto from "crypto";
@@ -158,8 +158,40 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  app.get("/api/categories", (_req, res) => {
+  // Get all category options for the dropdown menu
+  app.get("/api/category-options", (_req, res) => {
     res.json(PORTFOLIO_CATEGORIES);
+  });
+  
+  // Get all categories from the database
+  app.get("/api/categories", async (_req, res) => {
+    try {
+      const categories = await storage.getCategories();
+      res.json(categories);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      res.status(500).json({ message: "Failed to fetch categories" });
+    }
+  });
+  
+  // Get a specific category by ID
+  app.get("/api/categories/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid category ID" });
+      }
+      
+      const category = await storage.getCategory(id);
+      if (!category) {
+        return res.status(404).json({ message: "Category not found" });
+      }
+      
+      res.json(category);
+    } catch (error) {
+      console.error("Error fetching category:", error);
+      res.status(500).json({ message: "Failed to fetch category" });
+    }
   });
 
   app.get("/api/items/:id", async (req, res) => {
@@ -410,6 +442,96 @@ export function registerRoutes(app: Express) {
       }
     } catch (error) {
       console.error("Error deleting share link:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+  
+  // Category endpoints
+  
+  // Create a new category (admin only)
+  app.post("/api/categories", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      // Validate the input data
+      const categoryData = insertCategorySchema.parse(req.body);
+      
+      // Check if a category with the same name already exists
+      const existingCategory = await storage.getCategoryByName(categoryData.name);
+      if (existingCategory) {
+        return res.status(400).json({ message: "A category with this name already exists" });
+      }
+      
+      // Add the user ID of the creator
+      categoryData.createdById = req.session.userId!;
+      
+      // Create the category
+      const newCategory = await storage.createCategory(categoryData);
+      res.status(201).json(newCategory);
+    } catch (error) {
+      console.error("Error creating category:", error);
+      res.status(400).json({ message: "Invalid category data" });
+    }
+  });
+  
+  // Update a category (admin only)
+  app.patch("/api/categories/:id", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid category ID" });
+      }
+      
+      // Get current category to ensure it exists
+      const existingCategory = await storage.getCategory(id);
+      if (!existingCategory) {
+        return res.status(404).json({ message: "Category not found" });
+      }
+      
+      // If name is being updated, check for duplicates
+      if (req.body.name && req.body.name !== existingCategory.name) {
+        const nameExists = await storage.getCategoryByName(req.body.name);
+        if (nameExists) {
+          return res.status(400).json({ message: "A category with this name already exists" });
+        }
+      }
+      
+      // Only allow updating specific fields
+      const updateData = {
+        name: req.body.name || existingCategory.name,
+        description: req.body.description !== undefined ? req.body.description : existingCategory.description,
+      };
+      
+      // Update the category
+      const updatedCategory = await storage.updateCategory(id, updateData);
+      res.status(200).json(updatedCategory);
+    } catch (error) {
+      console.error("Error updating category:", error);
+      res.status(500).json({ message: "Failed to update category" });
+    }
+  });
+  
+  // Delete a category (admin only)
+  app.delete("/api/categories/:id", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid category ID" });
+      }
+      
+      // Check if the category exists
+      const category = await storage.getCategory(id);
+      if (!category) {
+        return res.status(404).json({ message: "Category not found" });
+      }
+      
+      // Delete the category
+      const success = await storage.deleteCategory(id);
+      if (success) {
+        res.status(200).json({ message: "Category deleted successfully" });
+      } else {
+        res.status(500).json({ message: "Failed to delete category" });
+      }
+    } catch (error) {
+      console.error("Error deleting category:", error);
       res.status(500).json({ message: "Server error" });
     }
   });

@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import Home from "@/pages/home";
 import Item from "@/pages/item";
 import AddItem from "@/pages/add-item";
+import AddCollection from "@/pages/add-collection";
 import NotFound from "@/pages/not-found";
 import LoginPage from "@/pages/login";
 import SharePage from "@/pages/share";
@@ -21,6 +22,11 @@ function Router() {
       <Route path="/add-item">
         <ProtectedRoute requireAdmin>
           <AddItem />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/add-collection">
+        <ProtectedRoute requireAdmin>
+          <AddCollection />
         </ProtectedRoute>
       </Route>
       <Route component={NotFound} />
