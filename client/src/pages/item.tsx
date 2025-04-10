@@ -267,25 +267,39 @@ export default function Item() {
 
   if (!item) return null;
 
+  // Check if the image is a GIF by looking at the file extension
+  const isGif = item.imageUrl.toLowerCase().endsWith('.gif');
+  
   return (
     <Layout>
       <div className="max-w-6xl mx-auto space-y-6">
         <Card>
           <CardContent className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-              {/* Left side - Large Image */}
-              <div className="md:col-span-7 relative">
+              {/* Left side - Large Image - Larger for GIFs */}
+              <div className={isGif ? "md:col-span-9" : "md:col-span-7"}>
                 <div className="sticky top-6">
                   <img
                     src={item.imageUrl}
                     alt={item.title}
-                    className="object-contain w-full max-h-[700px] hover:scale-105 transition-transform duration-300 rounded-lg mx-auto"
+                    className={`object-contain hover:scale-105 transition-transform duration-300 rounded-lg mx-auto ${
+                      isGif 
+                        ? 'w-full max-h-[85vh] min-h-[500px]' 
+                        : 'w-full max-h-[700px]'
+                    }`}
                   />
+                  {isGif && (
+                    <div className="mt-2 text-xs text-center">
+                      <Badge variant="outline" className="animate-pulse bg-primary/10">
+                        <span className="mr-1">✨</span> GIF Animation <span className="ml-1">✨</span>
+                      </Badge>
+                    </div>
+                  )}
                 </div>
               </div>
               
-              {/* Right side - Content */}
-              <div className="md:col-span-5">
+              {/* Right side - Content - Smaller for GIFs */}
+              <div className={isGif ? "md:col-span-3" : "md:col-span-5"}>
                 {/* Title and Category */}
                 <div className="flex items-start justify-between mb-4">
                   <div>
