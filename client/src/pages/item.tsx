@@ -648,7 +648,7 @@ export default function Item() {
                       <p className="text-muted-foreground">{item.description}</p>
                     </div>
                     
-                    {/* Author */}
+                    {/* Author - Display even when not editing */}
                     {item.author && (
                       <div className="mt-6">
                         <h3 className="text-sm font-medium mb-2">Author</h3>
