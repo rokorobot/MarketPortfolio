@@ -20,7 +20,7 @@ export default function Item() {
         <div className="max-w-4xl mx-auto">
           <Card>
             <CardContent className="p-6">
-              <Skeleton className="aspect-[16/9] w-full rounded-lg" />
+              <Skeleton className="w-full h-[400px] rounded-lg" />
               <Skeleton className="h-8 w-1/2 mt-6" />
               <Skeleton className="h-4 w-full mt-4" />
               <div className="grid grid-cols-2 gap-4 mt-6">
@@ -42,11 +42,11 @@ export default function Item() {
         <Card>
           <CardContent className="p-6">
             {/* Large Image Section */}
-            <div className="aspect-[16/9] relative overflow-hidden rounded-lg">
+            <div className="relative rounded-lg">
               <img
                 src={item.imageUrl}
                 alt={item.title}
-                className="object-cover w-full h-full hover:scale-105 transition-transform duration-300"
+                className="object-contain w-full max-h-[500px] hover:scale-105 transition-transform duration-300 rounded-lg mx-auto"
               />
             </div>
 
