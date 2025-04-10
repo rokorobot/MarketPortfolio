@@ -1,8 +1,26 @@
 import { Mail, Twitter, Instagram } from "lucide-react";
 import { Link } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
+
+  // Fetch site settings for social media links
+  const { data: settings } = useQuery<Record<string, string | null>, Error>({
+    queryKey: ['/api/site-settings'],
+    queryFn: async () => {
+      const res = await fetch('/api/site-settings');
+      if (!res.ok) {
+        return {};
+      }
+      return await res.json() as Record<string, string | null>;
+    }
+  });
+
+  // Default social links if not configured
+  const twitterUrl = settings?.twitter_url || "https://twitter.com";
+  const instagramUrl = settings?.instagram_url || "https://instagram.com";
+  const emailContact = settings?.email_contact || "contact@example.com";
 
   return (
     <footer className="mt-auto py-6 border-t">
@@ -12,31 +30,37 @@ export function Footer() {
         </div>
         
         <div className="flex items-center space-x-6">
-          <a 
-            href="https://twitter.com" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-muted-foreground hover:text-primary transition-colors"
-            aria-label="Twitter"
-          >
-            <Twitter size={20} />
-          </a>
-          <a 
-            href="https://instagram.com" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-muted-foreground hover:text-primary transition-colors"
-            aria-label="Instagram"
-          >
-            <Instagram size={20} />
-          </a>
-          <a 
-            href="mailto:contact@example.com" 
-            className="text-muted-foreground hover:text-primary transition-colors"
-            aria-label="Email"
-          >
-            <Mail size={20} />
-          </a>
+          {twitterUrl && (
+            <a 
+              href={twitterUrl} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-muted-foreground hover:text-primary transition-colors"
+              aria-label="Twitter"
+            >
+              <Twitter size={20} />
+            </a>
+          )}
+          {instagramUrl && (
+            <a 
+              href={instagramUrl} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-muted-foreground hover:text-primary transition-colors"
+              aria-label="Instagram"
+            >
+              <Instagram size={20} />
+            </a>
+          )}
+          {emailContact && (
+            <a 
+              href={`mailto:${emailContact}`} 
+              className="text-muted-foreground hover:text-primary transition-colors"
+              aria-label="Email"
+            >
+              <Mail size={20} />
+            </a>
+          )}
         </div>
         
         <div className="flex items-center space-x-4 text-sm">

@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Loader2, Save } from "lucide-react";
 import { 
   Card, 
@@ -46,7 +46,7 @@ export default function SiteSettings() {
   });
   
   // Set form values when settings data is loaded
-  React.useEffect(() => {
+  useEffect(() => {
     if (settings) {
       setFormValues({
         twitter_url: settings.twitter_url || '',

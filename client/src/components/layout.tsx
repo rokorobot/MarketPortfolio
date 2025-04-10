@@ -69,6 +69,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
                         <Settings className="h-4 w-4 mr-2" />
                         Manage Categories
                       </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate("/site-settings")}>
+                        <Settings className="h-4 w-4 mr-2" />
+                        Site Settings
+                      </DropdownMenuItem>
                     </>
                   )}
                   
