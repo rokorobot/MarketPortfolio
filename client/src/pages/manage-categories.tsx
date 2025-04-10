@@ -88,9 +88,12 @@ export default function ManageCategories() {
   const [sortType, setSortType] = useState<'name' | 'date'>('date');
   
   // Fetch all categories from the database
-  const { data: categories, isLoading: categoriesLoading, refetch: refetchCategories } = useQuery<CategoryModel[]>({
+  const { data: categories = [], isLoading: categoriesLoading, refetch: refetchCategories } = useQuery<CategoryModel[]>({
     queryKey: ["/api/categories"],
-    initialData: [],
+    staleTime: 0, // Don't use cached data
+    refetchOnMount: true, // Always refetch when component mounts
+    retry: 3, // Retry failed requests up to 3 times
+    initialData: [], // Start with empty array to avoid undefined
   });
   
   // Form for adding new categories
@@ -110,6 +113,12 @@ export default function ManageCategories() {
       description: "",
     },
   });
+  
+  // Force fetch categories when component mounts 
+  useEffect(() => {
+    // Refetch categories on component mount
+    refetchCategories();
+  }, [refetchCategories]);
   
   // Set up edit form when a category is selected for editing
   useEffect(() => {
