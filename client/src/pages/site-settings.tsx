@@ -1,0 +1,191 @@
+import { Layout } from "@/components/layout";
+import { useAuth } from "@/hooks/use-auth";
+import { Redirect } from "wouter";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
+import { Loader2, Save } from "lucide-react";
+import { 
+  Card, 
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle 
+} from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+
+type SocialMediaSettings = {
+  twitter_url: string;
+  instagram_url: string;
+  email_contact: string;
+};
+
+export default function SiteSettings() {
+  const { user, isAdmin, isLoading: authLoading } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
+  const [formValues, setFormValues] = useState<SocialMediaSettings>({
+    twitter_url: '',
+    instagram_url: '',
+    email_contact: ''
+  });
+  
+  const { data: settings, isLoading } = useQuery<Record<string, string | null>, Error>({
+    queryKey: ['/api/site-settings'],
+    queryFn: async () => {
+      const res = await fetch('/api/site-settings');
+      if (!res.ok) {
+        throw new Error('Failed to fetch site settings');
+      }
+      return await res.json() as Record<string, string | null>;
+    }
+  });
+  
+  // Set form values when settings data is loaded
+  React.useEffect(() => {
+    if (settings) {
+      setFormValues({
+        twitter_url: settings.twitter_url || '',
+        instagram_url: settings.instagram_url || '',
+        email_contact: settings.email_contact || ''
+      });
+    }
+  }, [settings]);
+  
+  const updateSettingMutation = useMutation({
+    mutationFn: async ({ key, value }: { key: string, value: string }) => {
+      const res = await apiRequest('POST', '/api/site-settings', { key, value });
+      if (!res.ok) {
+        throw new Error(`Failed to update ${key}`);
+      }
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/site-settings'] });
+      toast({
+        title: 'Settings updated',
+        description: 'Social media settings have been saved successfully.',
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Update failed',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
+  });
+  
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormValues(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+  
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Update each setting
+    for (const [key, value] of Object.entries(formValues)) {
+      await updateSettingMutation.mutateAsync({ key, value });
+    }
+  };
+  
+  // Show loading state
+  if (authLoading || isLoading) {
+    return (
+      <Layout>
+        <div className="flex justify-center items-center min-h-[40vh]">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </Layout>
+    );
+  }
+  
+  // Redirect if not an admin
+  if (!isAdmin) {
+    return <Redirect to="/" />;
+  }
+  
+  return (
+    <Layout>
+      <div className="max-w-3xl mx-auto">
+        <h1 className="text-3xl font-bold mb-6">Site Settings</h1>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Social Media Settings</CardTitle>
+            <CardDescription>
+              Configure social media accounts that will appear in the footer and sharing links.
+            </CardDescription>
+          </CardHeader>
+          
+          <form onSubmit={handleSubmit}>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <label htmlFor="twitter_url" className="text-sm font-medium">
+                  X (Twitter) URL
+                </label>
+                <Input
+                  id="twitter_url"
+                  name="twitter_url"
+                  value={formValues.twitter_url}
+                  onChange={handleInputChange}
+                  placeholder="https://twitter.com/yourusername"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <label htmlFor="instagram_url" className="text-sm font-medium">
+                  Instagram URL
+                </label>
+                <Input
+                  id="instagram_url"
+                  name="instagram_url"
+                  value={formValues.instagram_url}
+                  onChange={handleInputChange}
+                  placeholder="https://instagram.com/yourusername"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <label htmlFor="email_contact" className="text-sm font-medium">
+                  Contact Email
+                </label>
+                <Input
+                  id="email_contact"
+                  name="email_contact"
+                  value={formValues.email_contact}
+                  onChange={handleInputChange}
+                  placeholder="contact@example.com"
+                />
+              </div>
+            </CardContent>
+            
+            <CardFooter>
+              <Button 
+                type="submit" 
+                disabled={updateSettingMutation.isPending}
+                className="w-full sm:w-auto"
+              >
+                {updateSettingMutation.isPending && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                {!updateSettingMutation.isPending && (
+                  <Save className="mr-2 h-4 w-4" />
+                )}
+                Save Settings
+              </Button>
+            </CardFooter>
+          </form>
+        </Card>
+      </div>
+    </Layout>
+  );
+}

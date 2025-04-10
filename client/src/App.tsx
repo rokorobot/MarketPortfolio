@@ -12,6 +12,7 @@ import LoginPage from "@/pages/login";
 import SharePage from "@/pages/share";
 import AboutPage from "@/pages/about";
 import ContactPage from "@/pages/contact";
+import SiteSettings from "@/pages/site-settings";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/components/protected-route";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -38,6 +39,11 @@ function Router() {
       <Route path="/manage-categories">
         <ProtectedRoute requireAdmin>
           <ManageCategories />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/site-settings">
+        <ProtectedRoute requireAdmin>
+          <SiteSettings />
         </ProtectedRoute>
       </Route>
       <Route component={NotFound} />

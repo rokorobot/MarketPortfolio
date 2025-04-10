@@ -550,6 +550,56 @@ export function registerRoutes(app: Express) {
       res.status(500).json({ message: "Server error" });
     }
   });
+  
+  // Site Settings routes
+  app.get("/api/site-settings", async (req, res) => {
+    try {
+      const settings = await storage.getSiteSettings();
+      
+      // Convert to a more user-friendly object format
+      const settingsObject = settings.reduce((acc, setting) => {
+        acc[setting.key] = setting.value;
+        return acc;
+      }, {} as Record<string, string | null>);
+      
+      res.json(settingsObject);
+    } catch (error) {
+      console.error("Error fetching site settings:", error);
+      res.status(500).json({ message: "Error fetching site settings" });
+    }
+  });
+  
+  app.get("/api/site-settings/:key", async (req, res) => {
+    try {
+      const { key } = req.params;
+      const setting = await storage.getSiteSettingByKey(key);
+      
+      if (!setting) {
+        return res.status(404).json({ message: "Setting not found" });
+      }
+      
+      res.json(setting);
+    } catch (error) {
+      console.error(`Error fetching site setting ${req.params.key}:`, error);
+      res.status(500).json({ message: "Error fetching site setting" });
+    }
+  });
+  
+  app.post("/api/site-settings", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const { key, value } = req.body;
+      
+      if (!key) {
+        return res.status(400).json({ message: "Key is required" });
+      }
+      
+      const setting = await storage.updateSiteSetting(key, value);
+      res.status(200).json(setting);
+    } catch (error) {
+      console.error("Error creating/updating site setting:", error);
+      res.status(500).json({ message: "Error creating/updating site setting" });
+    }
+  });
 
   return createServer(app);
 }
