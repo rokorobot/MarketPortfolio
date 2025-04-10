@@ -311,10 +311,18 @@ export default function Item() {
                 <div className="flex items-start justify-between mb-4">
                   <div>
                     <h1 className="text-3xl font-bold">{item.title}</h1>
-                    <Badge variant="secondary" className="text-sm mt-2">
-                      <Tag className="w-4 h-4 mr-1" />
-                      {item.category}
-                    </Badge>
+                    <a 
+                      href={`/?category=${encodeURIComponent(item.category)}`}
+                      title={`View all items in category: ${item.category}`}
+                    >
+                      <Badge 
+                        variant="secondary" 
+                        className="text-sm mt-2 hover:bg-primary/10 cursor-pointer transition-colors"
+                      >
+                        <Tag className="w-4 h-4 mr-1" />
+                        {item.category}
+                      </Badge>
+                    </a>
                   </div>
                   <div className="flex space-x-2">
                     {/* Share on X button */}

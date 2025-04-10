@@ -4,7 +4,7 @@ import { CategoryFilter } from "@/components/category-filter";
 import { Layout } from "@/components/layout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, X, User, Tag } from "lucide-react";
+import { Search, X, User, Tag, FolderOpen } from "lucide-react";
 import type { PortfolioItem } from "@shared/schema";
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
@@ -33,6 +33,12 @@ export default function Home() {
     const tagParam = params.get('tag');
     if (tagParam) {
       setSelectedTag(tagParam);
+    }
+    
+    // Handle category parameter
+    const categoryParam = params.get('category');
+    if (categoryParam) {
+      setSelectedCategory(categoryParam);
     }
   }, []);
 
@@ -131,6 +137,28 @@ export default function Home() {
       
       {/* Active filters section */}
       <div className="mb-4 flex flex-wrap items-center gap-2">
+        {/* Show active category filter if set by URL parameter */}
+        {selectedCategory && (
+          <Badge variant="secondary" className="flex gap-2 py-1.5 pl-2">
+            <FolderOpen className="h-4 w-4" />
+            <span>Category: {selectedCategory}</span>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-5 w-5 -mr-1.5 hover:bg-muted" 
+              onClick={() => {
+                setSelectedCategory(null);
+                const params = new URLSearchParams(window.location.search);
+                params.delete('category');
+                const newUrl = params.toString() ? `/?${params.toString()}` : '/';
+                setLocation(newUrl);
+              }}
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </Badge>
+        )}
+        
         {/* Show active author filter if any */}
         {selectedAuthor && (
           <Badge variant="secondary" className="flex gap-2 py-1.5 pl-2">
@@ -192,9 +220,10 @@ export default function Home() {
           {filteredItems.length === 0 && !debouncedSearchQuery && (
             <div className="py-8 text-center">
               <p className="text-muted-foreground">
+                {selectedCategory && !selectedAuthor && !selectedTag && `No items found in category "${selectedCategory}".`}
                 {selectedAuthor && `No works found by author "${selectedAuthor}".`}
                 {selectedTag && `No items found with tag "${selectedTag}".`}
-                {!selectedAuthor && !selectedTag && "No items found matching the current filters."}
+                {!selectedCategory && !selectedAuthor && !selectedTag && "No items found matching the current filters."}
               </p>
             </div>
           )}
