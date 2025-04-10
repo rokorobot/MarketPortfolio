@@ -1,6 +1,6 @@
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Link, useLocation } from "wouter";
+import { useLocation } from "wouter";
 import { type PortfolioItem } from "@shared/schema";
 import { ExternalLink } from "lucide-react";
 
@@ -21,12 +21,11 @@ export function ItemCard({ item }: { item: PortfolioItem }) {
       </div>
       <CardContent className="flex-1 p-4">
         <div 
-          className="text-xl font-semibold hover:text-primary cursor-pointer" 
+          className="text-xl font-semibold hover:text-primary cursor-pointer text-center" 
           onClick={() => navigate(`/item/${item.id}`)}
         >
           {item.title}
         </div>
-        <p className="text-muted-foreground mt-2">{item.description}</p>
       </CardContent>
       <CardFooter className="p-4 pt-0 gap-2">
         {item.marketplaceUrl1 && (
