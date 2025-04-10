@@ -1,11 +1,13 @@
-import type { Express, Request, Response } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer } from "http";
 import { storage } from "./storage";
-import { PORTFOLIO_CATEGORIES, insertPortfolioItemSchema } from "@shared/schema";
+import { PORTFOLIO_CATEGORIES, insertPortfolioItemSchema, insertUserSchema } from "@shared/schema";
 import { UploadedFile } from "express-fileupload";
 import path from "path";
 import crypto from "crypto";
 import { generateTagsFromImage, generateTagsFromText } from "./openai-service";
+import session from "express-session";
+import { z } from "zod";
 
 // Type definition for the extended request with files
 interface FileRequest extends Request {

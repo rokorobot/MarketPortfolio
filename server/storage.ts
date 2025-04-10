@@ -1,13 +1,37 @@
-import { portfolioItems, type PortfolioItem, type InsertPortfolioItem } from "@shared/schema";
+import { portfolioItems, type PortfolioItem, type InsertPortfolioItem, users, type User, type InsertUser } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
+import { scrypt, randomBytes, timingSafeEqual } from "crypto";
+import { promisify } from "util";
+
+const scryptAsync = promisify(scrypt);
+
+async function hashPassword(password: string) {
+  const salt = randomBytes(16).toString("hex");
+  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
+  return `${buf.toString("hex")}.${salt}`;
+}
+
+async function comparePasswords(supplied: string, stored: string) {
+  const [hashed, salt] = stored.split(".");
+  const hashedBuf = Buffer.from(hashed, "hex");
+  const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
+  return timingSafeEqual(hashedBuf, suppliedBuf);
+}
 
 export interface IStorage {
+  // Portfolio items
   getItems(): Promise<PortfolioItem[]>;
   getItem(id: number): Promise<PortfolioItem | undefined>;
   getItemsByCategory(category: string): Promise<PortfolioItem[]>;
   createItem(item: InsertPortfolioItem): Promise<PortfolioItem>;
   deleteItem(id: number): Promise<boolean>;
+  
+  // Users
+  getUser(id: number): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
+  validateUser(username: string, password: string): Promise<User | null>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -42,7 +66,35 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // Initialize with sample data
+  // User methods
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
+  }
+
+  async createUser(userData: InsertUser): Promise<User> {
+    const [user] = await db.insert(users).values({
+      ...userData,
+      password: await hashPassword(userData.password)
+    }).returning();
+    return user;
+  }
+
+  async validateUser(username: string, password: string): Promise<User | null> {
+    const user = await this.getUserByUsername(username);
+    if (!user) return null;
+    
+    const isValidPassword = await comparePasswords(password, user.password);
+    if (!isValidPassword) return null;
+    
+    return user;
+  }
+
   async initialize() {
     const items = await this.getItems();
     if (items.length === 0) {
@@ -78,6 +130,18 @@ export class DatabaseStorage implements IStorage {
           marketplaceName2: "OpenSea"
         }
       ]);
+    }
+    
+    // Create default admin user if none exists
+    const adminExists = await this.getUserByUsername("admin");
+    if (!adminExists) {
+      await this.createUser({
+        username: "admin",
+        password: "admin123", // This will be hashed before storage
+        role: "admin",
+        isActive: true
+      });
+      console.log("Created default admin user: admin / admin123");
     }
   }
 }
