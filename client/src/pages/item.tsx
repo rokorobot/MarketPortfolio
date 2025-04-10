@@ -678,21 +678,28 @@ export default function Item() {
                     {item.author && (
                       <div className="mt-6">
                         <h3 className="text-sm font-medium mb-2">Author</h3>
-                        <p className="text-muted-foreground font-medium">
-                          {item.authorUrl ? (
+                        <div className="flex items-center flex-wrap gap-3">
+                          {/* Author name as a link to search by author */}
+                          <a 
+                            href={`/?author=${encodeURIComponent(item.author)}`}
+                            className="text-muted-foreground font-medium hover:text-primary hover:underline inline-flex items-center"
+                            title="View all works by this author"
+                          >
+                            {item.author}
+                          </a>
+                          
+                          {/* External link to author's website if available */}
+                          {item.authorUrl && (
                             <a 
                               href={item.authorUrl} 
                               target="_blank" 
                               rel="noopener noreferrer"
-                              className="text-primary hover:underline inline-flex items-center"
+                              className="text-xs text-primary hover:underline inline-flex items-center bg-primary/5 px-2 py-1 rounded-full"
                             >
-                              {item.author}
-                              <ExternalLink className="ml-1 h-3 w-3" />
+                              View Work <ExternalLink className="ml-1 h-3 w-3" />
                             </a>
-                          ) : (
-                            item.author
                           )}
-                        </p>
+                        </div>
                       </div>
                     )}
                     

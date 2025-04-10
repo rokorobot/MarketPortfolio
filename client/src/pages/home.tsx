@@ -4,15 +4,28 @@ import { CategoryFilter } from "@/components/category-filter";
 import { Layout } from "@/components/layout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, X } from "lucide-react";
+import { Search, X, User } from "lucide-react";
 import type { PortfolioItem } from "@shared/schema";
 import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
+import { Badge } from "@/components/ui/badge";
 
 export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredItems, setFilteredItems] = useState<PortfolioItem[]>([]);
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+  const [selectedAuthor, setSelectedAuthor] = useState<string | null>(null);
+  const [, setLocation] = useLocation();
+  
+  // Get URL parameters on component mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const authorParam = params.get('author');
+    if (authorParam) {
+      setSelectedAuthor(authorParam);
+    }
+  }, []);
 
   // Debounce search query to avoid too many filter operations
   useEffect(() => {
@@ -36,24 +49,31 @@ export default function Home() {
     },
   });
 
-  // Filter items based on search query
+  // Filter items based on search query and selected author
   useEffect(() => {
     if (!items) return;
 
-    if (!debouncedSearchQuery) {
-      setFilteredItems(items);
-      return;
+    let filtered = [...items];
+    
+    // Filter by author if selected
+    if (selectedAuthor) {
+      filtered = filtered.filter(item => 
+        item.author && item.author.toLowerCase() === selectedAuthor.toLowerCase()
+      );
     }
-
-    const query = debouncedSearchQuery.toLowerCase();
-    const filtered = items.filter(item => 
-      item.title.toLowerCase().includes(query) || 
-      item.description.toLowerCase().includes(query) ||
-      (item.tags && item.tags.some(tag => tag.toLowerCase().includes(query)))
-    );
+    
+    // Then filter by search query
+    if (debouncedSearchQuery) {
+      const query = debouncedSearchQuery.toLowerCase();
+      filtered = filtered.filter(item => 
+        item.title.toLowerCase().includes(query) || 
+        item.description.toLowerCase().includes(query) ||
+        (item.tags && item.tags.some(tag => tag.toLowerCase().includes(query)))
+      );
+    }
     
     setFilteredItems(filtered);
-  }, [items, debouncedSearchQuery]);
+  }, [items, debouncedSearchQuery, selectedAuthor]);
 
   return (
     <Layout>
@@ -91,16 +111,48 @@ export default function Home() {
         </div>
       </div>
       
+      {/* Show active author filter if any */}
+      {selectedAuthor && (
+        <div className="mb-4 flex items-center">
+          <Badge variant="secondary" className="flex gap-2 py-1.5 pl-2">
+            <User className="h-4 w-4" />
+            <span>Author: {selectedAuthor}</span>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-5 w-5 -mr-1.5 hover:bg-muted" 
+              onClick={() => {
+                setSelectedAuthor(null);
+                setLocation("/"); // Clear the URL parameter
+              }}
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </Badge>
+        </div>
+      )}
+      
       {isLoading ? (
         <PortfolioGridSkeleton />
       ) : (
         <>
+          {/* Show search results if searching */}
           {debouncedSearchQuery && (
             <p className="mb-4 text-sm text-muted-foreground">
               Found {filteredItems.length} {filteredItems.length === 1 ? 'item' : 'items'} 
               matching "{debouncedSearchQuery}"
             </p>
           )}
+          
+          {/* Show author filter results if no items found */}
+          {selectedAuthor && filteredItems.length === 0 && !debouncedSearchQuery && (
+            <div className="py-8 text-center">
+              <p className="text-muted-foreground">
+                No works found by author "{selectedAuthor}".
+              </p>
+            </div>
+          )}
+          
           <PortfolioGrid items={filteredItems.length > 0 ? filteredItems : (items || [])} />
         </>
       )}
