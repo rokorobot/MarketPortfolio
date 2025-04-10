@@ -28,7 +28,7 @@ export default function Item() {
   const [, params] = useRoute("/item/:id");
   const [, navigate] = useLocation();
   const { toast } = useToast();
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
   const { data: item, isLoading } = useQuery<PortfolioItem>({
     queryKey: [`/api/items/${params?.id}`],
   });
@@ -80,8 +80,6 @@ export default function Item() {
   }
 
   if (!item) return null;
-
-  const { user } = useAuth(); // Get user data to check if logged in
 
   return (
     <Layout>
