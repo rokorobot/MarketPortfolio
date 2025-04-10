@@ -133,15 +133,15 @@ export class DatabaseStorage implements IStorage {
     }
     
     // Create default admin user if none exists
-    const adminExists = await this.getUserByUsername("admin");
+    const adminExists = await this.getUserByUsername("rokoroko");
     if (!adminExists) {
       await this.createUser({
-        username: "admin",
-        password: "admin123", // This will be hashed before storage
+        username: "rokoroko",
+        password: "rokorobot", // This will be hashed before storage
         role: "admin",
         isActive: true
       });
-      console.log("Created default admin user: admin / admin123");
+      console.log("Created default admin user: rokoroko / rokorobot");
     }
   }
 }
