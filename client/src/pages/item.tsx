@@ -272,20 +272,20 @@ export default function Item() {
   
   return (
     <Layout>
-      <div className="max-w-6xl mx-auto space-y-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+      <div className="w-full max-w-[1400px] mx-auto px-0 space-y-6">
+        <Card className="shadow-lg border-0 overflow-hidden">
+          <CardContent className="p-2 md:p-4">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-8">
               {/* Left side - Large Image - Larger for GIFs */}
-              <div className={isGif ? "md:col-span-9" : "md:col-span-7"}>
-                <div className="sticky top-6">
+              <div className={isGif ? "md:col-span-9 -ml-2 md:-ml-4" : "md:col-span-7 -ml-2 md:-ml-4"}>
+                <div className="sticky top-0 pt-4">
                   <img
                     src={item.imageUrl}
                     alt={item.title}
                     className={`object-contain hover:scale-105 transition-transform duration-300 rounded-lg mx-auto ${
                       isGif 
-                        ? 'w-full max-h-[85vh] min-h-[500px]' 
-                        : 'w-full max-h-[700px]'
+                        ? 'w-full max-h-[90vh] min-h-[550px]' 
+                        : 'w-full max-h-[750px]'
                     }`}
                   />
                   {isGif && (
@@ -299,7 +299,7 @@ export default function Item() {
               </div>
               
               {/* Right side - Content - Smaller for GIFs */}
-              <div className={isGif ? "md:col-span-3" : "md:col-span-5"}>
+              <div className={isGif ? "md:col-span-3 md:pr-0" : "md:col-span-5 md:pr-0"}>
                 {/* Title and Category */}
                 <div className="flex items-start justify-between mb-4">
                   <div>
