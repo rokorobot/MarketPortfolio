@@ -115,6 +115,7 @@ export default function Item() {
         title: item.title,
         description: item.description,
         author: item.author || "",
+        authorUrl: item.authorUrl || "",
         category: item.category,
         tags: item.tags,
         imageUrl: item.imageUrl, // Add imageUrl to form values
@@ -677,7 +678,21 @@ export default function Item() {
                     {item.author && (
                       <div className="mt-6">
                         <h3 className="text-sm font-medium mb-2">Author</h3>
-                        <p className="text-muted-foreground font-medium">{item.author}</p>
+                        <p className="text-muted-foreground font-medium">
+                          {item.authorUrl ? (
+                            <a 
+                              href={item.authorUrl} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-primary hover:underline inline-flex items-center"
+                            >
+                              {item.author}
+                              <ExternalLink className="ml-1 h-3 w-3" />
+                            </a>
+                          ) : (
+                            item.author
+                          )}
+                        </p>
                       </div>
                     )}
                     
