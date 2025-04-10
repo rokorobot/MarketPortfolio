@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Footer } from "@/components/footer";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [, navigate] = useLocation();
@@ -21,7 +22,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <header className="border-b">
         <nav className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div 
@@ -86,7 +87,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </div>
         </nav>
       </header>
-      <main className="container mx-auto px-4 py-8">{children}</main>
+      <main className="container mx-auto px-4 py-8 flex-grow">{children}</main>
+      <Footer />
     </div>
   );
 }
