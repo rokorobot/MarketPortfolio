@@ -1,8 +1,9 @@
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useLocation } from "wouter";
 import { type PortfolioItem } from "@shared/schema";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Tag } from "lucide-react";
 
 export function ItemCard({ item }: { item: PortfolioItem }) {
   const [, navigate] = useLocation();
@@ -26,6 +27,22 @@ export function ItemCard({ item }: { item: PortfolioItem }) {
         >
           {item.title}
         </div>
+        
+        {/* Description - shortened with ellipsis */}
+        <p className="text-sm text-muted-foreground mt-2 line-clamp-2 text-center">
+          {item.description}
+        </p>
+        
+        {/* Tags */}
+        {item.tags && item.tags.length > 0 && (
+          <div className="mt-3 flex flex-wrap justify-center gap-1">
+            {item.tags.map((tag, index) => (
+              <Badge key={index} variant="outline" className="text-xs">
+                {tag}
+              </Badge>
+            ))}
+          </div>
+        )}
       </CardContent>
       <CardFooter className="p-4 pt-0 gap-2">
         {item.marketplaceUrl1 && (
