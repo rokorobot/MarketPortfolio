@@ -203,7 +203,13 @@ export class DatabaseStorage implements IStorage {
   }
   
   async createCategory(category: InsertCategory): Promise<CategoryModel> {
-    const [newCategory] = await db.insert(categories).values(category).returning();
+    // Ensure createdById is set (if not provided, use a default admin ID)
+    const categoryWithCreatedBy = {
+      ...category,
+      createdById: category.createdById || 1, // Default to user ID 1 if not provided
+    };
+    
+    const [newCategory] = await db.insert(categories).values(categoryWithCreatedBy).returning();
     return newCategory;
   }
   

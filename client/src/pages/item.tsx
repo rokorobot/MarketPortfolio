@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ExternalLink, Tag, Trash2, Share2, Twitter, Edit, Save, X, Loader2 } from "lucide-react";
-import { PORTFOLIO_CATEGORIES, type PortfolioItem } from "@shared/schema";
+import { type PortfolioItem } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
@@ -56,6 +56,11 @@ export default function Item() {
   // Get item data
   const { data: item, isLoading } = useQuery<PortfolioItem>({
     queryKey: [`/api/items/${params?.id}`],
+  });
+
+  // Get category options from API (combines built-in and custom categories)
+  const { data: categoryOptions } = useQuery<string[]>({
+    queryKey: ['/api/category-options'],
   });
   
   // Define form schema for editing
@@ -342,7 +347,7 @@ export default function Item() {
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                {PORTFOLIO_CATEGORIES.map((category) => (
+                                {categoryOptions?.map((category) => (
                                   <SelectItem key={category} value={category}>
                                     {category}
                                   </SelectItem>
