@@ -1,4 +1,10 @@
-import { portfolioItems, type PortfolioItem, type InsertPortfolioItem, users, type User, type InsertUser, shareLinks, type ShareLink, type InsertShareLink, categories, type CategoryModel, type InsertCategory } from "@shared/schema";
+import { 
+  portfolioItems, type PortfolioItem, type InsertPortfolioItem, 
+  users, type User, type InsertUser, 
+  shareLinks, type ShareLink, type InsertShareLink, 
+  categories, type CategoryModel, type InsertCategory,
+  siteSettings, type SiteSetting, type InsertSiteSetting
+} from "@shared/schema";
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
@@ -48,11 +54,64 @@ export interface IStorage {
   createCategory(category: InsertCategory): Promise<CategoryModel>;
   updateCategory(id: number, category: Partial<CategoryModel>): Promise<CategoryModel>;
   deleteCategory(id: number): Promise<boolean>;
+  
+  // Site Settings
+  getSiteSettings(): Promise<SiteSetting[]>;
+  getSiteSettingByKey(key: string): Promise<SiteSetting | undefined>;
+  createSiteSetting(setting: InsertSiteSetting): Promise<SiteSetting>;
+  updateSiteSetting(key: string, value: string): Promise<SiteSetting>;
+  deleteSiteSetting(id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
   async getItems(): Promise<PortfolioItem[]> {
     return await db.select().from(portfolioItems);
+  }
+  
+  // Site Settings methods
+  async getSiteSettings(): Promise<SiteSetting[]> {
+    return await db.select().from(siteSettings);
+  }
+  
+  async getSiteSettingByKey(key: string): Promise<SiteSetting | undefined> {
+    const [setting] = await db.select().from(siteSettings).where(eq(siteSettings.key, key));
+    return setting;
+  }
+  
+  async createSiteSetting(setting: InsertSiteSetting): Promise<SiteSetting> {
+    const [newSetting] = await db.insert(siteSettings).values(setting).returning();
+    return newSetting;
+  }
+  
+  async updateSiteSetting(key: string, value: string): Promise<SiteSetting> {
+    // Check if setting exists
+    const existingSetting = await this.getSiteSettingByKey(key);
+    
+    if (existingSetting) {
+      // Update existing setting
+      const [updatedSetting] = await db.update(siteSettings)
+        .set({ value, updatedAt: new Date() })
+        .where(eq(siteSettings.key, key))
+        .returning();
+      
+      return updatedSetting;
+    } else {
+      // Create new setting if it doesn't exist
+      return await this.createSiteSetting({ key, value });
+    }
+  }
+  
+  async deleteSiteSetting(id: number): Promise<boolean> {
+    try {
+      const deleted = await db.delete(siteSettings)
+        .where(eq(siteSettings.id, id))
+        .returning();
+      
+      return deleted.length > 0;
+    } catch (error) {
+      console.error("Error deleting site setting:", error);
+      return false;
+    }
   }
 
   async getItem(id: number): Promise<PortfolioItem | undefined> {
