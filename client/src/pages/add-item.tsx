@@ -44,6 +44,7 @@ export default function AddItem() {
     defaultValues: {
       title: "",
       description: "",
+      author: "",
       imageUrl: "",
       category: "Digital Art",
       marketplaceUrl1: "",
@@ -237,6 +238,20 @@ export default function AddItem() {
                   <FormLabel>Description</FormLabel>
                   <FormControl>
                     <Textarea {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="author"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Author</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Creator or artist name" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

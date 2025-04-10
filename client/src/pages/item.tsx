@@ -426,6 +426,20 @@ export default function Item() {
                       
                       <FormField
                         control={form.control}
+                        name="author"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Author</FormLabel>
+                            <FormControl>
+                              <Input {...field} value={field.value || ''} placeholder="Creator or artist name" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
                         name="category"
                         render={({ field }) => (
                           <FormItem>
@@ -630,6 +644,14 @@ export default function Item() {
                       <h3 className="text-sm font-medium mb-2">Description</h3>
                       <p className="text-muted-foreground">{item.description}</p>
                     </div>
+                    
+                    {/* Author */}
+                    {item.author && (
+                      <div className="mt-6">
+                        <h3 className="text-sm font-medium mb-2">Author</h3>
+                        <p className="text-muted-foreground font-medium">{item.author}</p>
+                      </div>
+                    )}
                     
                     {/* Tags */}
                     {item.tags && item.tags.length > 0 && (
