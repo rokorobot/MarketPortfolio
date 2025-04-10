@@ -92,6 +92,7 @@ export default function Home() {
       filtered = filtered.filter(item => 
         item.title.toLowerCase().includes(query) || 
         item.description.toLowerCase().includes(query) ||
+        (item.author && item.author.toLowerCase().includes(query)) ||
         (item.tags && item.tags.some(tag => tag.toLowerCase().includes(query)))
       );
     }
@@ -114,7 +115,7 @@ export default function Home() {
         <div className="relative w-full md:w-72">
           <Input
             type="text"
-            placeholder="Search title, description, tags..."
+            placeholder="Search by title, author, description, tags..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pr-10"
