@@ -4,7 +4,7 @@ import { Layout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ExternalLink, Tag, Trash2, Share2, Twitter, Edit, Save, X } from "lucide-react";
+import { ExternalLink, Tag, Trash2, Share2, Twitter, Edit, Save, X, Loader2 } from "lucide-react";
 import { PORTFOLIO_CATEGORIES, type PortfolioItem } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -24,7 +24,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ShareLinkGenerator } from "@/components/share-link-generator";
 import { ShareImageGenerator } from "@/components/share-image-generator";
-import { useState } from "react";
+import React, { useState } from "react";
 import { 
   Form, 
   FormControl, 
@@ -41,15 +41,67 @@ import { z } from "zod";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TagInput } from "@/components/tag-input";
 
+// Helper function to ensure string values
+const ensureString = (value: string | null | undefined): string => {
+  return value || "";
+};
+
 export default function Item() {
   const [, params] = useRoute("/item/:id");
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const { isAdmin, user } = useAuth();
+  const [isEditing, setIsEditing] = useState(false);
+  
+  // Get item data
   const { data: item, isLoading } = useQuery<PortfolioItem>({
     queryKey: [`/api/items/${params?.id}`],
   });
   
+  // Define form schema for editing
+  const formSchema = z.object({
+    title: z.string().min(1, { message: "Title is required" }),
+    description: z.string().min(1, { message: "Description is required" }),
+    category: z.string().min(1, { message: "Category is required" }),
+    tags: z.array(z.string()).optional().nullable(),
+    marketplaceUrl1: z.string().optional().transform(v => v || ""),
+    marketplaceUrl2: z.string().optional().transform(v => v || ""),
+    marketplaceName1: z.string().optional().transform(v => v || ""),
+    marketplaceName2: z.string().optional().transform(v => v || ""),
+  });
+  
+  // Set up form with react-hook-form and zod validation
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      title: item?.title || "",
+      description: item?.description || "",
+      category: item?.category || "",
+      tags: item?.tags || [],
+      marketplaceUrl1: item?.marketplaceUrl1 || "",
+      marketplaceUrl2: item?.marketplaceUrl2 || "",
+      marketplaceName1: item?.marketplaceName1 || "",
+      marketplaceName2: item?.marketplaceName2 || "",
+    },
+  });
+  
+  // Update form values when item data changes
+  React.useEffect(() => {
+    if (item) {
+      form.reset({
+        title: item.title,
+        description: item.description,
+        category: item.category,
+        tags: item.tags,
+        marketplaceUrl1: item.marketplaceUrl1 || "",
+        marketplaceUrl2: item.marketplaceUrl2 || "",
+        marketplaceName1: item.marketplaceName1 || "",
+        marketplaceName2: item.marketplaceName2 || "",
+      });
+    }
+  }, [item, form]);
+  
+  // Delete item mutation
   const deleteItemMutation = useMutation({
     mutationFn: async () => {
       const response = await apiRequest("DELETE", `/api/items/${params?.id}`);
@@ -75,6 +127,39 @@ export default function Item() {
       });
     },
   });
+  
+  // Update item mutation
+  const updateItemMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof formSchema>) => {
+      const response = await apiRequest("PATCH", `/api/items/${params?.id}`, data);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to update item");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Item updated",
+        description: "The portfolio item has been updated successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: [`/api/items/${params?.id}`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/items"] });
+      setIsEditing(false);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Handle form submission
+  function onSubmit(data: z.infer<typeof formSchema>) {
+    updateItemMutation.mutate(data);
+  }
 
   if (isLoading) {
     return (
@@ -153,9 +238,21 @@ export default function Item() {
                         <Share2 className="h-4 w-4" />
                       </Button>
                     )}
+
+                    {/* Edit button - only shows for admins */}
+                    {isAdmin && !isEditing && (
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setIsEditing(true)}
+                        title="Edit Item"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    )}
                     
                     {/* Delete button - only shows for admins */}
-                    {isAdmin && (
+                    {isAdmin && !isEditing && (
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button variant="outline" size="icon" className="text-destructive hover:bg-destructive/10">
@@ -182,49 +279,221 @@ export default function Item() {
                         </AlertDialogContent>
                       </AlertDialog>
                     )}
+
+                    {/* Cancel editing - only shows when editing */}
+                    {isEditing && (
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setIsEditing(false)}
+                        title="Cancel Editing"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
                 </div>
 
-                {/* Description */}
-                <div className="mt-6">
-                  <h3 className="text-sm font-medium mb-2">Description</h3>
-                  <p className="text-muted-foreground">{item.description}</p>
-                </div>
-                
-                {/* Tags */}
-                {item.tags && item.tags.length > 0 && (
-                  <div className="mt-6">
-                    <h3 className="text-sm font-medium mb-2">Tags</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {item.tags.map((tag, index) => (
-                        <Badge key={index} variant="outline" className="text-xs py-0">
-                          {tag}
-                        </Badge>
-                      ))}
+                {/* Edit form - only shows when editing */}
+                {isEditing ? (
+                  <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                      <FormField
+                        control={form.control}
+                        name="title"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Title</FormLabel>
+                            <FormControl>
+                              <Input {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="description"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Description</FormLabel>
+                            <FormControl>
+                              <Textarea {...field} rows={4} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="category"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Category</FormLabel>
+                            <Select
+                              value={field.value}
+                              onValueChange={field.onChange}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select a category" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {PORTFOLIO_CATEGORIES.map((category) => (
+                                  <SelectItem key={category} value={category}>
+                                    {category}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="tags"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Tags</FormLabel>
+                            <FormControl>
+                              <TagInput
+                                value={field.value || []}
+                                onChange={field.onChange}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="marketplaceName1"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Marketplace 1 Name</FormLabel>
+                              <FormControl>
+                                <Input {...field} value={ensureString(field.value)} placeholder="e.g. OBJKT" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="marketplaceUrl1"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Marketplace 1 URL</FormLabel>
+                              <FormControl>
+                                <Input {...field} value={ensureString(field.value)} placeholder="https://" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="marketplaceName2"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Marketplace 2 Name</FormLabel>
+                              <FormControl>
+                                <Input {...field} value={ensureString(field.value)} placeholder="e.g. OpenSea" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="marketplaceUrl2"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Marketplace 2 URL</FormLabel>
+                              <FormControl>
+                                <Input {...field} value={ensureString(field.value)} placeholder="https://" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      
+                      <Button
+                        type="submit"
+                        className="w-full"
+                        disabled={updateItemMutation.isPending}
+                      >
+                        {updateItemMutation.isPending ? (
+                          <span className="flex items-center">
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Saving Changes...
+                          </span>
+                        ) : (
+                          <span className="flex items-center">
+                            <Save className="mr-2 h-4 w-4" />
+                            Save Changes
+                          </span>
+                        )}
+                      </Button>
+                    </form>
+                  </Form>
+                ) : (
+                  <>
+                    {/* Description */}
+                    <div className="mt-6">
+                      <h3 className="text-sm font-medium mb-2">Description</h3>
+                      <p className="text-muted-foreground">{item.description}</p>
                     </div>
-                  </div>
-                )}
+                    
+                    {/* Tags */}
+                    {item.tags && item.tags.length > 0 && (
+                      <div className="mt-6">
+                        <h3 className="text-sm font-medium mb-2">Tags</h3>
+                        <div className="flex flex-wrap gap-2">
+                          {item.tags.map((tag, index) => (
+                            <Badge key={index} variant="outline" className="text-xs py-0">
+                              {tag}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
-                {/* Marketplace Links */}
-                <div className="mt-8 space-y-3">
-                  <h3 className="text-sm font-medium mb-3">Available on</h3>
-                  {item.marketplaceUrl1 && (
-                    <Button asChild size="lg" className="w-full">
-                      <a href={item.marketplaceUrl1} target="_blank" rel="noopener noreferrer">
-                        <ExternalLink className="mr-2 h-5 w-5" />
-                        View on {item.marketplaceName1}
-                      </a>
-                    </Button>
-                  )}
-                  {item.marketplaceUrl2 && (
-                    <Button asChild size="lg" variant="secondary" className="w-full">
-                      <a href={item.marketplaceUrl2} target="_blank" rel="noopener noreferrer">
-                        <ExternalLink className="mr-2 h-5 w-5" />
-                        View on {item.marketplaceName2}
-                      </a>
-                    </Button>
-                  )}
-                </div>
+                    {/* Marketplace Links */}
+                    <div className="mt-8 space-y-3">
+                      <h3 className="text-sm font-medium mb-3">Available on</h3>
+                      {item.marketplaceUrl1 && (
+                        <Button asChild size="lg" className="w-full">
+                          <a href={item.marketplaceUrl1} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="mr-2 h-5 w-5" />
+                            View on {item.marketplaceName1}
+                          </a>
+                        </Button>
+                      )}
+                      {item.marketplaceUrl2 && (
+                        <Button asChild size="lg" variant="secondary" className="w-full">
+                          <a href={item.marketplaceUrl2} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="mr-2 h-5 w-5" />
+                            View on {item.marketplaceName2}
+                          </a>
+                        </Button>
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </CardContent>
