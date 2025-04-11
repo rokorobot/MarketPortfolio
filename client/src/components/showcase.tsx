@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogClose, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, X, Pause, Play } from "lucide-react";
 import { PortfolioItem } from "@shared/schema";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 interface ShowcaseProps {
   items: PortfolioItem[];
@@ -101,7 +102,13 @@ export function Showcase({ items, isOpen, onClose }: ShowcaseProps) {
     <Dialog open={isOpen} onOpenChange={(open) => {
       if (!open) onClose();
     }}>
-      <DialogContent className="w-screen h-screen max-w-none max-h-none p-0 bg-black text-white overflow-hidden border-none rounded-none">
+      <DialogContent className="w-screen h-screen max-w-none max-h-none p-0 bg-black text-white overflow-hidden border-none rounded-none" aria-describedby="showcase-description">
+        <DialogTitle>
+          <VisuallyHidden>Portfolio Showcase</VisuallyHidden>
+        </DialogTitle>
+        <VisuallyHidden id="showcase-description">
+          A fullscreen slideshow of portfolio items with navigation controls.
+        </VisuallyHidden>
         <div 
           className="relative w-full h-full flex flex-col items-center justify-center"
           onClick={toggleControls}
