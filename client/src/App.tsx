@@ -18,6 +18,7 @@ import Collections from "@/pages/collections";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/components/protected-route";
 import { ThemeProvider } from "@/components/theme-provider";
+import { ShowcaseProvider } from "@/hooks/use-showcase";
 
 function Router() {
   return (
@@ -64,8 +65,10 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="light" storageKey="portfolio-theme">
         <AuthProvider>
-          <Router />
-          <Toaster />
+          <ShowcaseProvider>
+            <Router />
+            <Toaster />
+          </ShowcaseProvider>
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>

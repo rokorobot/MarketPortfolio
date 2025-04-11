@@ -1,6 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Plus, UserCircle, LogOut, FolderPlus, Settings, Heart, Grid3X3 } from "lucide-react";
+import { Plus, UserCircle, LogOut, FolderPlus, Settings, Heart, Grid3X3, Presentation } from "lucide-react";
+import { useShowcase } from "@/hooks/use-showcase";
 import { useAuth } from "@/hooks/use-auth";
 import { 
   DropdownMenu,
@@ -12,6 +13,27 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Footer } from "@/components/footer";
+
+// Showcase Button component
+function ShowcaseButton() {
+  const { startShowcase } = useShowcase();
+  
+  return (
+    <Button 
+      variant="outline"
+      size="sm" 
+      className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+      onClick={() => {
+        // The actual items will be provided by the Showcase Context Provider
+        // which is connected to the current page's portfolio grid
+        document.dispatchEvent(new Event('start-showcase'));
+      }}
+    >
+      <Presentation className="h-4 w-4" />
+      Showcase
+    </Button>
+  );
+}
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location, navigate] = useLocation();
@@ -75,6 +97,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 </Button>
               </>
             )}
+            
+            <ShowcaseButton />
             
             {user ? (
               <DropdownMenu>
