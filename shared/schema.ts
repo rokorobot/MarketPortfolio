@@ -15,10 +15,14 @@ export const portfolioItems = pgTable("portfolio_items", {
   marketplaceUrl2: text("marketplace_url2"),
   marketplaceName1: text("marketplace_name1"),
   marketplaceName2: text("marketplace_name2"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const insertPortfolioItemSchema = createInsertSchema(portfolioItems).omit({
   id: true,
+  createdAt: true,
+  updatedAt: true,
 });
 
 export type InsertPortfolioItem = z.infer<typeof insertPortfolioItemSchema>;
