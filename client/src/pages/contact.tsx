@@ -214,7 +214,9 @@ export default function ContactPage() {
                   <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
                   <div>
                     <h4 className="font-medium text-green-800">Message Sent Successfully!</h4>
-                    <p className="text-green-700 text-sm">Thank you for your message. We'll respond as soon as possible.</p>
+                    <p className="text-green-700 text-sm">
+                      {contactMutation.data?.message || "Thank you for your message. We'll respond as soon as possible."}
+                    </p>
                   </div>
                 </div>
               )}
