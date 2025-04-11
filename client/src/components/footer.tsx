@@ -74,6 +74,9 @@ export function Footer() {
             <Link href="/favorites" className="text-muted-foreground hover:text-foreground transition-colors">
               Favorites
             </Link>
+            <Link href="/collections" className="text-muted-foreground hover:text-foreground transition-colors">
+              Collections
+            </Link>
             <Link href="/about" className="text-muted-foreground hover:text-foreground transition-colors">
               About
             </Link>
