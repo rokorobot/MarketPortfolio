@@ -37,18 +37,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
               Portfolio
             </div>
             
-            {user && (
-              <div
-                className={`text-2xl font-bold cursor-pointer ${
-                  location === "/favorites" 
-                    ? "text-primary" 
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-                onClick={() => navigate("/favorites")}
-              >
-                Favorites
-              </div>
-            )}
+            <div
+              className={`text-2xl font-bold cursor-pointer ${
+                location === "/favorites" 
+                  ? "text-primary" 
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              onClick={() => navigate("/favorites")}
+            >
+              Favorites
+            </div>
             
             <div
               className={`text-2xl font-bold cursor-pointer ${
