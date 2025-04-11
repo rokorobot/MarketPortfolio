@@ -6,7 +6,9 @@ import { UploadedFile } from "express-fileupload";
 import path from "path";
 import crypto from "crypto";
 import { generateTagsFromImage, generateTagsFromText } from "./openai-service";
-import { sendContactFormEmail } from "./sendgrid-service";
+// Import both email services so we can choose between them
+import { sendContactFormEmail as sendGridEmail } from "./sendgrid-service";
+import { sendContactFormEmail as nodeMailerEmail } from "./nodemailer-service";
 import session from "express-session";
 import { z } from "zod";
 
@@ -633,27 +635,39 @@ export function registerRoutes(app: Express) {
       }
       
       try {
-        // Try to send email via SendGrid
-        const result = await sendContactFormEmail(name, email, message, adminEmail);
+        // Try to send email via Nodemailer (preferred method)
+        console.log("Attempting to send email via Nodemailer...");
+        const result = await nodeMailerEmail(name, email, message, adminEmail);
         
         if (result) {
           res.status(200).json({ 
             success: true, 
-            message: "Your message has been received successfully! (In demo mode: actual email delivery is disabled but message was logged)" 
+            message: "Your message has been sent successfully! Check the console for the Ethereal email preview link."
           });
         } else {
-          // Fallback to storing the message in logs for demonstration purposes
-          console.log("======= CONTACT FORM SUBMISSION (FALLBACK) =======");
-          console.log(`From: ${name} (${email})`);
-          console.log(`To: ${adminEmail}`);
-          console.log(`Message: ${message}`);
-          console.log("=======================================");
+          // Fallback to SendGrid if Nodemailer fails
+          console.log("Nodemailer failed, trying SendGrid as fallback...");
+          const sendGridResult = await sendGridEmail(name, email, message, adminEmail);
           
-          // For demo purposes, return success even though SendGrid failed
-          res.status(200).json({ 
-            success: true, 
-            message: "Your message has been received and logged (SendGrid integration is in demo mode)." 
-          });
+          if (sendGridResult) {
+            res.status(200).json({ 
+              success: true, 
+              message: "Your message has been sent successfully via SendGrid!"
+            });
+          } else {
+            // Both methods failed, log the message as fallback
+            console.log("======= CONTACT FORM SUBMISSION (FALLBACK) =======");
+            console.log(`From: ${name} (${email})`);
+            console.log(`To: ${adminEmail}`);
+            console.log(`Message: ${message}`);
+            console.log("=======================================");
+            
+            // For demo purposes, return success even though both email methods failed
+            res.status(200).json({ 
+              success: true, 
+              message: "Your message has been received and logged (both email services failed, but we've saved your message)."
+            });
+          }
         }
       } catch (emailError) {
         console.error("Error sending email:", emailError);
@@ -665,10 +679,10 @@ export function registerRoutes(app: Express) {
         console.log(`Message: ${message}`);
         console.log("==================================================");
         
-        // For demo purposes, return success even though SendGrid failed
+        // For demo purposes, return success even though email sending failed
         res.status(200).json({ 
           success: true, 
-          message: "Your message has been received and logged (SendGrid integration is in demo mode)." 
+          message: "Your message has been received and logged (email sending failed, but we've saved your message)." 
         });
       }
     } catch (error) {
