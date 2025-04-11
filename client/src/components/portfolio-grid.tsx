@@ -20,24 +20,10 @@ export function PortfolioGrid({ items }: { items: PortfolioItem[] }) {
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes to avoid too many refetches
   });
   
-  // Calculate grid style properties based on settings
-  const gridStyle = useMemo(() => {
-    const desktopCols = parseInt(settings?.grid_columns_desktop || DEFAULT_GRID_SETTINGS.grid_columns_desktop);
-    const tabletCols = parseInt(settings?.grid_columns_tablet || DEFAULT_GRID_SETTINGS.grid_columns_tablet);
-    const mobileCols = parseInt(settings?.grid_columns_mobile || DEFAULT_GRID_SETTINGS.grid_columns_mobile);
-    
-    return {
-      display: 'grid',
-      gap: '1.5rem',
-      gridTemplateColumns: `repeat(${mobileCols}, minmax(0, 1fr))`,
-      ['@media (min-width: 768px)']: {
-        gridTemplateColumns: `repeat(${tabletCols}, minmax(0, 1fr))`
-      },
-      ['@media (min-width: 1024px)']: {
-        gridTemplateColumns: `repeat(${desktopCols}, minmax(0, 1fr))`
-      }
-    };
-  }, [settings]);
+  // Calculate column values based on settings
+  const desktopCols = settings?.grid_columns_desktop || DEFAULT_GRID_SETTINGS.grid_columns_desktop;
+  const tabletCols = settings?.grid_columns_tablet || DEFAULT_GRID_SETTINGS.grid_columns_tablet;
+  const mobileCols = settings?.grid_columns_mobile || DEFAULT_GRID_SETTINGS.grid_columns_mobile;
   
   // Calculate items per page (for future pagination implementation)
   const itemsPerPage = useMemo(() => {
@@ -45,19 +31,33 @@ export function PortfolioGrid({ items }: { items: PortfolioItem[] }) {
     return parseInt(settings.items_per_page);
   }, [settings]);
   
+  // Use Tailwind classes for responsive grid based on settings
+  const gridClass = useMemo(() => {
+    // Base grid with gap
+    let classes = "grid gap-6 ";
+    
+    // Mobile columns (base)
+    if (mobileCols === '1') classes += "grid-cols-1 ";
+    else if (mobileCols === '2') classes += "grid-cols-2 ";
+    
+    // Tablet columns (md)
+    if (tabletCols === '1') classes += "md:grid-cols-1 ";
+    else if (tabletCols === '2') classes += "md:grid-cols-2 ";
+    else if (tabletCols === '3') classes += "md:grid-cols-3 ";
+    
+    // Desktop columns (lg)
+    if (desktopCols === '1') classes += "lg:grid-cols-1 ";
+    else if (desktopCols === '2') classes += "lg:grid-cols-2 ";
+    else if (desktopCols === '3') classes += "lg:grid-cols-3 ";
+    else if (desktopCols === '4') classes += "lg:grid-cols-4 ";
+    else if (desktopCols === '5') classes += "lg:grid-cols-5 ";
+    else if (desktopCols === '6') classes += "lg:grid-cols-6 ";
+    
+    return classes.trim();
+  }, [mobileCols, tabletCols, desktopCols]);
+  
   return (
-    <div 
-      className="grid gap-6" 
-      style={{
-        gridTemplateColumns: `repeat(${settings?.grid_columns_mobile || DEFAULT_GRID_SETTINGS.grid_columns_mobile}, minmax(0, 1fr))`,
-        [`@media (min-width: 768px)`]: {
-          gridTemplateColumns: `repeat(${settings?.grid_columns_tablet || DEFAULT_GRID_SETTINGS.grid_columns_tablet}, minmax(0, 1fr))`
-        },
-        [`@media (min-width: 1024px)`]: {
-          gridTemplateColumns: `repeat(${settings?.grid_columns_desktop || DEFAULT_GRID_SETTINGS.grid_columns_desktop}, minmax(0, 1fr))`
-        }
-      }}
-    >
+    <div className={gridClass}>
       {items.map((item) => (
         <ItemCard key={item.id} item={item} />
       ))}
@@ -79,26 +79,38 @@ export function PortfolioGridSkeleton() {
     return Math.min(count, 12); // Limit to 12 for performance
   }, [settings]);
   
+  // Calculate column values based on settings
   const desktopCols = settings?.grid_columns_desktop || DEFAULT_GRID_SETTINGS.grid_columns_desktop;
   const tabletCols = settings?.grid_columns_tablet || DEFAULT_GRID_SETTINGS.grid_columns_tablet;
   const mobileCols = settings?.grid_columns_mobile || DEFAULT_GRID_SETTINGS.grid_columns_mobile;
   
+  // Use Tailwind classes for responsive grid based on settings
+  const gridClass = useMemo(() => {
+    // Base grid with gap
+    let classes = "grid gap-6 ";
+    
+    // Mobile columns (base)
+    if (mobileCols === '1') classes += "grid-cols-1 ";
+    else if (mobileCols === '2') classes += "grid-cols-2 ";
+    
+    // Tablet columns (md)
+    if (tabletCols === '1') classes += "md:grid-cols-1 ";
+    else if (tabletCols === '2') classes += "md:grid-cols-2 ";
+    else if (tabletCols === '3') classes += "md:grid-cols-3 ";
+    
+    // Desktop columns (lg)
+    if (desktopCols === '1') classes += "lg:grid-cols-1 ";
+    else if (desktopCols === '2') classes += "lg:grid-cols-2 ";
+    else if (desktopCols === '3') classes += "lg:grid-cols-3 ";
+    else if (desktopCols === '4') classes += "lg:grid-cols-4 ";
+    else if (desktopCols === '5') classes += "lg:grid-cols-5 ";
+    else if (desktopCols === '6') classes += "lg:grid-cols-6 ";
+    
+    return classes.trim();
+  }, [mobileCols, tabletCols, desktopCols]);
+  
   return (
-    <div className="grid gap-6" style={{ 
-      gridTemplateColumns: `repeat(${mobileCols}, minmax(0, 1fr))` 
-    }}>
-      <style jsx>{`
-        @media (min-width: 768px) {
-          div {
-            grid-template-columns: repeat(${tabletCols}, minmax(0, 1fr));
-          }
-        }
-        @media (min-width: 1024px) {
-          div {
-            grid-template-columns: repeat(${desktopCols}, minmax(0, 1fr));
-          }
-        }
-      `}</style>
+    <div className={gridClass}>
       {Array.from({ length: skeletonCount }).map((_, i) => (
         <Card key={i} className="overflow-hidden h-full flex flex-col">
           <Skeleton className="aspect-[4/3] w-full" />
