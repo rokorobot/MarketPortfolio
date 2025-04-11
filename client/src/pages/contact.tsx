@@ -4,9 +4,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
-import React from "react";
+import React, { useState } from "react";
 import { z } from "zod";
 import {
   Form,
@@ -17,8 +17,9 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Mail, Phone, MapPin } from "lucide-react";
+import { Mail, Phone, MapPin, CheckCircle, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -28,6 +29,7 @@ const formSchema = z.object({
 
 export default function ContactPage() {
   const { toast } = useToast();
+  const [formStatus, setFormStatus] = useState<'idle' | 'success' | 'error'>('idle');
   
   // Fetch site settings
   const { data: settings, isLoading } = useQuery<Record<string, string | null>, Error>({
@@ -41,6 +43,30 @@ export default function ContactPage() {
     }
   });
   
+  // Contact form mutation
+  const contactMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof formSchema>) => {
+      const response = await apiRequest('POST', '/api/contact', data);
+      return await response.json();
+    },
+    onSuccess: () => {
+      setFormStatus('success');
+      toast({
+        title: "Message sent!",
+        description: "We'll get back to you as soon as possible.",
+      });
+      form.reset();
+    },
+    onError: (error: Error) => {
+      setFormStatus('error');
+      toast({
+        title: "Failed to send message",
+        description: error.message || "Please try again later.",
+        variant: "destructive",
+      });
+    }
+  });
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -51,15 +77,8 @@ export default function ContactPage() {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    // In a real application, this would send the message to the server
-    console.log(values);
-    
-    toast({
-      title: "Message sent!",
-      description: "We'll get back to you as soon as possible.",
-    });
-    
-    form.reset();
+    setFormStatus('idle');
+    contactMutation.mutate(values);
   }
 
   // Show loading state while fetching settings
@@ -182,7 +201,42 @@ export default function ContactPage() {
                 )}
               />
               
-              <Button type="submit" className="w-full">Send Message</Button>
+              {formStatus === 'success' && (
+                <div className="bg-green-50 border border-green-200 rounded-md p-4 mb-4 flex items-start gap-3">
+                  <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="font-medium text-green-800">Message Sent Successfully!</h4>
+                    <p className="text-green-700 text-sm">Thank you for your message. We'll respond as soon as possible.</p>
+                  </div>
+                </div>
+              )}
+              
+              {formStatus === 'error' && (
+                <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-4 flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="font-medium text-red-800">Failed to send message</h4>
+                    <p className="text-red-700 text-sm">
+                      {!settings?.email_contact 
+                        ? "Admin email is not configured. Please try again later."
+                        : "There was a problem sending your message. Please try again."}
+                    </p>
+                  </div>
+                </div>
+              )}
+              
+              <Button 
+                type="submit" 
+                className="w-full"
+                disabled={contactMutation.isPending}
+              >
+                {contactMutation.isPending ? (
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Sending...</span>
+                  </div>
+                ) : "Send Message"}
+              </Button>
             </form>
           </Form>
         </div>
