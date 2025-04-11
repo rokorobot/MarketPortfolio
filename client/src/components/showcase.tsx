@@ -182,24 +182,10 @@ export function Showcase({ items, isOpen, onClose }: ShowcaseProps) {
                     Next
                     <ChevronRight className="h-5 w-5 ml-1" />
                   </Button>
-                  
-                  <Button 
-                    variant="outline"
-                    size="sm"
-                    className="bg-white/20 hover:bg-white/30 text-white border-white/30"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onClose();
-                    }}
-                  >
-                    <X className="h-4 w-4 mr-1" />
-                    Exit (ESC)
-                  </Button>
                 </div>
                 
-                <div className="mt-2 text-white/70 text-sm flex items-center justify-center gap-8">
-                  <span>{currentIndex + 1} of {items.length}</span>
-                  <span className="text-white/50 text-xs">Press ESC to exit</span>
+                <div className="mt-2 text-white/70 text-sm">
+                  {currentIndex + 1} of {items.length}
                 </div>
               </div>
             </div>
