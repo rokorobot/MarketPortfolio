@@ -13,6 +13,7 @@ import SharePage from "@/pages/share";
 import AboutPage from "@/pages/about";
 import ContactPage from "@/pages/contact";
 import SiteSettings from "@/pages/site-settings";
+import Favorites from "@/pages/favorites";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/components/protected-route";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -26,6 +27,11 @@ function Router() {
       <Route path="/login" component={LoginPage} />
       <Route path="/about" component={AboutPage} />
       <Route path="/contact" component={ContactPage} />
+      <Route path="/favorites">
+        <ProtectedRoute>
+          <Favorites />
+        </ProtectedRoute>
+      </Route>
       <Route path="/add-item">
         <ProtectedRoute requireAdmin>
           <AddItem />
