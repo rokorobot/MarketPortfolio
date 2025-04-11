@@ -114,11 +114,11 @@ export function Showcase({ items, isOpen, onClose }: ShowcaseProps) {
           onClick={toggleControls}
         >
           {/* Full screen image with title overlay */}
-          <div className="absolute inset-0 w-full h-full flex items-center justify-center">
+          <div className="absolute inset-0 w-full h-full">
             <img 
               src={currentItem.imageUrl} 
               alt={currentItem.title}
-              className="max-w-[90vw] max-h-[80vh] object-contain"
+              className="w-full h-full object-contain"
             />
           </div>
           
