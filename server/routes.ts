@@ -161,7 +161,7 @@ export function registerRoutes(app: Express) {
       } else {
         // Try to get items_per_page from settings
         const itemsPerPageSetting = await storage.getSiteSettingByKey('items_per_page');
-        pageSizeNum = itemsPerPageSetting ? parseInt(itemsPerPageSetting.value) || 24 : 24;
+        pageSizeNum = itemsPerPageSetting?.value ? parseInt(itemsPerPageSetting.value) || 24 : 24;
       }
       
       // Parse page parameter

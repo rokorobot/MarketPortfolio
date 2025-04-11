@@ -75,7 +75,9 @@ export interface IStorage {
 
 export class DatabaseStorage implements IStorage {
   async getItems(): Promise<PortfolioItem[]> {
-    return await db.select().from(portfolioItems);
+    return await db.select()
+      .from(portfolioItems)
+      .orderBy(desc(portfolioItems.createdAt)); // Show most recently created items first
   }
   
   async getItemsPaginated(page: number, pageSize: number): Promise<PaginatedResult<PortfolioItem>> {
@@ -196,7 +198,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getItemsByCategory(category: string): Promise<PortfolioItem[]> {
-    return await db.select().from(portfolioItems).where(eq(portfolioItems.category, category));
+    return await db.select()
+      .from(portfolioItems)
+      .where(eq(portfolioItems.category, category))
+      .orderBy(desc(portfolioItems.createdAt)); // Show most recently created items first
   }
 
   async createItem(item: InsertPortfolioItem): Promise<PortfolioItem> {
