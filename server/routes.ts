@@ -657,8 +657,18 @@ export function registerRoutes(app: Express) {
         });
       }
       
+      // Check the current setting
+      const currentSetting = await storage.getSiteSettingByKey('showcase_interval');
+      console.log('Current showcase_interval:', currentSetting?.value);
+      
+      // Update the setting
       const setting = await storage.updateSiteSetting('showcase_interval', value);
+      console.log('Updated showcase_interval to:', setting.value);
+      
       res.status(200).json(setting);
+      
+      // Log success for clarity
+      console.log(`User ${req.session.username} (${req.session.userRole}) updated showcase interval to ${setting.value}ms`);
     } catch (error) {
       console.error("Error updating showcase interval:", error);
       res.status(500).json({ message: "Error updating showcase interval" });
