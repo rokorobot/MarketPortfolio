@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogClose, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, X, Pause, Play } from "lucide-react";
 import { PortfolioItem } from "@shared/schema";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 interface ShowcaseProps {
   items: PortfolioItem[];
@@ -44,6 +45,7 @@ export function Showcase({ items, isOpen, onClose }: ShowcaseProps) {
   useEffect(() => {
     const handleIntervalChange = (e: CustomEvent) => {
       if (e.detail && e.detail.interval) {
+        console.log('Showcase: received interval change event with value:', e.detail.interval, 'ms');
         setSlideInterval(e.detail.interval);
       }
     };
@@ -57,33 +59,53 @@ export function Showcase({ items, isOpen, onClose }: ShowcaseProps) {
   
   // Handle autoplay timer
   useEffect(() => {
-    if (isAutoplay && isOpen) {
+    console.log('Showcase: autoplay effect triggered', { 
+      isAutoplay, 
+      isOpen, 
+      slideInterval,
+      itemsCount: items.length,
+      currentIndex
+    });
+    
+    if (isAutoplay && isOpen && items.length > 0) {
+      console.log('Showcase: starting autoplay timer with interval', slideInterval, 'ms');
+      
       // Clean up any existing timer
       if (timer) {
+        console.log('Showcase: clearing existing timer');
         window.clearInterval(timer);
       }
       
       // Create new timer
       const newTimer = window.setInterval(() => {
-        setCurrentIndex(prev => (prev + 1) % items.length);
+        console.log('Showcase: advancing to next item');
+        setCurrentIndex(prev => {
+          const nextIndex = (prev + 1) % items.length;
+          console.log(`Showcase: moving from item ${prev} to ${nextIndex}`);
+          return nextIndex;
+        });
       }, slideInterval);
       
+      console.log('Showcase: new timer created');
       setTimer(newTimer);
       
       return () => {
+        console.log('Showcase: cleaning up timer on unmount/dependency change');
         window.clearInterval(newTimer);
       };
     } else if (timer) {
+      console.log('Showcase: autoplay disabled or dialog closed, clearing timer');
       window.clearInterval(timer);
       setTimer(null);
     }
     
     return () => {
       if (timer) {
+        console.log('Showcase: cleaning up timer in final cleanup');
         window.clearInterval(timer);
       }
     };
-  }, [isAutoplay, isOpen, items.length, slideInterval, timer]);
+  }, [isAutoplay, isOpen, items.length, slideInterval]);
   
   // Reset state when dialog is closed
   useEffect(() => {
@@ -151,6 +173,9 @@ export function Showcase({ items, isOpen, onClose }: ShowcaseProps) {
       if (!open) onClose();
     }}>
       <DialogContent className="w-screen h-screen max-w-none max-h-none p-0 bg-black text-white overflow-hidden border-none rounded-none">
+        <VisuallyHidden>
+          <DialogTitle>Portfolio Showcase - {currentItem.title}</DialogTitle>
+        </VisuallyHidden>
         <div 
           className="relative w-full h-full flex flex-col items-center justify-center"
           onClick={toggleControls}
