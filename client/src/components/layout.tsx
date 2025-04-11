@@ -1,6 +1,17 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Plus, UserCircle, LogOut, FolderPlus, Settings, Heart, Grid3X3, Presentation } from "lucide-react";
+import { Plus, UserCircle, LogOut, FolderPlus, Settings, Heart, Grid3X3, Presentation, Clock } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { 
   DropdownMenu,
@@ -12,6 +23,85 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Footer } from "@/components/footer";
+
+// Showcase interval setting component for dropdown menu
+const ShowcaseIntervalSetting = () => {
+  const { toast } = useToast();
+  const [localInterval, setLocalInterval] = useState<string>("8");
+  
+  // Fetch the current showcase interval from site settings
+  const { data: settings } = useQuery<Record<string, string | null>>({
+    queryKey: ['/api/site-settings'],
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+  });
+  
+  // Update local state when settings are loaded
+  useEffect(() => {
+    if (settings?.showcase_interval) {
+      // Convert from milliseconds to seconds for display
+      const seconds = parseInt(settings.showcase_interval) / 1000;
+      setLocalInterval(seconds.toString());
+    }
+  }, [settings]);
+  
+  // Mutation to update the showcase interval setting
+  const updateIntervalMutation = useMutation({
+    mutationFn: async (newInterval: string) => {
+      const response = await apiRequest('POST', '/api/site-settings', {
+        key: 'showcase_interval',
+        value: (parseInt(newInterval) * 1000).toString(), // Convert to milliseconds for storage
+      });
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/site-settings'] });
+      toast({
+        title: "Showcase interval updated",
+        description: `Slides will now change every ${localInterval} seconds`,
+      });
+      
+      // Dispatch an event to notify the showcase component
+      document.dispatchEvent(new CustomEvent('showcase-interval-changed', {
+        detail: { interval: parseInt(localInterval) * 1000 }
+      }));
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to update showcase interval",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+  
+  const handleIntervalChange = (value: string) => {
+    setLocalInterval(value);
+    updateIntervalMutation.mutate(value);
+  };
+  
+  return (
+    <div className="flex items-center px-2 py-1.5">
+      <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
+      <div className="flex-1">
+        <div className="text-sm mb-1">Showcase Speed</div>
+        <Select value={localInterval} onValueChange={handleIntervalChange}>
+          <SelectTrigger className="h-8 w-full">
+            <SelectValue placeholder="8 seconds" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="3">3 seconds</SelectItem>
+            <SelectItem value="5">5 seconds</SelectItem>
+            <SelectItem value="8">8 seconds</SelectItem>
+            <SelectItem value="10">10 seconds</SelectItem>
+            <SelectItem value="15">15 seconds</SelectItem>
+            <SelectItem value="20">20 seconds</SelectItem>
+            <SelectItem value="30">30 seconds</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+  );
+};
 
 // Showcase Button component that triggers the slideshow of portfolio items
 const ShowcaseButton = () => {
@@ -121,6 +211,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     <Grid3X3 className="h-4 w-4 mr-2" />
                     Collections
                   </DropdownMenuItem>
+                  
+                  <DropdownMenuSeparator />
+                  <ShowcaseIntervalSetting />
                   
                   {isAdmin && (
                     <>

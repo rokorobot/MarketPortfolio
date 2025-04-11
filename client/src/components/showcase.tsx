@@ -15,26 +15,71 @@ export function Showcase({ items, isOpen, onClose }: ShowcaseProps) {
   const [isAutoplay, setIsAutoplay] = useState(true);
   const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
   const [showControls, setShowControls] = useState(false);
+  const [interval, setInterval] = useState(8000); // Default 8 seconds
   
   const currentItem = items[currentIndex];
+  
+  // Fetch showcase interval from site settings
+  useEffect(() => {
+    // Fetch site settings to get the showcase_interval
+    const fetchShowcaseInterval = async () => {
+      try {
+        const response = await fetch('/api/site-settings');
+        if (response.ok) {
+          const settings = await response.json();
+          if (settings.showcase_interval) {
+            setInterval(parseInt(settings.showcase_interval));
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching showcase interval:', error);
+      }
+    };
+    
+    fetchShowcaseInterval();
+    
+    // Listen for showcase interval changes
+    const handleIntervalChange = (e: CustomEvent) => {
+      if (e.detail && e.detail.interval) {
+        setInterval(e.detail.interval);
+        
+        // Restart timer with new interval if currently in autoplay
+        if (isAutoplay && timer) {
+          clearInterval(timer);
+          const newTimer = setInterval(() => {
+            setCurrentIndex(prev => (prev + 1) % items.length);
+          }, e.detail.interval);
+          setTimer(newTimer);
+        }
+      }
+    };
+    
+    // Add event listener for showcase interval changes
+    document.addEventListener('showcase-interval-changed', handleIntervalChange as EventListener);
+    
+    // Cleanup
+    return () => {
+      document.removeEventListener('showcase-interval-changed', handleIntervalChange as EventListener);
+    };
+  }, [isAutoplay, timer, items.length]);
   
   // Handle autoplay
   useEffect(() => {
     if (isAutoplay && isOpen) {
-      const interval = setInterval(() => {
+      const newTimer = setInterval(() => {
         setCurrentIndex(prev => (prev + 1) % items.length);
-      }, 8000); // Change slide every 8 seconds
+      }, interval); // Change slide based on interval setting
       
-      setTimer(interval);
+      setTimer(newTimer);
       
       return () => {
-        if (interval) clearInterval(interval);
+        if (newTimer) clearInterval(newTimer);
       };
     } else if (timer) {
       clearInterval(timer);
       setTimer(null);
     }
-  }, [isAutoplay, isOpen, items.length]);
+  }, [isAutoplay, isOpen, items.length, interval]);
   
   // Reset state when dialog is closed
   useEffect(() => {
