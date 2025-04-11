@@ -150,14 +150,25 @@ export function registerRoutes(app: Express) {
     });
   });
   app.get("/api/items", async (req, res) => {
-    const { category } = req.query;
-
-    if (category && typeof category === 'string') {
-      const items = await storage.getItemsByCategory(category);
-      res.json(items);
-    } else {
-      const items = await storage.getItems();
-      res.json(items);
+    const { category, page = '1', pageSize = '12' } = req.query;
+    
+    // Parse pagination parameters
+    const pageNum = parseInt(page as string) || 1;
+    const pageSizeNum = parseInt(pageSize as string) || 12;
+    
+    try {
+      // If category is provided, use category-specific pagination
+      if (category && typeof category === 'string') {
+        const result = await storage.getItemsByCategoryPaginated(category, pageNum, pageSizeNum);
+        res.json(result);
+      } else {
+        // Use general pagination
+        const result = await storage.getItemsPaginated(pageNum, pageSizeNum);
+        res.json(result);
+      }
+    } catch (error) {
+      console.error('Error fetching paginated items:', error);
+      res.status(500).json({ message: 'Error fetching items' });
     }
   });
 

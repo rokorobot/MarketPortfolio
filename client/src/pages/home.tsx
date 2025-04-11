@@ -4,11 +4,12 @@ import { CategoryFilter } from "@/components/category-filter";
 import { Layout } from "@/components/layout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, X, User, Tag, FolderOpen } from "lucide-react";
+import { Search, X, User, Tag, FolderOpen, ChevronLeft, ChevronRight } from "lucide-react";
 import type { PortfolioItem } from "@shared/schema";
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Badge } from "@/components/ui/badge";
+import { queryClient } from "@/lib/queryClient";
 
 export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -51,18 +52,59 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  const { data: items, isLoading } = useQuery<PortfolioItem[]>({
-    queryKey: ["/api/items", selectedCategory],
+  // Define the paginated response type
+  interface PaginatedResponse {
+    items: PortfolioItem[];
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+  }
+  
+  // Add pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  
+  // Update query to include pagination and handle paginated response
+  const { data, isLoading } = useQuery<PaginatedResponse>({
+    queryKey: ["/api/items", selectedCategory, currentPage],
     queryFn: async ({ queryKey }) => {
       const category = queryKey[1] as string | null;
-      const url = category && typeof category === 'string'
-        ? `/api/items?category=${encodeURIComponent(category)}`
-        : "/api/items";
-      const response = await fetch(url);
+      const page = queryKey[2] as number;
+      
+      const url = new URL("/api/items", window.location.origin);
+      
+      // Add pagination params
+      url.searchParams.append("page", page.toString());
+      
+      // Add site settings items per page
+      const { data: settings } = await queryClient.fetchQuery({
+        queryKey: ['/api/site-settings'],
+        queryFn: async () => {
+          const response = await fetch('/api/site-settings');
+          if (!response.ok) throw new Error("Failed to fetch settings");
+          return response.json();
+        },
+        staleTime: 5 * 60 * 1000, // 5 minutes
+      });
+      
+      // Use items_per_page from settings or default to 12
+      if (settings?.items_per_page) {
+        url.searchParams.append("pageSize", settings.items_per_page);
+      }
+      
+      // Add category if selected
+      if (category && typeof category === 'string') {
+        url.searchParams.append("category", category);
+      }
+      
+      const response = await fetch(url.toString());
       if (!response.ok) throw new Error("Failed to fetch items");
       return response.json();
     },
   });
+  
+  // Extract items from the paginated response
+  const items = data?.items;
 
   // Filter items based on search query, selected author, and tag
   useEffect(() => {
@@ -230,6 +272,72 @@ export default function Home() {
           )}
           
           <PortfolioGrid items={filteredItems.length > 0 ? filteredItems : (items || [])} />
+          
+          {/* Pagination controls - only show when not filtering/searching */}
+          {!debouncedSearchQuery && !selectedAuthor && !selectedTag && data && data.totalPages > 1 && (
+            <div className="flex justify-center items-center gap-2 mt-8">
+              <Button 
+                variant="outline" 
+                size="icon"
+                disabled={currentPage <= 1}
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                aria-label="Previous page"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              
+              <div className="flex items-center gap-1">
+                {/* Generate page buttons */}
+                {Array.from({ length: data.totalPages }).map((_, index) => {
+                  const pageNumber = index + 1;
+                  // Only show limited pages with ellipsis for better UX
+                  if (
+                    pageNumber === 1 || 
+                    pageNumber === data.totalPages || 
+                    (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
+                  ) {
+                    return (
+                      <Button
+                        key={pageNumber}
+                        variant={pageNumber === currentPage ? "default" : "outline"}
+                        className="h-8 w-8"
+                        onClick={() => setCurrentPage(pageNumber)}
+                        aria-label={`Page ${pageNumber}`}
+                        aria-current={pageNumber === currentPage ? "page" : undefined}
+                      >
+                        {pageNumber}
+                      </Button>
+                    );
+                  } else if (
+                    (pageNumber === 2 && currentPage > 3) ||
+                    (pageNumber === data.totalPages - 1 && currentPage < data.totalPages - 2)
+                  ) {
+                    // Show ellipsis
+                    return <span key={pageNumber} className="px-1">…</span>;
+                  }
+                  return null;
+                })}
+              </div>
+              
+              <Button 
+                variant="outline" 
+                size="icon"
+                disabled={currentPage >= data.totalPages}
+                onClick={() => setCurrentPage(prev => Math.min(data.totalPages, prev + 1))}
+                aria-label="Next page"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+          
+          {/* Page information */}
+          {!debouncedSearchQuery && !selectedAuthor && !selectedTag && data && data.totalPages > 1 && (
+            <p className="text-center text-sm text-muted-foreground mt-2">
+              Page {data.page} of {data.totalPages} 
+              {data.total > 0 && ` — Total items: ${data.total}`}
+            </p>
+          )}
         </>
       )}
     </Layout>
