@@ -4,7 +4,7 @@ import { Layout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ExternalLink, Tag, Trash2, Share2, Twitter, Edit, Save, X, Loader2, Upload, Image } from "lucide-react";
+import { ExternalLink, Tag, Trash2, Share2, Twitter, Edit, Save, X, Loader2, Upload, Image, Heart } from "lucide-react";
 import { type PortfolioItem } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";

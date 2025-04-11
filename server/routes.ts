@@ -723,6 +723,54 @@ export function registerRoutes(app: Express) {
       });
     }
   });
+  
+  // Favorites endpoints
+  
+  // Toggle favorite status for an item
+  app.post("/api/favorites/toggle/:itemId", requireAuth, async (req, res) => {
+    try {
+      const itemId = parseInt(req.params.itemId);
+      if (isNaN(itemId)) {
+        return res.status(400).json({ message: "Invalid item ID" });
+      }
+
+      const userId = req.session.userId!;
+      const isFavorited = await storage.toggleFavorite(userId, itemId);
+      res.json({ isFavorited });
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+      res.status(500).json({ message: "Failed to toggle favorite status" });
+    }
+  });
+  
+  // Check if an item is favorited by the current user
+  app.get("/api/favorites/check/:itemId", requireAuth, async (req, res) => {
+    try {
+      const itemId = parseInt(req.params.itemId);
+      if (isNaN(itemId)) {
+        return res.status(400).json({ message: "Invalid item ID" });
+      }
+
+      const userId = req.session.userId!;
+      const isFavorited = await storage.isFavorited(userId, itemId);
+      res.json({ isFavorited });
+    } catch (error) {
+      console.error("Error checking favorite status:", error);
+      res.status(500).json({ message: "Failed to check favorite status" });
+    }
+  });
+  
+  // Get all favorite items for the current user
+  app.get("/api/favorites", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId!;
+      const favorites = await storage.getUserFavorites(userId);
+      res.json(favorites);
+    } catch (error) {
+      console.error("Error fetching favorites:", error);
+      res.status(500).json({ message: "Failed to fetch favorites" });
+    }
+  });
 
   return createServer(app);
 }
