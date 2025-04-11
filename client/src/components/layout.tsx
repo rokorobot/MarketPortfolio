@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Plus, UserCircle, LogOut, FolderPlus, Settings } from "lucide-react";
+import { Plus, UserCircle, LogOut, FolderPlus, Settings, Heart } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { 
   DropdownMenu,
@@ -48,6 +48,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
               </>
             )}
             
+            {user && (
+              <Button 
+                onClick={() => navigate("/favorites")} 
+                variant="outline"
+                size="sm"
+                className="gap-2"
+              >
+                <Heart className="h-4 w-4" />
+                Favorites
+              </Button>
+            )}
+            
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -60,6 +72,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   <DropdownMenuLabel>Account</DropdownMenuLabel>
                   <DropdownMenuItem disabled>
                     Role: {user.role}
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate("/favorites")}>
+                    <Heart className="h-4 w-4 mr-2" />
+                    My Favorites
                   </DropdownMenuItem>
                   
                   {isAdmin && (

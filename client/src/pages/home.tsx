@@ -144,7 +144,7 @@ export default function Home() {
 
   return (
     <Layout>
-      <h1 className="text-4xl font-bold mb-8">Featured Work</h1>
+      <h1 className="text-4xl font-bold mb-8">Portfolio</h1>
       
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         {/* Left side: Category filter */}
