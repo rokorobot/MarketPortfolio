@@ -14,7 +14,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Footer } from "@/components/footer";
 
 export function Layout({ children }: { children: React.ReactNode }) {
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
   const { user, isAdmin, logout } = useAuth();
 
   const handleLogout = async () => {
@@ -25,11 +25,30 @@ export function Layout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-background flex flex-col">
       <header className="border-b">
         <nav className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div 
-            className="text-2xl font-bold text-primary hover:text-primary/90 cursor-pointer"
-            onClick={() => navigate("/")}
-          >
-            Portfolio
+          <div className="flex items-center space-x-6">
+            <div 
+              className={`text-2xl font-bold cursor-pointer ${
+                location === "/" 
+                  ? "text-primary" 
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              onClick={() => navigate("/")}
+            >
+              Portfolio
+            </div>
+            
+            {user && (
+              <div
+                className={`text-2xl font-bold cursor-pointer ${
+                  location === "/favorites" 
+                    ? "text-primary" 
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+                onClick={() => navigate("/favorites")}
+              >
+                Favorites
+              </div>
+            )}
           </div>
           <div className="flex items-center gap-3">
             <ThemeToggle />
@@ -46,18 +65,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   Add Collection
                 </Button>
               </>
-            )}
-            
-            {user && (
-              <Button 
-                onClick={() => navigate("/favorites")} 
-                variant="outline"
-                size="sm"
-                className="gap-2"
-              >
-                <Heart className="h-4 w-4" />
-                Favorites
-              </Button>
             )}
             
             {user ? (
