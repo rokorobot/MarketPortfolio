@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, primaryKey } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -118,3 +118,21 @@ export const insertSiteSettingSchema = createInsertSchema(siteSettings).omit({
 
 export type InsertSiteSetting = z.infer<typeof insertSiteSettingSchema>;
 export type SiteSetting = typeof siteSettings.$inferSelect;
+
+// Favorites table - junction table between users and portfolio items
+export const favorites = pgTable("favorites", {
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  itemId: integer("item_id").notNull().references(() => portfolioItems.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => {
+  return {
+    pk: primaryKey({ columns: [table.userId, table.itemId] })
+  };
+});
+
+export const insertFavoriteSchema = createInsertSchema(favorites).omit({
+  createdAt: true,
+});
+
+export type InsertFavorite = z.infer<typeof insertFavoriteSchema>;
+export type Favorite = typeof favorites.$inferSelect;

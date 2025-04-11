@@ -3,7 +3,8 @@ import {
   users, type User, type InsertUser, 
   shareLinks, type ShareLink, type InsertShareLink, 
   categories, type CategoryModel, type InsertCategory,
-  siteSettings, type SiteSetting, type InsertSiteSetting
+  siteSettings, type SiteSetting, type InsertSiteSetting,
+  favorites, type Favorite, type InsertFavorite
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, sql } from "drizzle-orm";
@@ -71,6 +72,11 @@ export interface IStorage {
   createSiteSetting(setting: InsertSiteSetting): Promise<SiteSetting>;
   updateSiteSetting(key: string, value: string): Promise<SiteSetting>;
   deleteSiteSetting(id: number): Promise<boolean>;
+  
+  // Favorites
+  toggleFavorite(userId: number, itemId: number): Promise<boolean>;
+  isFavorited(userId: number, itemId: number): Promise<boolean>;
+  getUserFavorites(userId: number): Promise<PortfolioItem[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -379,6 +385,72 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  // Favorites methods
+  async toggleFavorite(userId: number, itemId: number): Promise<boolean> {
+    try {
+      // Check if already favorited
+      const isFavorite = await this.isFavorited(userId, itemId);
+      
+      if (isFavorite) {
+        // Remove from favorites
+        await db.delete(favorites)
+          .where(and(
+            eq(favorites.userId, userId),
+            eq(favorites.itemId, itemId)
+          ));
+        return false; // No longer favorited
+      } else {
+        // Add to favorites
+        await db.insert(favorites)
+          .values({
+            userId,
+            itemId,
+          });
+        return true; // Now favorited
+      }
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+      return false;
+    }
+  }
+  
+  async isFavorited(userId: number, itemId: number): Promise<boolean> {
+    const [favorite] = await db.select()
+      .from(favorites)
+      .where(and(
+        eq(favorites.userId, userId),
+        eq(favorites.itemId, itemId)
+      ));
+    
+    return !!favorite;
+  }
+  
+  async getUserFavorites(userId: number): Promise<PortfolioItem[]> {
+    // Join favorites and portfolio items to get all favorited items
+    const items = await db.select({
+        id: portfolioItems.id,
+        title: portfolioItems.title,
+        description: portfolioItems.description,
+        author: portfolioItems.author,
+        authorUrl: portfolioItems.authorUrl,
+        imageUrl: portfolioItems.imageUrl,
+        category: portfolioItems.category,
+        tags: portfolioItems.tags,
+        marketplaceUrl1: portfolioItems.marketplaceUrl1,
+        marketplaceUrl2: portfolioItems.marketplaceUrl2,
+        marketplaceName1: portfolioItems.marketplaceName1,
+        marketplaceName2: portfolioItems.marketplaceName2,
+        createdAt: portfolioItems.createdAt,
+        updatedAt: portfolioItems.updatedAt
+      })
+      .from(portfolioItems)
+      .innerJoin(favorites, eq(portfolioItems.id, favorites.itemId))
+      .where(eq(favorites.userId, userId))
+      .orderBy(portfolioItems.createdAt);
+    
+    return items;
+  }
+  
   async initialize() {
     const items = await this.getItems();
     if (items.length === 0) {
