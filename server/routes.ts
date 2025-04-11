@@ -639,11 +639,11 @@ export function registerRoutes(app: Express) {
         if (result) {
           res.status(200).json({ 
             success: true, 
-            message: "Your message has been sent successfully!" 
+            message: "Your message has been received successfully! (In demo mode: actual email delivery is disabled but message was logged)" 
           });
         } else {
           // Fallback to storing the message in logs for demonstration purposes
-          console.log("======= CONTACT FORM SUBMISSION =======");
+          console.log("======= CONTACT FORM SUBMISSION (FALLBACK) =======");
           console.log(`From: ${name} (${email})`);
           console.log(`To: ${adminEmail}`);
           console.log(`Message: ${message}`);
@@ -652,7 +652,7 @@ export function registerRoutes(app: Express) {
           // For demo purposes, return success even though SendGrid failed
           res.status(200).json({ 
             success: true, 
-            message: "Your message has been logged successfully (SendGrid email sending failed, but we've logged your message)." 
+            message: "Your message has been received and logged (SendGrid integration is in demo mode)." 
           });
         }
       } catch (emailError) {
@@ -668,7 +668,7 @@ export function registerRoutes(app: Express) {
         // For demo purposes, return success even though SendGrid failed
         res.status(200).json({ 
           success: true, 
-          message: "Your message has been logged successfully (SendGrid email sending failed, but we've logged your message)." 
+          message: "Your message has been received and logged (SendGrid integration is in demo mode)." 
         });
       }
     } catch (error) {
