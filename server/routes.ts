@@ -640,7 +640,33 @@ export function registerRoutes(app: Express) {
     }
   });
   
-  app.post("/api/site-settings", requireAuth, async (req, res) => {
+  // Special endpoint for updating showcase interval - available to all logged-in users
+  app.post("/api/showcase-interval", requireAuth, async (req, res) => {
+    try {
+      const { value } = req.body;
+      
+      if (!value) {
+        return res.status(400).json({ message: "Interval value is required" });
+      }
+      
+      // Validate the value (should be a number between 3000 and 30000)
+      const intervalValue = parseInt(value);
+      if (isNaN(intervalValue) || intervalValue < 3000 || intervalValue > 30000) {
+        return res.status(400).json({ 
+          message: "Showcase interval must be between 3 and 30 seconds"
+        });
+      }
+      
+      const setting = await storage.updateSiteSetting('showcase_interval', value);
+      res.status(200).json(setting);
+    } catch (error) {
+      console.error("Error updating showcase interval:", error);
+      res.status(500).json({ message: "Error updating showcase interval" });
+    }
+  });
+  
+  // Admin-only site settings
+  app.post("/api/site-settings", requireAuth, requireAdmin, async (req, res) => {
     try {
       const { key, value } = req.body;
       
@@ -648,22 +674,11 @@ export function registerRoutes(app: Express) {
         return res.status(400).json({ message: "Key is required" });
       }
       
-      // Check if it's the showcase_interval setting, which any logged-in user can update
-      const isShowcaseInterval = key === 'showcase_interval';
-      
-      // If not showcase_interval, require admin rights
-      if (!isShowcaseInterval && req.session.userRole !== 'admin') {
-        return res.status(403).json({ message: "Admin access required for this setting" });
-      }
-      
-      // For showcase_interval, validate the value (should be a number between 3000 and 30000)
-      if (isShowcaseInterval) {
-        const intervalValue = parseInt(value);
-        if (isNaN(intervalValue) || intervalValue < 3000 || intervalValue > 30000) {
-          return res.status(400).json({ 
-            message: "Showcase interval must be between 3 and 30 seconds"
-          });
-        }
+      // For security, don't allow overriding showcase_interval through this endpoint
+      if (key === 'showcase_interval') {
+        return res.status(400).json({ 
+          message: "Please use the dedicated /api/showcase-interval endpoint"
+        });
       }
       
       const setting = await storage.updateSiteSetting(key, value);

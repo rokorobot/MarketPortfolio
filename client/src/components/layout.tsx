@@ -47,8 +47,7 @@ const ShowcaseIntervalSetting = () => {
   // Mutation to update the showcase interval setting
   const updateIntervalMutation = useMutation({
     mutationFn: async (newInterval: string) => {
-      const response = await apiRequest('POST', '/api/site-settings', {
-        key: 'showcase_interval',
+      const response = await apiRequest('POST', '/api/showcase-interval', {
         value: (parseInt(newInterval) * 1000).toString(), // Convert to milliseconds for storage
       });
       return await response.json();
