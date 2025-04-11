@@ -204,6 +204,20 @@ export function Layout({ children }: { children: React.ReactNode }) {
             
             <ShowcaseButton />
             
+            {/* Standalone dropdown for showcase settings - available to all users */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Clock className="h-4 w-4" />
+                  Settings
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Showcase Settings</DropdownMenuLabel>
+                <ShowcaseIntervalSetting />
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -227,9 +241,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     <Grid3X3 className="h-4 w-4 mr-2" />
                     Collections
                   </DropdownMenuItem>
-                  
-                  <DropdownMenuSeparator />
-                  <ShowcaseIntervalSetting />
                   
                   {isAdmin && (
                     <>

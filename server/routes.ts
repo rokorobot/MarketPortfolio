@@ -695,8 +695,8 @@ export function registerRoutes(app: Express) {
     }
   });
   
-  // Special endpoint for updating showcase interval - available to all logged-in users
-  app.post("/api/showcase-interval", requireAuth, async (req, res) => {
+  // Special endpoint for updating showcase interval - available to ALL users (no auth required)
+  app.post("/api/showcase-interval", async (req, res) => {
     try {
       const { value } = req.body;
       
@@ -723,7 +723,9 @@ export function registerRoutes(app: Express) {
       res.status(200).json(setting);
       
       // Log success for clarity
-      console.log(`User ${req.session.username} (${req.session.userRole}) updated showcase interval to ${setting.value}ms`);
+      const username = req.session.username || 'anonymous';
+      const role = req.session.userRole || 'visitor';
+      console.log(`User ${username} (${role}) updated showcase interval to ${setting.value}ms`);
     } catch (error) {
       console.error("Error updating showcase interval:", error);
       res.status(500).json({ message: "Error updating showcase interval" });
