@@ -25,11 +25,21 @@ async function comparePasswords(supplied: string, stored: string) {
   return timingSafeEqual(hashedBuf, suppliedBuf);
 }
 
+interface PaginatedResult<T> {
+  items: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
 export interface IStorage {
   // Portfolio items
   getItems(): Promise<PortfolioItem[]>;
+  getItemsPaginated(page: number, pageSize: number): Promise<PaginatedResult<PortfolioItem>>;
   getItem(id: number): Promise<PortfolioItem | undefined>;
   getItemsByCategory(category: string): Promise<PortfolioItem[]>;
+  getItemsByCategoryPaginated(category: string, page: number, pageSize: number): Promise<PaginatedResult<PortfolioItem>>;
   createItem(item: InsertPortfolioItem): Promise<PortfolioItem>;
   updateItem(id: number, item: Partial<PortfolioItem>): Promise<PortfolioItem>;
   deleteItem(id: number): Promise<boolean>;
@@ -66,6 +76,72 @@ export interface IStorage {
 export class DatabaseStorage implements IStorage {
   async getItems(): Promise<PortfolioItem[]> {
     return await db.select().from(portfolioItems);
+  }
+  
+  async getItemsPaginated(page: number, pageSize: number): Promise<PaginatedResult<PortfolioItem>> {
+    // Ensure valid page and pageSize
+    const validPage = Math.max(1, page);
+    const validPageSize = Math.max(1, Math.min(100, pageSize)); // Limit max page size to 100
+    
+    // Calculate offset
+    const offset = (validPage - 1) * validPageSize;
+    
+    // Get total count
+    const countResult = await db.select({ count: sql`count(*)` }).from(portfolioItems);
+    const total = Number(countResult[0].count);
+    
+    // Get items for current page
+    const items = await db.select()
+      .from(portfolioItems)
+      .limit(validPageSize)
+      .offset(offset)
+      .orderBy(desc(portfolioItems.createdAt)); // Latest items first
+    
+    // Calculate total pages
+    const totalPages = Math.ceil(total / validPageSize);
+    
+    return {
+      items,
+      total,
+      page: validPage,
+      pageSize: validPageSize,
+      totalPages
+    };
+  }
+  
+  async getItemsByCategoryPaginated(category: string, page: number, pageSize: number): Promise<PaginatedResult<PortfolioItem>> {
+    // Ensure valid page and pageSize
+    const validPage = Math.max(1, page);
+    const validPageSize = Math.max(1, Math.min(100, pageSize)); // Limit max page size to 100
+    
+    // Calculate offset
+    const offset = (validPage - 1) * validPageSize;
+    
+    // Get total count for this category
+    const countResult = await db.select({ count: sql`count(*)` })
+      .from(portfolioItems)
+      .where(eq(portfolioItems.category, category));
+    
+    const total = Number(countResult[0].count);
+    
+    // Get items for current page
+    const items = await db.select()
+      .from(portfolioItems)
+      .where(eq(portfolioItems.category, category))
+      .limit(validPageSize)
+      .offset(offset)
+      .orderBy(desc(portfolioItems.createdAt)); // Latest items first
+    
+    // Calculate total pages
+    const totalPages = Math.ceil(total / validPageSize);
+    
+    return {
+      items,
+      total,
+      page: validPage,
+      pageSize: validPageSize,
+      totalPages
+    };
   }
   
   // Site Settings methods
