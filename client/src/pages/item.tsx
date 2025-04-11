@@ -54,6 +54,7 @@ export default function Item() {
   const { toast } = useToast();
   const { isAdmin, user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
+  const [isFavorited, setIsFavorited] = useState(false);
   
   // Image upload states
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -64,6 +65,19 @@ export default function Item() {
   const { data: item, isLoading } = useQuery<PortfolioItem>({
     queryKey: [`/api/items/${params?.id}`],
   });
+  
+  // Check if item is favorited
+  const { data: favoriteStatus, isLoading: isFavoriteLoading } = useQuery<{ isFavorited: boolean }>({
+    queryKey: [`/api/favorites/check/${params?.id}`],
+    enabled: !!user && !!params?.id, // Only run this query if user is logged in and we have an item ID
+  });
+  
+  // Update favorite state when the data is loaded
+  React.useEffect(() => {
+    if (favoriteStatus) {
+      setIsFavorited(favoriteStatus.isFavorited);
+    }
+  }, [favoriteStatus]);
 
   // Get category options from API (combines built-in and custom categories)
   const { data: categoryOptions, isLoading: isLoadingCategories } = useQuery<string[]>({
@@ -144,6 +158,39 @@ export default function Item() {
       });
       queryClient.invalidateQueries({ queryKey: ["/api/items"] });
       navigate("/");
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Toggle favorite mutation
+  const toggleFavoriteMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", `/api/favorites/toggle/${params?.id}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to toggle favorite status");
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setIsFavorited(data.isFavorited);
+      
+      // Show toast message
+      toast({
+        title: data.isFavorited ? "Added to favorites" : "Removed from favorites",
+        description: data.isFavorited 
+          ? "This item has been added to your favorites." 
+          : "This item has been removed from your favorites.",
+      });
+      
+      // Invalidate favorites query to update any favorites list elsewhere in the app
+      queryClient.invalidateQueries({ queryKey: ["/api/favorites"] });
     },
     onError: (error: Error) => {
       toast({
@@ -339,6 +386,20 @@ export default function Item() {
                     >
                       <Twitter className="h-4 w-4" />
                     </Button>
+                    
+                    {/* Favorite button - only shows for logged in users */}
+                    {user && (
+                      <Button 
+                        variant="outline" 
+                        size="icon"
+                        title={isFavorited ? "Remove from favorites" : "Add to favorites"}
+                        onClick={() => toggleFavoriteMutation.mutate()}
+                        disabled={toggleFavoriteMutation.isPending}
+                        className={isFavorited ? "bg-primary/10 text-primary" : ""}
+                      >
+                        <Heart className={`h-4 w-4 ${isFavorited ? "fill-current" : ""}`} />
+                      </Button>
+                    )}
                     
                     {/* Share button - only shows for logged in users */}
                     {user && (
