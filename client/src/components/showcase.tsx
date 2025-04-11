@@ -115,14 +115,73 @@ export function Showcase({ items, isOpen, onClose }: ShowcaseProps) {
             />
           </div>
           
-          {/* Title overlay - always visible at bottom */}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 text-center">
-            <h2 className="text-3xl font-bold mb-1">{currentItem.title}</h2>
-            {currentItem.author && (
-              <p className="text-lg text-gray-300 mb-1">
-                By {currentItem.author}
-              </p>
-            )}
+          {/* Title and controls overlay - always visible at bottom */}
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+            <div className="max-w-5xl mx-auto">
+              <div className="flex flex-col items-center">
+                <h2 className="text-3xl font-bold mb-1">{currentItem.title}</h2>
+                {currentItem.author && (
+                  <p className="text-lg text-gray-300 mb-3">
+                    By {currentItem.author}
+                  </p>
+                )}
+                
+                {/* Controls at bottom */}
+                <div className="flex items-center gap-4 mt-2">
+                  <Button 
+                    variant="outline"
+                    size="sm"
+                    className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePrevious();
+                    }}
+                  >
+                    <ChevronLeft className="h-5 w-5 mr-1" />
+                    Previous
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleAutoplay();
+                    }}
+                  >
+                    {isAutoplay ? (
+                      <>
+                        <Pause className="h-4 w-4 mr-1" />
+                        Pause
+                      </>
+                    ) : (
+                      <>
+                        <Play className="h-4 w-4 mr-1" />
+                        Play
+                      </>
+                    )}
+                  </Button>
+                  
+                  <Button 
+                    variant="outline"
+                    size="sm"
+                    className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleNext();
+                    }}
+                  >
+                    Next
+                    <ChevronRight className="h-5 w-5 ml-1" />
+                  </Button>
+                </div>
+                
+                <div className="mt-2 text-white/70 text-sm">
+                  {currentIndex + 1} of {items.length}
+                </div>
+              </div>
+            </div>
           </div>
           
           {/* Controls overlay - toggle visibility */}

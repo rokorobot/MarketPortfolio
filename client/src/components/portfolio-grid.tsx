@@ -1,9 +1,11 @@
+import { useEffect } from "react";
 import { ItemCard } from "./item-card";
 import { type PortfolioItem } from "@shared/schema";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
+import { useShowcase } from "@/hooks/use-showcase";
 
 // Default grid settings if site settings are not available
 const DEFAULT_GRID_SETTINGS = {
@@ -14,6 +16,9 @@ const DEFAULT_GRID_SETTINGS = {
 };
 
 export function PortfolioGrid({ items }: { items: PortfolioItem[] }) {
+  // Get the showcase functionality
+  const { startShowcase } = useShowcase();
+  
   // Fetch grid settings from site settings
   const { data: settings } = useQuery<Record<string, string | null>>({
     queryKey: ['/api/site-settings'],
@@ -30,6 +35,23 @@ export function PortfolioGrid({ items }: { items: PortfolioItem[] }) {
     if (!settings?.items_per_page) return parseInt(DEFAULT_GRID_SETTINGS.items_per_page);
     return parseInt(settings.items_per_page);
   }, [settings]);
+  
+  // Listen for the start-showcase event
+  useEffect(() => {
+    const handleStartShowcase = () => {
+      if (items.length > 0) {
+        startShowcase(items);
+      }
+    };
+    
+    // Add event listener
+    document.addEventListener('start-showcase', handleStartShowcase);
+    
+    // Cleanup
+    return () => {
+      document.removeEventListener('start-showcase', handleStartShowcase);
+    };
+  }, [items, startShowcase]);
   
   // Use Tailwind classes for responsive grid based on settings
   const gridClass = useMemo(() => {
