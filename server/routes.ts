@@ -227,7 +227,38 @@ export function registerRoutes(app: Express) {
       res.json(category);
     } catch (error) {
       console.error("Error fetching category:", error);
-      res.status(500).json({ message: "Failed to fetch category" });
+    }
+  });
+  
+  // Get all items for a specific category
+  app.get("/api/items/category/:category", async (req, res) => {
+    try {
+      const categoryName = req.params.category;
+      
+      // First convert the slug format (lowercase-with-dashes) back to the actual category name
+      // Get all categories to find a match
+      const categories = await storage.getCategories();
+      
+      // Find the category that matches the slug
+      let targetCategory = null;
+      for (const category of categories) {
+        const slug = category.name.replace(/\s+/g, '-').toLowerCase();
+        if (slug === categoryName) {
+          targetCategory = category.name;
+          break;
+        }
+      }
+      
+      // If no matching category found, look for exact match
+      if (!targetCategory) {
+        targetCategory = categoryName;
+      }
+      
+      const items = await storage.getItemsByCategory(targetCategory);
+      res.json(items);
+    } catch (error) {
+      console.error("Error fetching items by category:", error);
+      res.status(500).json({ message: "Failed to fetch items for category" });
     }
   });
 

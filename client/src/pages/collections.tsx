@@ -1,60 +1,104 @@
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
-import { useLocation, useRoute } from "wouter";
-import { PortfolioGrid, PortfolioGridSkeleton } from "@/components/portfolio-grid";
-import { Layout } from "@/components/layout";
-import { CategoryModel, PortfolioItem } from "@shared/schema";
-import { Button } from "@/components/ui/button";
+import { useParams, useLocation } from "wouter";
 import { ChevronLeft, Grid3X3 } from "lucide-react";
+import { Layout } from "@/components/layout";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { PortfolioGrid, PortfolioGridSkeleton } from "@/components/portfolio-grid";
+import { type PortfolioItem, type CategoryModel } from "@shared/schema";
 
 export default function Collections() {
-  const [, setLocation] = useLocation();
-  const [match, params] = useRoute<{ category?: string }>("/collections/:category?");
-  const selectedCategory = params?.category || null;
-  
-  // Fetch all categories
+  const { category } = useParams<{ category?: string }>();
+  const [_, navigate] = useLocation();
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(category || null);
+  const [selectedCategoryName, setSelectedCategoryName] = useState<string | null>(null);
+
+  // Get all categories
   const { data: categories, isLoading: categoriesLoading } = useQuery<CategoryModel[]>({
-    queryKey: ['/api/categories'],
+    queryKey: ["/api/categories"],
+    queryFn: async () => {
+      const response = await fetch("/api/categories");
+      if (!response.ok) throw new Error("Failed to fetch categories");
+      return response.json();
+    }
   });
-  
-  // Fetch items for the selected category
+
+  // Get items for a specific category
   const { data: items, isLoading: itemsLoading } = useQuery<PortfolioItem[]>({
-    queryKey: ['/api/items/category', selectedCategory],
-    enabled: !!selectedCategory,
+    queryKey: ["/api/items/category", selectedCategory],
+    queryFn: async () => {
+      if (!selectedCategory) return [];
+      const response = await fetch(`/api/items/category/${selectedCategory}`);
+      if (!response.ok) throw new Error("Failed to fetch items for category");
+      return response.json();
+    },
+    enabled: !!selectedCategory
   });
-  
-  // Get the name of the currently selected category
-  const selectedCategoryName = selectedCategory && categories 
-    ? categories.find(cat => cat.name.replace(/\s+/g, '-').toLowerCase() === selectedCategory)?.name 
-    : null;
-  
+
+  // Update the URL when the selected category changes
+  useEffect(() => {
+    if (selectedCategory) {
+      navigate(`/collections/${selectedCategory}`);
+    } else {
+      navigate("/collections");
+    }
+  }, [selectedCategory, navigate]);
+
+  // Set the selected category name when categories load
+  useEffect(() => {
+    if (categories && selectedCategory) {
+      // Try to match by slug format first
+      const matchedCategory = categories.find(
+        cat => cat.name.replace(/\s+/g, '-').toLowerCase() === selectedCategory
+      );
+      
+      if (matchedCategory) {
+        setSelectedCategoryName(matchedCategory.name);
+      } else {
+        // If no match by slug, try direct match
+        const directMatch = categories.find(cat => cat.name === selectedCategory);
+        if (directMatch) {
+          setSelectedCategoryName(directMatch.name);
+        } else {
+          setSelectedCategoryName(selectedCategory);
+        }
+      }
+    }
+  }, [categories, selectedCategory]);
+
+  // Handle selecting a category
+  const handleCategorySelect = (category: CategoryModel) => {
+    const slug = category.name.replace(/\s+/g, '-').toLowerCase();
+    setSelectedCategory(slug);
+    setSelectedCategoryName(category.name);
+  };
+
   // Handle back button click
   const handleBackClick = () => {
-    setLocation('/collections');
+    setSelectedCategory(null);
+    setSelectedCategoryName(null);
+    navigate("/collections");
   };
-  
-  // If we have a category parameter but categories haven't loaded yet, show loading state
-  if (selectedCategory && categoriesLoading) {
+
+  // If categories are loading, show a loading state
+  if (categoriesLoading) {
     return (
       <Layout>
-        <div className="flex items-center mb-6">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={handleBackClick}
-            className="mr-2"
-          >
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            Back to Collections
-          </Button>
-          <h1 className="text-4xl font-bold">Loading collection...</h1>
+        <h1 className="text-4xl font-bold mb-8">Collections</h1>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {Array.from({ length: 8 }).map((_, index) => (
+            <Card key={index} className="p-6 h-48 animate-pulse flex flex-col justify-center items-center">
+              <div className="rounded-full bg-muted h-12 w-12 mb-4"></div>
+              <div className="h-6 bg-muted rounded w-1/2 mb-2"></div>
+              <div className="h-4 bg-muted rounded w-3/4"></div>
+            </Card>
+          ))}
         </div>
-        <PortfolioGridSkeleton />
       </Layout>
     );
   }
-  
+
   // If we have a category parameter, show items from that category
   if (selectedCategory) {
     return (
@@ -100,33 +144,30 @@ export default function Collections() {
       <h1 className="text-4xl font-bold mb-8">Collections</h1>
       
       {categoriesLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Card key={i} className="p-6 h-40 animate-pulse bg-muted" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {Array.from({ length: 8 }).map((_, index) => (
+            <Card key={index} className="p-6 h-48 animate-pulse" />
           ))}
         </div>
       ) : categories && categories.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {categories.map((category) => {
-            const categorySlug = category.name.replace(/\s+/g, '-').toLowerCase();
-            return (
-              <Card 
-                key={category.id} 
-                className="p-6 hover:shadow-lg transition-shadow cursor-pointer group"
-                onClick={() => setLocation(`/collections/${categorySlug}`)}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <h2 className="text-2xl font-bold group-hover:text-primary transition-colors">
-                    {category.name}
-                  </h2>
-                  <Grid3X3 className="h-6 w-6 text-muted-foreground group-hover:text-primary transition-colors" />
-                </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {categories.map((category) => (
+            <Card 
+              key={category.id} 
+              className="p-6 hover:border-primary cursor-pointer transition-colors"
+              onClick={() => handleCategorySelect(category)}
+            >
+              <div className="flex flex-col items-center text-center h-full justify-center">
+                <Grid3X3 className="h-12 w-12 mb-4 text-primary" />
+                <h3 className="text-xl font-medium mb-2">{category.name}</h3>
                 {category.description && (
-                  <p className="text-muted-foreground line-clamp-3">{category.description}</p>
+                  <p className="text-muted-foreground text-sm">
+                    {category.description}
+                  </p>
                 )}
-              </Card>
-            );
-          })}
+              </div>
+            </Card>
+          ))}
         </div>
       ) : (
         <Card className="p-12 text-center">
@@ -134,11 +175,8 @@ export default function Collections() {
             <Grid3X3 className="h-16 w-16 text-muted-foreground mb-4" />
             <h3 className="text-xl font-medium mb-2">No collections found</h3>
             <p className="text-muted-foreground mb-4">
-              There are no collections available at the moment.
+              There are no collections created yet.
             </p>
-            <Button onClick={() => setLocation('/')}>
-              Browse Portfolio
-            </Button>
           </div>
         </Card>
       )}
