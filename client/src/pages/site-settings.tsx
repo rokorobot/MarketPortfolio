@@ -17,10 +17,12 @@ import {
 } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 
-type SocialMediaSettings = {
+type SiteSettingsType = {
   twitter_url: string;
   instagram_url: string;
   email_contact: string;
+  phone_contact: string;
+  office_address: string;
 };
 
 export default function SiteSettings() {
@@ -28,10 +30,12 @@ export default function SiteSettings() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  const [formValues, setFormValues] = useState<SocialMediaSettings>({
+  const [formValues, setFormValues] = useState<SiteSettingsType>({
     twitter_url: '',
     instagram_url: '',
-    email_contact: ''
+    email_contact: '',
+    phone_contact: '',
+    office_address: ''
   });
   
   const { data: settings, isLoading } = useQuery<Record<string, string | null>, Error>({
@@ -51,7 +55,9 @@ export default function SiteSettings() {
       setFormValues({
         twitter_url: settings.twitter_url || '',
         instagram_url: settings.instagram_url || '',
-        email_contact: settings.email_contact || ''
+        email_contact: settings.email_contact || '',
+        phone_contact: settings.phone_contact || '',
+        office_address: settings.office_address || ''
       });
     }
   }, [settings]);
@@ -68,7 +74,7 @@ export default function SiteSettings() {
       queryClient.invalidateQueries({ queryKey: ['/api/site-settings'] });
       toast({
         title: 'Settings updated',
-        description: 'Social media settings have been saved successfully.',
+        description: 'Your settings have been saved successfully.',
       });
     },
     onError: (error: Error) => {
@@ -80,7 +86,7 @@ export default function SiteSettings() {
     }
   });
   
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormValues(prev => ({
       ...prev,
@@ -118,7 +124,7 @@ export default function SiteSettings() {
       <div className="max-w-3xl mx-auto">
         <h1 className="text-3xl font-bold mb-6">Site Settings</h1>
         
-        <Card>
+        <Card className="mb-6">
           <CardHeader>
             <CardTitle>Social Media Settings</CardTitle>
             <CardDescription>
@@ -164,6 +170,62 @@ export default function SiteSettings() {
                   value={formValues.email_contact}
                   onChange={handleInputChange}
                   placeholder="contact@example.com"
+                />
+              </div>
+            </CardContent>
+            
+            <CardFooter>
+              <Button 
+                type="submit" 
+                disabled={updateSettingMutation.isPending}
+                className="w-full sm:w-auto"
+              >
+                {updateSettingMutation.isPending && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                {!updateSettingMutation.isPending && (
+                  <Save className="mr-2 h-4 w-4" />
+                )}
+                Save Settings
+              </Button>
+            </CardFooter>
+          </form>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Contact Information</CardTitle>
+            <CardDescription>
+              Configure contact details that will appear on the Contact page.
+            </CardDescription>
+          </CardHeader>
+          
+          <form onSubmit={handleSubmit}>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <label htmlFor="phone_contact" className="text-sm font-medium">
+                  Phone Number
+                </label>
+                <Input
+                  id="phone_contact"
+                  name="phone_contact"
+                  value={formValues.phone_contact}
+                  onChange={handleInputChange}
+                  placeholder="+1 (555) 123-4567"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <label htmlFor="office_address" className="text-sm font-medium">
+                  Office Address
+                </label>
+                <Textarea
+                  id="office_address"
+                  name="office_address"
+                  value={formValues.office_address}
+                  onChange={handleInputChange}
+                  placeholder="123 Portfolio Street&#10;Creative District&#10;New York, NY 10001"
+                  rows={3}
                 />
               </div>
             </CardContent>
