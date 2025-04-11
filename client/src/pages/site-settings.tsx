@@ -24,6 +24,10 @@ type SiteSettingsType = {
   email_contact: string;
   phone_contact: string;
   office_address: string;
+  grid_columns_desktop: string;
+  grid_columns_tablet: string;
+  grid_columns_mobile: string;
+  items_per_page: string;
 };
 
 export default function SiteSettings() {
@@ -36,7 +40,11 @@ export default function SiteSettings() {
     instagram_url: '',
     email_contact: '',
     phone_contact: '',
-    office_address: ''
+    office_address: '',
+    grid_columns_desktop: '3',
+    grid_columns_tablet: '2',
+    grid_columns_mobile: '1',
+    items_per_page: '12'
   });
   
   const { data: settings, isLoading } = useQuery<Record<string, string | null>, Error>({
@@ -58,7 +66,11 @@ export default function SiteSettings() {
         instagram_url: settings.instagram_url || '',
         email_contact: settings.email_contact || '',
         phone_contact: settings.phone_contact || '',
-        office_address: settings.office_address || ''
+        office_address: settings.office_address || '',
+        grid_columns_desktop: settings.grid_columns_desktop || '3',
+        grid_columns_tablet: settings.grid_columns_tablet || '2',
+        grid_columns_mobile: settings.grid_columns_mobile || '1',
+        items_per_page: settings.items_per_page || '12'
       });
     }
   }, [settings]);
@@ -193,7 +205,7 @@ export default function SiteSettings() {
           </form>
         </Card>
         
-        <Card>
+        <Card className="mb-6">
           <CardHeader>
             <CardTitle>Contact Information</CardTitle>
             <CardDescription>
@@ -244,6 +256,114 @@ export default function SiteSettings() {
                   <Save className="mr-2 h-4 w-4" />
                 )}
                 Save Settings
+              </Button>
+            </CardFooter>
+          </form>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Portfolio Grid Layout</CardTitle>
+            <CardDescription>
+              Configure how portfolio items are displayed on the homepage.
+            </CardDescription>
+          </CardHeader>
+          
+          <form onSubmit={handleSubmit}>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <label htmlFor="grid_columns_desktop" className="text-sm font-medium">
+                    Desktop Columns
+                  </label>
+                  <Input
+                    id="grid_columns_desktop"
+                    name="grid_columns_desktop"
+                    type="number"
+                    min="1"
+                    max="6"
+                    value={formValues.grid_columns_desktop}
+                    onChange={handleInputChange}
+                    placeholder="3"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Number of columns on desktop screens (≥1024px)
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <label htmlFor="grid_columns_tablet" className="text-sm font-medium">
+                    Tablet Columns
+                  </label>
+                  <Input
+                    id="grid_columns_tablet"
+                    name="grid_columns_tablet"
+                    type="number"
+                    min="1"
+                    max="4"
+                    value={formValues.grid_columns_tablet}
+                    onChange={handleInputChange}
+                    placeholder="2"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Number of columns on tablet screens (≥768px)
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <label htmlFor="grid_columns_mobile" className="text-sm font-medium">
+                    Mobile Columns
+                  </label>
+                  <Input
+                    id="grid_columns_mobile"
+                    name="grid_columns_mobile"
+                    type="number"
+                    min="1"
+                    max="2"
+                    value={formValues.grid_columns_mobile}
+                    onChange={handleInputChange}
+                    placeholder="1"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Number of columns on mobile screens (&lt;768px)
+                  </p>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <label htmlFor="items_per_page" className="text-sm font-medium">
+                  Items Per Page
+                </label>
+                <Input
+                  id="items_per_page"
+                  name="items_per_page"
+                  type="number"
+                  min="4"
+                  max="48"
+                  step="4"
+                  value={formValues.items_per_page}
+                  onChange={handleInputChange}
+                  placeholder="12"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Number of items to display per page (multiples of 4 recommended)
+                </p>
+              </div>
+            </CardContent>
+            
+            <CardFooter>
+              <Button 
+                type="submit" 
+                disabled={updateSettingMutation.isPending}
+                className="w-full sm:w-auto"
+              >
+                {updateSettingMutation.isPending && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                {!updateSettingMutation.isPending && (
+                  <Save className="mr-2 h-4 w-4" />
+                )}
+                Save Layout Settings
               </Button>
             </CardFooter>
           </form>
