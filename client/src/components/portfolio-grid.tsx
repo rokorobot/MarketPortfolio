@@ -17,7 +17,14 @@ const DEFAULT_GRID_SETTINGS = {
 
 export function PortfolioGrid({ items }: { items: PortfolioItem[] }) {
   // Get the showcase functionality
-  const { startShowcase } = useShowcase();
+  let startShowcaseFn: ((items: PortfolioItem[]) => void) | null = null;
+  try {
+    const { startShowcase } = useShowcase();
+    startShowcaseFn = startShowcase;
+  } catch (error) {
+    // If ShowcaseProvider isn't available, we'll handle this gracefully
+    console.log("Showcase provider not available in this context");
+  }
   
   // Fetch grid settings from site settings
   const { data: settings } = useQuery<Record<string, string | null>>({
@@ -39,8 +46,8 @@ export function PortfolioGrid({ items }: { items: PortfolioItem[] }) {
   // Listen for the start-showcase event
   useEffect(() => {
     const handleStartShowcase = () => {
-      if (items.length > 0) {
-        startShowcase(items);
+      if (items.length > 0 && startShowcaseFn) {
+        startShowcaseFn(items);
       }
     };
     
@@ -51,7 +58,7 @@ export function PortfolioGrid({ items }: { items: PortfolioItem[] }) {
     return () => {
       document.removeEventListener('start-showcase', handleStartShowcase);
     };
-  }, [items, startShowcase]);
+  }, [items, startShowcaseFn]);
   
   // Use Tailwind classes for responsive grid based on settings
   const gridClass = useMemo(() => {
