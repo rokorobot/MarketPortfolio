@@ -6,6 +6,7 @@ import { UploadedFile } from "express-fileupload";
 import path from "path";
 import crypto from "crypto";
 import { generateTagsFromImage, generateTagsFromText } from "./openai-service";
+import { sendContactFormEmail } from "./sendgrid-service";
 import session from "express-session";
 import { z } from "zod";
 
@@ -600,6 +601,68 @@ export function registerRoutes(app: Express) {
     } catch (error) {
       console.error("Error creating/updating site setting:", error);
       res.status(500).json({ message: "Error creating/updating site setting" });
+    }
+  });
+  
+  // Contact form endpoint
+  app.post("/api/contact", async (req, res) => {
+    try {
+      // Validate input
+      const contactSchema = z.object({
+        name: z.string().min(2, "Name must be at least 2 characters"),
+        email: z.string().email("Please enter a valid email address"),
+        message: z.string().min(10, "Message must be at least 10 characters"),
+      });
+      
+      const { name, email, message } = contactSchema.parse(req.body);
+      
+      // Get admin email from site settings
+      const settings = await storage.getSiteSettings();
+      const settingsObj = settings.reduce((acc, setting) => {
+        acc[setting.key] = setting.value;
+        return acc;
+      }, {} as Record<string, string | null>);
+      
+      const adminEmail = settingsObj.email_contact;
+      
+      if (!adminEmail) {
+        return res.status(500).json({ 
+          success: false, 
+          message: "Contact email not configured. Please set up the email_contact in site settings." 
+        });
+      }
+      
+      // Send email
+      const result = await sendContactFormEmail(name, email, message, adminEmail);
+      
+      if (result) {
+        res.status(200).json({ 
+          success: true, 
+          message: "Your message has been sent successfully!" 
+        });
+      } else {
+        res.status(500).json({ 
+          success: false, 
+          message: "Failed to send email. Please try again later."
+        });
+      }
+    } catch (error) {
+      console.error("Contact form error:", error);
+      
+      if (error instanceof z.ZodError) {
+        // Handle validation errors
+        const errorMessages = error.errors.map(err => `${err.path}: ${err.message}`).join(', ');
+        return res.status(400).json({ 
+          success: false, 
+          message: "Validation error",
+          errors: errorMessages
+        });
+      }
+      
+      res.status(500).json({ 
+        success: false, 
+        message: "An unexpected error occurred. Please try again later."
+      });
     }
   });
 
