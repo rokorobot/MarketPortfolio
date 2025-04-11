@@ -632,18 +632,27 @@ export function registerRoutes(app: Express) {
         });
       }
       
-      // Send email
-      const result = await sendContactFormEmail(name, email, message, adminEmail);
-      
-      if (result) {
-        res.status(200).json({ 
-          success: true, 
-          message: "Your message has been sent successfully!" 
-        });
-      } else {
+      try {
+        // Send email
+        const result = await sendContactFormEmail(name, email, message, adminEmail);
+        
+        if (result) {
+          res.status(200).json({ 
+            success: true, 
+            message: "Your message has been sent successfully!" 
+          });
+        } else {
+          console.error("Failed to send email via SendGrid");
+          res.status(500).json({ 
+            success: false, 
+            message: "Failed to send email. Please try again later."
+          });
+        }
+      } catch (emailError) {
+        console.error("Error sending email:", emailError);
         res.status(500).json({ 
           success: false, 
-          message: "Failed to send email. Please try again later."
+          message: "Failed to send email: " + (emailError instanceof Error ? emailError.message : "Unknown error")
         });
       }
     } catch (error) {

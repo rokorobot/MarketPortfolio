@@ -47,7 +47,14 @@ export default function ContactPage() {
   const contactMutation = useMutation({
     mutationFn: async (data: z.infer<typeof formSchema>) => {
       const response = await apiRequest('POST', '/api/contact', data);
-      return await response.json();
+      const result = await response.json();
+      
+      // Check if the API returned an error
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Failed to send message');
+      }
+      
+      return result;
     },
     onSuccess: () => {
       setFormStatus('success');
@@ -59,6 +66,7 @@ export default function ContactPage() {
     },
     onError: (error: Error) => {
       setFormStatus('error');
+      console.error("Contact form error:", error);
       toast({
         title: "Failed to send message",
         description: error.message || "Please try again later.",
@@ -218,8 +226,10 @@ export default function ContactPage() {
                     <h4 className="font-medium text-red-800">Failed to send message</h4>
                     <p className="text-red-700 text-sm">
                       {!settings?.email_contact 
-                        ? "Admin email is not configured. Please try again later."
-                        : "There was a problem sending your message. Please try again."}
+                        ? "Admin email is not configured. Please set up the email_contact in site settings."
+                        : contactMutation.error instanceof Error && contactMutation.error.message
+                          ? contactMutation.error.message
+                          : "There was a problem sending your message. Please try again later."}
                     </p>
                   </div>
                 </div>

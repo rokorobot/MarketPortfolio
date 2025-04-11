@@ -63,9 +63,11 @@ ${message}
 </div>
   `;
   
+  // Use the admin email as both to and from address since it's already verified
+  // This is a common practice when the sender address isn't verified
   return await sendEmail({
     to,
-    from: 'no-reply@portfolioshowcase.com', // This should be a verified sender in your SendGrid account
+    from: to, // Use the admin's email as the from address since it's likely verified
     subject,
     text,
     html,
