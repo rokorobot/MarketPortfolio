@@ -24,18 +24,12 @@ export const insertPortfolioItemSchema = createInsertSchema(portfolioItems).omit
 export type InsertPortfolioItem = z.infer<typeof insertPortfolioItemSchema>;
 export type PortfolioItem = typeof portfolioItems.$inferSelect;
 
-// Predefined categories for consistency
-export const PORTFOLIO_CATEGORIES = [
-  "Digital Art",
-  "Photography",
-  "3D Models",
-  "Music",
-  "Collectibles",
-  "Gaming Assets",
-] as const;
+// No predefined categories, dynamic from database only
+export const PORTFOLIO_CATEGORIES: string[] = [];
 
-export const categorySchema = z.enum(PORTFOLIO_CATEGORIES);
-export type CategoryEnum = z.infer<typeof categorySchema>;
+// Using a simple string type for categories now
+export const categorySchema = z.string();
+export type CategoryEnum = string; // Changed from enum to string type
 
 // User roles
 export const USER_ROLES = ["admin", "guest"] as const;

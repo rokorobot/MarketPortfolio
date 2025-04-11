@@ -8,15 +8,8 @@ interface CategoryFilterProps {
   onCategorySelect: (category: string | null) => void;
 }
 
-// Hardcoded categories as a fallback
-const DEFAULT_CATEGORIES = [
-  "Digital Art", 
-  "Photography", 
-  "3D Models", 
-  "Music", 
-  "Collectibles", 
-  "Gaming Assets"
-];
+// Empty fallback categories list
+const DEFAULT_CATEGORIES: string[] = [];
 
 export function CategoryFilter({ selectedCategory, onCategorySelect }: CategoryFilterProps) {
   const [displayCategories, setDisplayCategories] = useState<string[]>([]);
