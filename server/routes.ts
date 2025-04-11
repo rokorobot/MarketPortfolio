@@ -150,13 +150,23 @@ export function registerRoutes(app: Express) {
     });
   });
   app.get("/api/items", async (req, res) => {
-    const { category, page = '1', pageSize = '12' } = req.query;
-    
-    // Parse pagination parameters
-    const pageNum = parseInt(page as string) || 1;
-    const pageSizeNum = parseInt(pageSize as string) || 12;
+    const { category, page = '1', pageSize } = req.query;
     
     try {
+      // Get items_per_page from site settings if pageSize isn't provided
+      let pageSizeNum: number;
+      
+      if (pageSize) {
+        pageSizeNum = parseInt(pageSize as string) || 24;
+      } else {
+        // Try to get items_per_page from settings
+        const itemsPerPageSetting = await storage.getSiteSettingByKey('items_per_page');
+        pageSizeNum = itemsPerPageSetting ? parseInt(itemsPerPageSetting.value) || 24 : 24;
+      }
+      
+      // Parse page parameter
+      const pageNum = parseInt(page as string) || 1;
+      
       // If category is provided, use category-specific pagination
       if (category && typeof category === 'string') {
         const result = await storage.getItemsByCategoryPaginated(category, pageNum, pageSizeNum);
