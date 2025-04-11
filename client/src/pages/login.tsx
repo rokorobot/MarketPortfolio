@@ -5,13 +5,15 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, Palette, User } from "lucide-react";
 import { useLocation } from "wouter";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function LoginPage() {
   const { login, isLoading, user } = useAuth();
   const { toast } = useToast();
   const [_, setLocation] = useLocation();
+  const [activeTab, setActiveTab] = useState("creator");
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -26,6 +28,22 @@ export default function LoginPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    // Pre-fill credentials based on tab selection
+    if (value === "creator") {
+      setFormData({
+        username: "creator",
+        password: "",
+      });
+    } else {
+      setFormData({
+        username: "visitor",
+        password: "",
+      });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -55,11 +73,34 @@ export default function LoginPage() {
             Sign in to manage your creative portfolio
           </p>
           
+          <Tabs defaultValue="creator" value={activeTab} onValueChange={handleTabChange} className="mb-6">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="creator" className="flex items-center justify-center">
+                <Palette className="w-4 h-4 mr-2" />
+                Creator/Collector
+              </TabsTrigger>
+              <TabsTrigger value="visitor" className="flex items-center justify-center">
+                <User className="w-4 h-4 mr-2" />
+                Visitor
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="creator" className="pt-4">
+              <p className="text-sm text-muted-foreground">
+                Sign in as a Creator/Collector to manage the portfolio, add/edit items, and change site settings.
+              </p>
+            </TabsContent>
+            <TabsContent value="visitor" className="pt-4">
+              <p className="text-sm text-muted-foreground">
+                Sign in as a Visitor to browse the portfolio with basic access (no admin features).
+              </p>
+            </TabsContent>
+          </Tabs>
+          
           <Card>
             <CardHeader>
               <CardTitle>Sign In</CardTitle>
               <CardDescription>
-                Enter your credentials to access your portfolio
+                Enter your credentials to access the portfolio
               </CardDescription>
             </CardHeader>
             <form onSubmit={handleSubmit}>
