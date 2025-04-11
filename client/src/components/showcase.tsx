@@ -193,12 +193,13 @@ export function Showcase({ items, isOpen, onClose }: ShowcaseProps) {
                     }}
                   >
                     <X className="h-4 w-4 mr-1" />
-                    Exit
+                    Exit (ESC)
                   </Button>
                 </div>
                 
-                <div className="mt-2 text-white/70 text-sm flex items-center justify-center">
+                <div className="mt-2 text-white/70 text-sm flex items-center justify-center gap-8">
                   <span>{currentIndex + 1} of {items.length}</span>
+                  <span className="text-white/50 text-xs">Press ESC to exit</span>
                 </div>
               </div>
             </div>
