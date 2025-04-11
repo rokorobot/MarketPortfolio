@@ -170,14 +170,12 @@ export function registerRoutes(app: Express) {
       // Extract the category names
       const categoryNames = categories.map(cat => cat.name);
       
-      // Combine with built-in categories
-      const allCategoryOptions = Array.from(new Set([...categoryNames, ...PORTFOLIO_CATEGORIES]));
-      
-      res.json(allCategoryOptions);
+      // Use only database categories now (no built-in categories)
+      res.json(categoryNames);
     } catch (error) {
       console.error("Error fetching category options:", error);
-      // Fallback to built-in categories if database query fails
-      res.json(PORTFOLIO_CATEGORIES);
+      // Return empty array if database query fails
+      res.json([]);
     }
   });
   
