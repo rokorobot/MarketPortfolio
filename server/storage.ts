@@ -425,7 +425,7 @@ export class DatabaseStorage implements IStorage {
         role: "admin",
         isActive: true
       });
-      console.log("Created default admin user: rokoroko / rokorobot");
+      console.log("Created default admin user");
     }
   }
 }

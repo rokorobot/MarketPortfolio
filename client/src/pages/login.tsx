@@ -69,7 +69,7 @@ export default function LoginPage() {
                   <Input
                     id="username"
                     name="username"
-                    placeholder="rokoroko"
+                    placeholder="Username"
                     value={formData.username}
                     onChange={handleChange}
                     disabled={isLoading}
@@ -102,10 +102,6 @@ export default function LoginPage() {
               </CardFooter>
             </form>
           </Card>
-          
-          <p className="text-sm text-center mt-4 text-muted-foreground">
-            Default login: rokoroko / rokorobot
-          </p>
         </div>
         
         <div className="hidden md:block bg-gradient-to-br from-primary/80 to-primary p-8 text-white flex flex-col justify-center">
