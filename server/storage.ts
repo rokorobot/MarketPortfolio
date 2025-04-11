@@ -77,7 +77,7 @@ export class DatabaseStorage implements IStorage {
   async getItems(): Promise<PortfolioItem[]> {
     return await db.select()
       .from(portfolioItems)
-      .orderBy(desc(portfolioItems.createdAt)); // Show most recently created items first
+      .orderBy(portfolioItems.createdAt); // Show oldest items first, in chronological order
   }
   
   async getItemsPaginated(page: number, pageSize: number): Promise<PaginatedResult<PortfolioItem>> {
@@ -97,7 +97,7 @@ export class DatabaseStorage implements IStorage {
       .from(portfolioItems)
       .limit(validPageSize)
       .offset(offset)
-      .orderBy(desc(portfolioItems.createdAt)); // Latest items first
+      .orderBy(portfolioItems.createdAt); // Oldest items first, in chronological order
     
     // Calculate total pages
     const totalPages = Math.ceil(total / validPageSize);
@@ -132,7 +132,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(portfolioItems.category, category))
       .limit(validPageSize)
       .offset(offset)
-      .orderBy(desc(portfolioItems.createdAt)); // Latest items first
+      .orderBy(portfolioItems.createdAt); // Oldest items first, in chronological order
     
     // Calculate total pages
     const totalPages = Math.ceil(total / validPageSize);
@@ -201,7 +201,7 @@ export class DatabaseStorage implements IStorage {
     return await db.select()
       .from(portfolioItems)
       .where(eq(portfolioItems.category, category))
-      .orderBy(desc(portfolioItems.createdAt)); // Show most recently created items first
+      .orderBy(portfolioItems.createdAt); // Show oldest items first, in chronological order
   }
 
   async createItem(item: InsertPortfolioItem): Promise<PortfolioItem> {
