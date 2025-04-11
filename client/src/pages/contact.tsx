@@ -4,6 +4,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { useQuery } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
+import React from "react";
 import { z } from "zod";
 import {
   Form,
@@ -26,6 +29,18 @@ const formSchema = z.object({
 export default function ContactPage() {
   const { toast } = useToast();
   
+  // Fetch site settings
+  const { data: settings, isLoading } = useQuery<Record<string, string | null>, Error>({
+    queryKey: ['/api/site-settings'],
+    queryFn: async () => {
+      const res = await fetch('/api/site-settings');
+      if (!res.ok) {
+        throw new Error('Failed to fetch site settings');
+      }
+      return await res.json() as Record<string, string | null>;
+    }
+  });
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -47,6 +62,32 @@ export default function ContactPage() {
     form.reset();
   }
 
+  // Show loading state while fetching settings
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="flex justify-center items-center min-h-[40vh]">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </Layout>
+    );
+  }
+  
+  // Format the office address for display (replace newlines with <br> tags)
+  const formatOfficeAddress = () => {
+    const officeAddress = settings?.office_address || '';
+    
+    if (!officeAddress) return null;
+    
+    const addressLines = officeAddress.split('\n');
+    return addressLines.map((line, i) => (
+      <React.Fragment key={i}>
+        {line}
+        {i < addressLines.length - 1 && <br />}
+      </React.Fragment>
+    ));
+  };
+
   return (
     <Layout>
       <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -58,33 +99,37 @@ export default function ContactPage() {
           </p>
           
           <div className="space-y-6">
-            <div className="flex items-start gap-3">
-              <Mail className="h-5 w-5 text-primary mt-0.5" />
-              <div>
-                <h3 className="font-medium">Email</h3>
-                <p className="text-muted-foreground">contact@portfolioshowcase.com</p>
+            {settings?.email_contact && (
+              <div className="flex items-start gap-3">
+                <Mail className="h-5 w-5 text-primary mt-0.5" />
+                <div>
+                  <h3 className="font-medium">Email</h3>
+                  <p className="text-muted-foreground">{settings.email_contact}</p>
+                </div>
               </div>
-            </div>
+            )}
             
-            <div className="flex items-start gap-3">
-              <Phone className="h-5 w-5 text-primary mt-0.5" />
-              <div>
-                <h3 className="font-medium">Phone</h3>
-                <p className="text-muted-foreground">+1 (555) 123-4567</p>
+            {settings?.phone_contact && (
+              <div className="flex items-start gap-3">
+                <Phone className="h-5 w-5 text-primary mt-0.5" />
+                <div>
+                  <h3 className="font-medium">Phone</h3>
+                  <p className="text-muted-foreground">{settings.phone_contact}</p>
+                </div>
               </div>
-            </div>
+            )}
             
-            <div className="flex items-start gap-3">
-              <MapPin className="h-5 w-5 text-primary mt-0.5" />
-              <div>
-                <h3 className="font-medium">Office</h3>
-                <p className="text-muted-foreground">
-                  123 Portfolio Street<br />
-                  Creative District<br />
-                  New York, NY 10001
-                </p>
+            {settings?.office_address && (
+              <div className="flex items-start gap-3">
+                <MapPin className="h-5 w-5 text-primary mt-0.5" />
+                <div>
+                  <h3 className="font-medium">Office</h3>
+                  <p className="text-muted-foreground">
+                    {formatOfficeAddress()}
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
         
