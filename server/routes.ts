@@ -640,12 +640,30 @@ export function registerRoutes(app: Express) {
     }
   });
   
-  app.post("/api/site-settings", requireAuth, requireAdmin, async (req, res) => {
+  app.post("/api/site-settings", requireAuth, async (req, res) => {
     try {
       const { key, value } = req.body;
       
       if (!key) {
         return res.status(400).json({ message: "Key is required" });
+      }
+      
+      // Check if it's the showcase_interval setting, which any logged-in user can update
+      const isShowcaseInterval = key === 'showcase_interval';
+      
+      // If not showcase_interval, require admin rights
+      if (!isShowcaseInterval && req.session.userRole !== 'admin') {
+        return res.status(403).json({ message: "Admin access required for this setting" });
+      }
+      
+      // For showcase_interval, validate the value (should be a number between 3000 and 30000)
+      if (isShowcaseInterval) {
+        const intervalValue = parseInt(value);
+        if (isNaN(intervalValue) || intervalValue < 3000 || intervalValue > 30000) {
+          return res.status(400).json({ 
+            message: "Showcase interval must be between 3 and 30 seconds"
+          });
+        }
       }
       
       const setting = await storage.updateSiteSetting(key, value);

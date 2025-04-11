@@ -13,22 +13,21 @@ interface ShowcaseProps {
 export function Showcase({ items, isOpen, onClose }: ShowcaseProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoplay, setIsAutoplay] = useState(true);
-  const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
+  const [timer, setTimer] = useState<number | null>(null);
   const [showControls, setShowControls] = useState(false);
-  const [interval, setInterval] = useState(8000); // Default 8 seconds
+  const [slideInterval, setSlideInterval] = useState(8000); // Default 8 seconds
   
   const currentItem = items[currentIndex];
   
   // Fetch showcase interval from site settings
   useEffect(() => {
-    // Fetch site settings to get the showcase_interval
     const fetchShowcaseInterval = async () => {
       try {
         const response = await fetch('/api/site-settings');
         if (response.ok) {
           const settings = await response.json();
           if (settings.showcase_interval) {
-            setInterval(parseInt(settings.showcase_interval));
+            setSlideInterval(parseInt(settings.showcase_interval));
           }
         }
       } catch (error) {
@@ -37,49 +36,52 @@ export function Showcase({ items, isOpen, onClose }: ShowcaseProps) {
     };
     
     fetchShowcaseInterval();
-    
-    // Listen for showcase interval changes
+  }, []);
+  
+  // Listen for showcase interval changes
+  useEffect(() => {
     const handleIntervalChange = (e: CustomEvent) => {
       if (e.detail && e.detail.interval) {
-        setInterval(e.detail.interval);
-        
-        // Restart timer with new interval if currently in autoplay
-        if (isAutoplay && timer) {
-          clearInterval(timer);
-          const newTimer = setInterval(() => {
-            setCurrentIndex(prev => (prev + 1) % items.length);
-          }, e.detail.interval);
-          setTimer(newTimer);
-        }
+        setSlideInterval(e.detail.interval);
       }
     };
     
-    // Add event listener for showcase interval changes
     document.addEventListener('showcase-interval-changed', handleIntervalChange as EventListener);
     
-    // Cleanup
     return () => {
       document.removeEventListener('showcase-interval-changed', handleIntervalChange as EventListener);
     };
-  }, [isAutoplay, timer, items.length]);
+  }, []);
   
-  // Handle autoplay
+  // Handle autoplay timer
   useEffect(() => {
     if (isAutoplay && isOpen) {
-      const newTimer = setInterval(() => {
+      // Clean up any existing timer
+      if (timer) {
+        window.clearInterval(timer);
+      }
+      
+      // Create new timer
+      const newTimer = window.setInterval(() => {
         setCurrentIndex(prev => (prev + 1) % items.length);
-      }, interval); // Change slide based on interval setting
+      }, slideInterval);
       
       setTimer(newTimer);
       
       return () => {
-        if (newTimer) clearInterval(newTimer);
+        window.clearInterval(newTimer);
       };
     } else if (timer) {
-      clearInterval(timer);
+      window.clearInterval(timer);
       setTimer(null);
     }
-  }, [isAutoplay, isOpen, items.length, interval]);
+    
+    return () => {
+      if (timer) {
+        window.clearInterval(timer);
+      }
+    };
+  }, [isAutoplay, isOpen, items.length, slideInterval, timer]);
   
   // Reset state when dialog is closed
   useEffect(() => {
@@ -87,11 +89,11 @@ export function Showcase({ items, isOpen, onClose }: ShowcaseProps) {
       setCurrentIndex(0);
       setIsAutoplay(true);
       if (timer) {
-        clearInterval(timer);
+        window.clearInterval(timer);
         setTimer(null);
       }
     }
-  }, [isOpen]);
+  }, [isOpen, timer]);
   
   // Go to previous item
   const handlePrevious = () => {
