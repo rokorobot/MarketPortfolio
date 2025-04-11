@@ -640,6 +640,61 @@ export function registerRoutes(app: Express) {
     }
   });
   
+  // Debug endpoint to get session info - for troubleshooting only
+  app.get("/api/debug/session", (req, res) => {
+    const sessionInfo = {
+      isAuthenticated: !!req.session.userId,
+      userId: req.session.userId || null,
+      username: req.session.username || null,
+      userRole: req.session.userRole || null,
+      sessionID: req.sessionID
+    };
+    
+    console.log("Session debug info:", sessionInfo);
+    res.json(sessionInfo);
+  });
+  
+  // Quick login endpoint for testing - THIS SHOULD BE REMOVED IN PRODUCTION
+  app.get("/api/debug/login/:role", async (req, res) => {
+    try {
+      const role = req.params.role;
+      let username = "";
+      
+      if (role === "admin") {
+        username = "creator";
+      } else if (role === "guest") {
+        username = "visitor";
+      } else {
+        return res.status(400).json({ message: "Invalid role. Use 'admin' or 'guest'" });
+      }
+      
+      const user = await storage.getUserByUsername(username);
+      
+      if (!user) {
+        return res.status(404).json({ message: `User ${username} not found` });
+      }
+      
+      req.session.userId = user.id;
+      req.session.username = user.username;
+      req.session.userRole = user.role;
+      
+      console.log(`[DEBUG] Logged in as ${username} (${user.role}) with ID ${user.id}`);
+      
+      res.json({ 
+        message: `Logged in as ${username} (${user.role})`,
+        sessionID: req.sessionID,
+        user: {
+          id: user.id,
+          username: user.username,
+          role: user.role
+        }
+      });
+    } catch (error) {
+      console.error("Debug login error:", error);
+      res.status(500).json({ message: "Error during debug login" });
+    }
+  });
+  
   // Special endpoint for updating showcase interval - available to all logged-in users
   app.post("/api/showcase-interval", requireAuth, async (req, res) => {
     try {

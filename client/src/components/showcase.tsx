@@ -27,7 +27,9 @@ export function Showcase({ items, isOpen, onClose }: ShowcaseProps) {
         if (response.ok) {
           const settings = await response.json();
           if (settings.showcase_interval) {
-            setSlideInterval(parseInt(settings.showcase_interval));
+            const intervalValue = parseInt(settings.showcase_interval);
+            console.log('Showcase: Loading interval from settings:', intervalValue, 'ms');
+            setSlideInterval(intervalValue);
           }
         }
       } catch (error) {

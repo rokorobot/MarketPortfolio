@@ -47,12 +47,26 @@ const ShowcaseIntervalSetting = () => {
   // Mutation to update the showcase interval setting
   const updateIntervalMutation = useMutation({
     mutationFn: async (newInterval: string) => {
-      const response = await apiRequest('POST', '/api/showcase-interval', {
-        value: (parseInt(newInterval) * 1000).toString(), // Convert to milliseconds for storage
-      });
-      return await response.json();
+      console.log('Updating interval to:', newInterval, 'seconds');
+      const milliseconds = (parseInt(newInterval) * 1000).toString();
+      console.log('Sending API request with value:', milliseconds, 'ms');
+      
+      try {
+        const response = await apiRequest('POST', '/api/showcase-interval', {
+          value: milliseconds, // Convert to milliseconds for storage
+        });
+        
+        console.log('API response status:', response.status);
+        const data = await response.json();
+        console.log('API response data:', data);
+        return data;
+      } catch (error) {
+        console.error('API request failed:', error);
+        throw error;
+      }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Mutation succeeded with data:', data);
       queryClient.invalidateQueries({ queryKey: ['/api/site-settings'] });
       toast({
         title: "Showcase interval updated",
@@ -60,11 +74,14 @@ const ShowcaseIntervalSetting = () => {
       });
       
       // Dispatch an event to notify the showcase component
+      const eventData = { interval: parseInt(localInterval) * 1000 };
+      console.log('Dispatching showcase-interval-changed event with data:', eventData);
       document.dispatchEvent(new CustomEvent('showcase-interval-changed', {
-        detail: { interval: parseInt(localInterval) * 1000 }
+        detail: eventData
       }));
     },
     onError: (error: Error) => {
+      console.error('Mutation failed:', error);
       toast({
         title: "Failed to update showcase interval",
         description: error.message,
