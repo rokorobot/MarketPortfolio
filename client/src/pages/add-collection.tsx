@@ -1,4 +1,4 @@
-import { useState, useRef, ChangeEvent } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -21,8 +21,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Layout } from "@/components/layout";
-import { Loader2, Upload, X, Image as ImageIcon } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Loader2, Image as ImageIcon } from "lucide-react";
+import { Card } from "@/components/ui/card";
 
 // Extend the schema with additional validation
 const formSchema = insertCategorySchema
@@ -83,7 +83,7 @@ export default function AddCollection() {
   };
   
   // Watch for imageUrl changes to update preview
-  React.useEffect(() => {
+  useEffect(() => {
     const subscription = form.watch((value, { name }) => {
       if (name === 'imageUrl') {
         handlePreviewImage(value.imageUrl as string);
@@ -154,6 +154,40 @@ export default function AddCollection() {
                   <FormDescription>
                     Provide details about what this collection includes.
                   </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="imageUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Collection Image URL</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="Enter image URL" 
+                      {...field} 
+                      value={field.value || ""}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Provide a URL to an image that represents this collection.
+                  </FormDescription>
+                  {previewImage && (
+                    <div className="mt-2">
+                      <p className="text-sm mb-2">Image Preview:</p>
+                      <Card className="overflow-hidden w-48 h-48 flex items-center justify-center">
+                        <img 
+                          src={previewImage} 
+                          alt="Collection preview" 
+                          className="w-full h-full object-cover"
+                          onError={() => setPreviewImage(null)}
+                        />
+                      </Card>
+                    </div>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
