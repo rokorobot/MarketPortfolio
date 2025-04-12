@@ -15,6 +15,8 @@ import ContactPage from "@/pages/contact";
 import SiteSettings from "@/pages/site-settings";
 import Favorites from "@/pages/favorites";
 import Collections from "@/pages/collections";
+import Authors from "@/pages/authors";
+import AuthorItems from "@/pages/author-items";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/components/protected-route";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -35,6 +37,8 @@ function Router() {
         </ProtectedRoute>
       </Route>
       <Route path="/collections/:category?" component={Collections} />
+      <Route path="/authors" component={Authors} />
+      <Route path="/items/author/:authorName" component={AuthorItems} />
       <Route path="/add-item">
         <ProtectedRoute requireAdmin>
           <AddItem />

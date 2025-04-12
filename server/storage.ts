@@ -7,7 +7,7 @@ import {
   favorites, type Favorite, type InsertFavorite
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, and, desc, sql, isNotNull, ne } from "drizzle-orm";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 
@@ -228,7 +228,8 @@ export class DatabaseStorage implements IStorage {
     .groupBy(portfolioItems.author)
     .orderBy(portfolioItems.author);
     
-    return result;
+    // Filter out any null authors (shouldn't happen due to the where clause, but just in case)
+    return result.filter(author => author.name !== null) as {name: string, count: number}[];
   }
   
   async getItemsByAuthor(authorName: string): Promise<PortfolioItem[]> {
