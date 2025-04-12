@@ -41,7 +41,7 @@ export interface IStorage {
   getItem(id: number): Promise<PortfolioItem | undefined>;
   getItemsByCategory(category: string): Promise<PortfolioItem[]>;
   getItemsByCategoryPaginated(category: string, page: number, pageSize: number): Promise<PaginatedResult<PortfolioItem>>;
-  getUniqueAuthors(): Promise<{name: string, count: number}[]>;
+  getUniqueAuthors(): Promise<{name: string, count: number, profileImage: string | null}[]>;
   getItemsByAuthor(authorName: string): Promise<PortfolioItem[]>;
   createItem(item: InsertPortfolioItem): Promise<PortfolioItem>;
   updateItem(id: number, item: Partial<PortfolioItem>): Promise<PortfolioItem>;
