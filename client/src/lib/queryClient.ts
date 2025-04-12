@@ -2,8 +2,22 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
-    const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
+    try {
+      const text = await res.text();
+      
+      // Handle HTML error pages
+      if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
+        console.error('Received HTML error response:', text.substring(0, 100));
+        throw new Error(`${res.status}: HTML error page returned`);
+      }
+      
+      throw new Error(`${res.status}: ${text || res.statusText}`);
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error(`${res.status}: ${res.statusText}`);
+    }
   }
 }
 
@@ -51,7 +65,23 @@ export const getQueryFn: <T>(options: {
     }
 
     await throwIfResNotOk(res);
-    return await res.json();
+    
+    try {
+      // Safely parse JSON response
+      const text = await res.text();
+      if (!text) return null;
+      
+      // Check if response starts with HTML tags (error page)
+      if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
+        console.error('Received HTML instead of JSON:', text.substring(0, 100));
+        throw new Error('Invalid response format: expected JSON, received HTML');
+      }
+      
+      return JSON.parse(text);
+    } catch (error) {
+      console.error('Error parsing JSON response:', error);
+      throw new Error('Failed to parse response data');
+    }
   };
 
 export const queryClient = new QueryClient({

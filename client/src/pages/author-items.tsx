@@ -24,14 +24,17 @@ export default function AuthorItemsPage() {
   const { data: authorDetails, isLoading: isLoadingAuthor, error: authorError } = useQuery<Author>({
     queryKey: [`/api/authors/${encodeURIComponent(authorName)}`],
     enabled: !!authorName,
+    retry: false,
+    refetchOnWindowFocus: false,
   });
   
   // Handle author fetch error
   React.useEffect(() => {
     if (authorError) {
+      console.error("Author fetch error:", authorError);
       toast({
-        title: "Error",
-        description: `Failed to load author details: ${(authorError as Error).message}`,
+        title: "Error loading author",
+        description: "Unable to load author details. Please try again later.",
         variant: "destructive",
       });
     }
@@ -69,27 +72,41 @@ export default function AuthorItemsPage() {
             
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 mt-4 mb-8">
               {isLoadingAuthor ? (
-                <div className="w-32 h-32 rounded-full bg-muted animate-pulse" />
-              ) : (
-                authorDetails?.profileImage ? (
+                <div className="w-24 h-24 rounded-full bg-muted animate-pulse" />
+              ) : (!authorError && authorDetails?.profileImage) ? (
+                <>
                   <img 
                     src={authorDetails.profileImage} 
                     alt={`${authorName} profile`} 
-                    className="w-32 h-32 rounded-full object-cover shadow-md"
+                    className="w-24 h-24 rounded-full object-cover shadow-md"
+                    onError={(e) => {
+                      // If image fails to load, replace with default avatar
+                      e.currentTarget.style.display = 'none';
+                      e.currentTarget.parentElement?.querySelector('.fallback-avatar')?.classList.remove('hidden');
+                    }}
                   />
-                ) : (
-                  <div className="w-32 h-32 rounded-full bg-muted flex items-center justify-center shadow-md">
-                    <User className="h-16 w-16 text-muted-foreground/50" />
+                  <div className="hidden fallback-avatar w-24 h-24 rounded-full bg-muted flex items-center justify-center shadow-md">
+                    <User className="h-12 w-12 text-muted-foreground/50" />
                   </div>
-                )
+                </>
+              ) : (
+                <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center shadow-md">
+                  <User className="h-12 w-12 text-muted-foreground/50" />
+                </div>
               )}
               
               <div className="text-center sm:text-left">
                 <h1 className="text-3xl font-bold mb-2">{authorName}</h1>
-                {!isLoadingAuthor && authorDetails && (
+                {!isLoadingAuthor && !authorError && authorDetails ? (
                   <p className="text-muted-foreground">
                     {authorDetails.count} {authorDetails.count === 1 ? 'portfolio item' : 'portfolio items'}
                   </p>
+                ) : !isLoadingAuthor && items ? (
+                  <p className="text-muted-foreground">
+                    {items.length} {items.length === 1 ? 'portfolio item' : 'portfolio items'}
+                  </p>
+                ) : (
+                  <p className="text-muted-foreground">Portfolio items</p>
                 )}
               </div>
             </div>
