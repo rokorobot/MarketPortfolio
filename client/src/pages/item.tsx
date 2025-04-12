@@ -524,10 +524,13 @@ export default function Item() {
                               <Input 
                                 {...field} 
                                 value={field.value || ''}
-                                placeholder="https://artist-website.com" 
+                                placeholder="https://objkt.com/profile/..." 
                                 type="url"
                               />
                             </FormControl>
+                            <FormDescription>
+                              If you provide an OBJKT.com profile URL, we'll automatically extract the author's profile image.
+                            </FormDescription>
                             <FormDescription>
                               If provided, the author name will be clickable and link to this URL
                             </FormDescription>

@@ -261,6 +261,28 @@ export default function AddItem() {
 
             <FormField
               control={form.control}
+              name="authorUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Author URL</FormLabel>
+                  <FormControl>
+                    <Input 
+                      {...field} 
+                      type="url" 
+                      placeholder="https://objkt.com/profile/..."
+                      value={field.value || ''} 
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    If you provide an OBJKT.com profile URL, we'll automatically extract the author's profile image.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="imageUrl"
               render={({ field }) => (
                 <FormItem>
