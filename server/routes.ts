@@ -737,6 +737,27 @@ export function registerRoutes(app: Express) {
     }
   });
   
+  // Debug endpoint to test OBJKT profile image extraction
+  app.get("/api/debug/extract-profile-image", async (req, res) => {
+    const url = req.query.url as string;
+    if (!url) {
+      return res.status(400).json({ message: "URL parameter is required" });
+    }
+    
+    try {
+      console.log("[DEBUG] Testing profile image extraction for URL:", url);
+      const profileImage = await extractObjktProfileImage(url);
+      res.json({ 
+        url,
+        profileImage,
+        success: !!profileImage
+      });
+    } catch (error) {
+      console.error("Error extracting profile image:", error);
+      res.status(500).json({ message: "Error extracting profile image", error: String(error) });
+    }
+  });
+  
   // Special endpoint for updating showcase interval - available to ALL users (no auth required)
   app.post("/api/showcase-interval", async (req, res) => {
     try {
