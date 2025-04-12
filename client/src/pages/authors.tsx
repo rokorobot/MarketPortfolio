@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 interface Author {
   name: string;
   count: number;
+  profileImage: string | null;
 }
 
 export default function AuthorsPage() {
@@ -52,10 +53,20 @@ export default function AuthorsPage() {
               <div key={author.name} onClick={() => navigate(`/items/author/${encodeURIComponent(author.name)}`)}>
                 <Card className="h-full hover:border-primary hover:shadow-md transition-all duration-200 cursor-pointer">
                   <CardHeader className="pb-2">
-                    <CardTitle className="flex items-center gap-2">
-                      <User className="h-5 w-5" />
-                      {author.name}
-                    </CardTitle>
+                    <div className="flex items-center gap-3 mb-2">
+                      {author.profileImage ? (
+                        <img 
+                          src={author.profileImage} 
+                          alt={`${author.name} profile`} 
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                          <User className="h-5 w-5" />
+                        </div>
+                      )}
+                      <CardTitle>{author.name}</CardTitle>
+                    </div>
                   </CardHeader>
                   <CardContent>
                     <Badge variant="outline" className="mt-2">

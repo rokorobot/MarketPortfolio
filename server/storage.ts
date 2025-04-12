@@ -212,9 +212,9 @@ export class DatabaseStorage implements IStorage {
       .orderBy(portfolioItems.createdAt); // Show oldest items first, in chronological order
   }
   
-  async getUniqueAuthors(): Promise<{name: string, count: number}[]> {
-    // Get all non-null, non-empty authors and count their items
-    const result = await db.select({
+  async getUniqueAuthors(): Promise<{name: string, count: number, profileImage: string | null}[]> {
+    // First, get all non-null, non-empty authors and count their items
+    const authorsWithCounts = await db.select({
       name: portfolioItems.author,
       count: sql<number>`count(*)::int`
     })
@@ -228,8 +228,33 @@ export class DatabaseStorage implements IStorage {
     .groupBy(portfolioItems.author)
     .orderBy(portfolioItems.author);
     
-    // Filter out any null authors (shouldn't happen due to the where clause, but just in case)
-    return result.filter(author => author.name !== null) as {name: string, count: number}[];
+    // Filter out any null authors
+    const filteredAuthors = authorsWithCounts.filter(author => author.name !== null);
+    
+    // For each author, find the first item with a profile image
+    const authorsWithImages = await Promise.all(
+      filteredAuthors.map(async (author) => {
+        const [firstItemWithImage] = await db.select({
+          profileImage: portfolioItems.authorProfileImage
+        })
+        .from(portfolioItems)
+        .where(
+          and(
+            eq(portfolioItems.author, author.name as string),
+            isNotNull(portfolioItems.authorProfileImage)
+          )
+        )
+        .limit(1);
+        
+        return {
+          name: author.name as string,
+          count: author.count,
+          profileImage: firstItemWithImage?.profileImage || null
+        };
+      })
+    );
+    
+    return authorsWithImages;
   }
   
   async getItemsByAuthor(authorName: string): Promise<PortfolioItem[]> {
@@ -462,6 +487,7 @@ export class DatabaseStorage implements IStorage {
         description: portfolioItems.description,
         author: portfolioItems.author,
         authorUrl: portfolioItems.authorUrl,
+        authorProfileImage: portfolioItems.authorProfileImage,
         imageUrl: portfolioItems.imageUrl,
         category: portfolioItems.category,
         tags: portfolioItems.tags,
