@@ -977,6 +977,38 @@ export function registerRoutes(app: Express) {
     }
   });
   
+  // Get specific author details by name
+  app.get("/api/authors/:authorName", async (req, res) => {
+    try {
+      const authorName = decodeURIComponent(req.params.authorName);
+      
+      // Get all authors and find the matching one
+      const authors = await storage.getUniqueAuthors();
+      const author = authors.find(a => a.name === authorName);
+      
+      if (author) {
+        res.json(author);
+      } else {
+        // If not found in the unique authors list, try to get from items
+        const items = await storage.getItemsByAuthor(authorName);
+        
+        if (items.length > 0) {
+          // Return author details from the first item
+          res.json({
+            name: authorName,
+            count: items.length,
+            profileImage: items[0].authorProfileImage
+          });
+        } else {
+          res.status(404).json({ message: "Author not found" });
+        }
+      }
+    } catch (error) {
+      console.error(`Error fetching author ${req.params.authorName}:`, error);
+      res.status(500).json({ message: "Failed to fetch author details" });
+    }
+  });
+  
   // Get all items by a specific author
   app.get("/api/items/author/:authorName", async (req, res) => {
     try {
