@@ -902,6 +902,33 @@ export function registerRoutes(app: Express) {
       res.status(500).json({ message: "Failed to fetch favorites" });
     }
   });
+  
+  // Get all unique authors from portfolio items
+  app.get("/api/authors", async (req, res) => {
+    try {
+      const authors = await storage.getUniqueAuthors();
+      res.json(authors);
+    } catch (error) {
+      console.error("Error fetching authors:", error);
+      res.status(500).json({ message: "Failed to fetch authors" });
+    }
+  });
+  
+  // Get all items by a specific author
+  app.get("/api/items/author/:authorName", async (req, res) => {
+    try {
+      const authorName = req.params.authorName;
+      if (!authorName) {
+        return res.status(400).json({ message: "Author name is required" });
+      }
+      
+      const items = await storage.getItemsByAuthor(authorName);
+      res.json(items);
+    } catch (error) {
+      console.error("Error fetching items by author:", error);
+      res.status(500).json({ message: "Failed to fetch items by author" });
+    }
+  });
 
   return createServer(app);
 }

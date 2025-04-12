@@ -41,6 +41,8 @@ export interface IStorage {
   getItem(id: number): Promise<PortfolioItem | undefined>;
   getItemsByCategory(category: string): Promise<PortfolioItem[]>;
   getItemsByCategoryPaginated(category: string, page: number, pageSize: number): Promise<PaginatedResult<PortfolioItem>>;
+  getUniqueAuthors(): Promise<{name: string, count: number}[]>;
+  getItemsByAuthor(authorName: string): Promise<PortfolioItem[]>;
   createItem(item: InsertPortfolioItem): Promise<PortfolioItem>;
   updateItem(id: number, item: Partial<PortfolioItem>): Promise<PortfolioItem>;
   deleteItem(id: number): Promise<boolean>;
@@ -207,6 +209,32 @@ export class DatabaseStorage implements IStorage {
     return await db.select()
       .from(portfolioItems)
       .where(eq(portfolioItems.category, category))
+      .orderBy(portfolioItems.createdAt); // Show oldest items first, in chronological order
+  }
+  
+  async getUniqueAuthors(): Promise<{name: string, count: number}[]> {
+    // Get all non-null, non-empty authors and count their items
+    const result = await db.select({
+      name: portfolioItems.author,
+      count: sql<number>`count(*)::int`
+    })
+    .from(portfolioItems)
+    .where(
+      and(
+        isNotNull(portfolioItems.author),
+        ne(portfolioItems.author, '')
+      )
+    )
+    .groupBy(portfolioItems.author)
+    .orderBy(portfolioItems.author);
+    
+    return result;
+  }
+  
+  async getItemsByAuthor(authorName: string): Promise<PortfolioItem[]> {
+    return await db.select()
+      .from(portfolioItems)
+      .where(eq(portfolioItems.author, authorName))
       .orderBy(portfolioItems.createdAt); // Show oldest items first, in chronological order
   }
 
