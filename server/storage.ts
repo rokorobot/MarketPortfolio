@@ -79,6 +79,9 @@ export interface IStorage {
   toggleFavorite(userId: number, itemId: number): Promise<boolean>;
   isFavorited(userId: number, itemId: number): Promise<boolean>;
   getUserFavorites(userId: number): Promise<PortfolioItem[]>;
+  
+  // Author profile management
+  updateAuthorProfileImage(authorName: string, profileImage: string | null): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -504,6 +507,20 @@ export class DatabaseStorage implements IStorage {
       .orderBy(portfolioItems.createdAt);
     
     return items;
+  }
+  
+  async updateAuthorProfileImage(authorName: string, profileImage: string | null): Promise<boolean> {
+    try {
+      // Update all items with this author name to have the same profile image
+      await db.update(portfolioItems)
+        .set({ authorProfileImage: profileImage })
+        .where(eq(portfolioItems.author, authorName));
+      
+      return true;
+    } catch (error) {
+      console.error("Error updating author profile image:", error);
+      return false;
+    }
   }
   
   async initialize() {

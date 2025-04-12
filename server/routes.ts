@@ -992,6 +992,29 @@ export function registerRoutes(app: Express) {
       res.status(500).json({ message: "Failed to fetch items by author" });
     }
   });
+  
+  // Update author profile image
+  app.patch("/api/authors/:authorName", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const { authorName } = req.params;
+      const { profileImage } = req.body;
+      
+      if (!authorName) {
+        return res.status(400).json({ message: "Author name is required" });
+      }
+      
+      const success = await storage.updateAuthorProfileImage(authorName, profileImage);
+      
+      if (success) {
+        res.json({ success: true, message: "Author profile image updated successfully" });
+      } else {
+        res.status(500).json({ message: "Failed to update author profile image" });
+      }
+    } catch (error) {
+      console.error("Error updating author profile image:", error);
+      res.status(500).json({ message: "Failed to update author profile image" });
+    }
+  });
 
   return createServer(app);
 }

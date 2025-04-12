@@ -60,6 +60,11 @@ function Router() {
           <SiteSettings />
         </ProtectedRoute>
       </Route>
+      <Route path="/manage-authors">
+        <ProtectedRoute requireAdmin>
+          <ManageAuthors />
+        </ProtectedRoute>
+      </Route>
       <Route component={NotFound} />
     </Switch>
   );
