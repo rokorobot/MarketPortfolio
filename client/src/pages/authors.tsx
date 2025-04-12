@@ -3,8 +3,10 @@ import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Layout } from "@/components/layout";
-import { Loader2, User } from "lucide-react";
+import { Loader2, User, Settings } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/use-auth";
 
 // Define the type for author data
 interface Author {
@@ -16,6 +18,7 @@ interface Author {
 export default function AuthorsPage() {
   const [location, navigate] = useLocation();
   const { toast } = useToast();
+  const { isAdmin } = useAuth();
   
   const { data: authors, isLoading, error } = useQuery<Author[]>({
     queryKey: ["/api/authors"],
@@ -45,7 +48,19 @@ export default function AuthorsPage() {
   return (
     <Layout>
       <div className="container py-8">
-        <h1 className="text-3xl font-bold mb-8 text-center">Authors</h1>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold">Authors</h1>
+          {isAdmin && (
+            <Button 
+              variant="outline" 
+              onClick={() => navigate("/manage-authors")}
+              className="flex items-center"
+            >
+              <Settings className="mr-2 h-4 w-4" />
+              Manage Authors
+            </Button>
+          )}
+        </div>
         
         {authors && authors.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">

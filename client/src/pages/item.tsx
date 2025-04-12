@@ -132,6 +132,7 @@ export default function Item() {
         description: item.description,
         author: item.author || "",
         authorUrl: item.authorUrl || "",
+        authorProfileImage: item.authorProfileImage || "",
         category: item.category,
         tags: item.tags,
         imageUrl: item.imageUrl, // Add imageUrl to form values

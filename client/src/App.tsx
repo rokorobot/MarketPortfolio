@@ -17,6 +17,7 @@ import Favorites from "@/pages/favorites";
 import Collections from "@/pages/collections";
 import Authors from "@/pages/authors";
 import AuthorItems from "@/pages/author-items";
+import ManageAuthors from "@/pages/manage-authors";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/components/protected-route";
 import { ThemeProvider } from "@/components/theme-provider";
