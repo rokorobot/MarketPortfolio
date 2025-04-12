@@ -67,24 +67,22 @@ export default function AuthorsPage() {
             {authors.map((author) => (
               <div key={author.name} onClick={() => navigate(`/items/author/${encodeURIComponent(author.name)}`)}>
                 <Card className="h-full hover:border-primary hover:shadow-md transition-all duration-200 cursor-pointer">
-                  <CardHeader className="pb-2">
-                    <div className="flex items-center gap-3 mb-2">
-                      {author.profileImage ? (
-                        <img 
-                          src={author.profileImage} 
-                          alt={`${author.name} profile`} 
-                          className="w-10 h-10 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                          <User className="h-5 w-5" />
-                        </div>
-                      )}
-                      <CardTitle>{author.name}</CardTitle>
-                    </div>
+                  <CardHeader className="py-4 flex flex-col items-center">
+                    {author.profileImage ? (
+                      <img 
+                        src={author.profileImage} 
+                        alt={`${author.name} profile`} 
+                        className="w-24 h-24 rounded-full object-cover mb-3"
+                      />
+                    ) : (
+                      <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center mb-3">
+                        <User className="h-12 w-12" />
+                      </div>
+                    )}
+                    <CardTitle className="text-center">{author.name}</CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <Badge variant="outline" className="mt-2">
+                  <CardContent className="text-center">
+                    <Badge variant="outline" className="mt-1">
                       {author.count} {author.count === 1 ? "item" : "items"}
                     </Badge>
                   </CardContent>

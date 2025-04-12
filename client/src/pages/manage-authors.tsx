@@ -197,11 +197,11 @@ export default function ManageAuthorsPage() {
                         <img 
                           src={author.profileImage} 
                           alt={`${author.name} profile`} 
-                          className="w-12 h-12 rounded-full object-cover"
+                          className="w-20 h-20 rounded-full object-cover"
                         />
                       ) : (
-                        <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
-                          <User className="h-6 w-6" />
+                        <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center">
+                          <User className="h-10 w-10" />
                         </div>
                       )}
                       <div>
