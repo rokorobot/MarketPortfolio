@@ -46,6 +46,7 @@ export default function AddItem() {
       description: "",
       author: "",
       authorUrl: "",
+      authorProfileImage: "",
       imageUrl: "",
       category: "Digital Art",
       marketplaceUrl1: "",
@@ -274,7 +275,29 @@ export default function AddItem() {
                     />
                   </FormControl>
                   <FormDescription>
-                    If you provide an OBJKT.com profile URL, we'll automatically extract the author's profile image.
+                    Link to the artist's profile page or website.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="authorProfileImage"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Author Profile Image URL</FormLabel>
+                  <FormControl>
+                    <Input 
+                      {...field} 
+                      type="url" 
+                      placeholder="https://assets.objkt.media/profile/..."
+                      value={field.value || ''} 
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Direct URL to the author's profile image from OBJKT.com. Right-click on the profile image at OBJKT.com and select "Copy Image Address".
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
