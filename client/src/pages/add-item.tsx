@@ -45,6 +45,7 @@ export default function AddItem() {
       title: "",
       description: "",
       author: "",
+      authorUrl: "",
       imageUrl: "",
       category: "Digital Art",
       marketplaceUrl1: "",
