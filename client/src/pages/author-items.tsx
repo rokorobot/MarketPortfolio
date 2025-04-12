@@ -25,8 +25,15 @@ export default function AuthorItemsPage() {
     queryKey: [`/api/authors/${encodeURIComponent(authorName)}`],
     enabled: !!authorName,
     retry: false,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: false
   });
+  
+  // Log successful author details
+  React.useEffect(() => {
+    if (authorDetails) {
+      console.log("Author details loaded successfully:", authorDetails);
+    }
+  }, [authorDetails]);
   
   // Log author fetch error but don't show toast
   React.useEffect(() => {
@@ -69,22 +76,27 @@ export default function AuthorItemsPage() {
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 mt-4 mb-8">
               {isLoadingAuthor ? (
                 <div className="w-24 h-24 rounded-full bg-muted animate-pulse" />
-              ) : (!authorError && authorDetails?.profileImage) ? (
-                <>
+              ) : (!authorError && authorDetails && authorDetails.profileImage) ? (
+                <div className="relative">
                   <img 
                     src={authorDetails.profileImage} 
                     alt={`${authorName} profile`} 
                     className="w-24 h-24 rounded-full object-cover shadow-md"
                     onError={(e) => {
-                      // If image fails to load, replace with default avatar
+                      console.log("Image failed to load:", authorDetails.profileImage);
                       e.currentTarget.style.display = 'none';
-                      e.currentTarget.parentElement?.querySelector('.fallback-avatar')?.classList.remove('hidden');
+                      const fallback = document.getElementById(`fallback-${authorName}`);
+                      if (fallback) fallback.style.display = 'flex';
                     }}
                   />
-                  <div className="hidden fallback-avatar w-24 h-24 rounded-full bg-muted flex items-center justify-center shadow-md">
+                  <div 
+                    id={`fallback-${authorName}`}
+                    style={{display: 'none'}}
+                    className="absolute top-0 left-0 w-24 h-24 rounded-full bg-muted items-center justify-center shadow-md"
+                  >
                     <User className="h-12 w-12 text-muted-foreground/50" />
                   </div>
-                </>
+                </div>
               ) : (
                 <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center shadow-md">
                   <User className="h-12 w-12 text-muted-foreground/50" />

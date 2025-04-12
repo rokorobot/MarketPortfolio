@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, ChangeEvent } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -21,25 +21,29 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Layout } from "@/components/layout";
-import { Loader2 } from "lucide-react";
+import { Loader2, Upload, X, Image as ImageIcon } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 
 // Extend the schema with additional validation
 const formSchema = insertCategorySchema
   .extend({
     name: z.string().min(3, "Name must be at least 3 characters").max(50, "Name must be less than 50 characters"),
     description: z.string().min(10, "Description must be at least 10 characters").max(500, "Description must be less than 500 characters").nullable(),
+    imageUrl: z.string().nullable().optional(),
   });
 
 export default function AddCollection() {
   const { toast } = useToast();
   const { user, isAdmin, isLoading: authLoading } = useAuth();
   const [, navigate] = useLocation();
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
       description: "",
+      imageUrl: "",
     },
   });
   
@@ -69,6 +73,25 @@ export default function AddCollection() {
       });
     },
   });
+  
+  const handlePreviewImage = (url: string) => {
+    if (url) {
+      setPreviewImage(url);
+    } else {
+      setPreviewImage(null);
+    }
+  };
+  
+  // Watch for imageUrl changes to update preview
+  React.useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === 'imageUrl') {
+        handlePreviewImage(value.imageUrl as string);
+      }
+    });
+    
+    return () => subscription.unsubscribe();
+  }, [form]);
   
   async function onSubmit(data: z.infer<typeof formSchema>) {
     await addCategoryMutation.mutate(data);
