@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Plus, UserCircle, LogOut, FolderPlus, Settings, Heart, Grid3X3, Presentation, Clock } from "lucide-react";
+import { Plus, UserCircle, LogOut, FolderPlus, Settings, Heart, Grid3X3, Presentation, Clock, User } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -184,6 +184,17 @@ export function Layout({ children }: { children: React.ReactNode }) {
             >
               Collections
             </div>
+            
+            <div
+              className={`text-2xl font-bold cursor-pointer ${
+                location.startsWith("/authors") 
+                  ? "text-primary" 
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              onClick={() => navigate("/authors")}
+            >
+              Authors
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <ThemeToggle />
@@ -240,6 +251,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   <DropdownMenuItem onClick={() => navigate("/collections")}>
                     <Grid3X3 className="h-4 w-4 mr-2" />
                     Collections
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/authors")}>
+                    <User className="h-4 w-4 mr-2" />
+                    Authors
                   </DropdownMenuItem>
                   
                   {isAdmin && (

@@ -15,16 +15,6 @@ export default function AuthorItemsPage() {
   const { data: items, isLoading, error } = useQuery<PortfolioItem[]>({
     queryKey: [`/api/items/author/${encodeURIComponent(authorName)}`],
     enabled: !!authorName,
-    onSuccess: (data) => {
-      console.log(`Loaded ${data.length} items for author ${authorName}`);
-    },
-    onError: () => {
-      toast({
-        title: "Error loading items",
-        description: "Failed to load items for this author. Please try again later.",
-        variant: "destructive",
-      });
-    },
   });
 
   if (!authorName) {
