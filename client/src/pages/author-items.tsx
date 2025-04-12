@@ -28,17 +28,13 @@ export default function AuthorItemsPage() {
     refetchOnWindowFocus: false,
   });
   
-  // Handle author fetch error
+  // Log author fetch error but don't show toast
   React.useEffect(() => {
     if (authorError) {
       console.error("Author fetch error:", authorError);
-      toast({
-        title: "Error loading author",
-        description: "Unable to load author details. Please try again later.",
-        variant: "destructive",
-      });
+      // Don't show error toast since we have graceful fallbacks in the UI
     }
-  }, [authorError, toast]);
+  }, [authorError]);
 
   const { data: items, isLoading, error } = useQuery<PortfolioItem[]>({
     queryKey: [`/api/items/author/${encodeURIComponent(authorName)}`],
