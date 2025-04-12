@@ -64,6 +64,7 @@ const formSchema = insertCategorySchema
 const editFormSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters").max(50, "Name must be less than 50 characters"),
   description: z.string().min(10, "Description must be at least 10 characters").max(500, "Description must be less than 500 characters").nullable(),
+  imageUrl: z.string().nullable().optional(),
 });
 
 type EditFormValues = z.infer<typeof editFormSchema>;
@@ -111,6 +112,7 @@ export default function ManageCategories() {
     defaultValues: {
       name: "",
       description: "",
+      imageUrl: "",
     },
   });
   
@@ -126,6 +128,7 @@ export default function ManageCategories() {
       editForm.reset({
         name: editingCategory.name,
         description: editingCategory.description,
+        imageUrl: editingCategory.imageUrl || "",
       });
     }
   }, [editingCategory, editForm]);
@@ -369,6 +372,18 @@ export default function ManageCategories() {
                   </div>
                 </CardHeader>
                 <CardContent>
+                  {category.imageUrl && (
+                    <div className="mb-4">
+                      <img 
+                        src={category.imageUrl} 
+                        alt={category.name}
+                        className="w-full h-40 object-cover rounded-md" 
+                        onError={(e) => {
+                          e.currentTarget.src = "https://placehold.co/400x150/gray/white?text=Collection+Image";
+                        }}
+                      />
+                    </div>
+                  )}
                   <p className="text-muted-foreground">
                     {category.description || "No description provided"}
                   </p>
@@ -479,6 +494,36 @@ export default function ManageCategories() {
                         value={field.value || ""}
                       />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={editForm.control}
+                name="imageUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Collection Image URL</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter URL to collection image" {...field} value={field.value || ""} />
+                    </FormControl>
+                    <FormDescription>
+                      Provide a URL to an image that represents this collection
+                    </FormDescription>
+                    {field.value && (
+                      <div className="mt-2">
+                        <p className="text-sm mb-1">Image Preview:</p>
+                        <img 
+                          src={field.value} 
+                          alt="Collection preview" 
+                          className="max-w-[200px] max-h-[150px] object-cover rounded-md border"
+                          onError={(e) => {
+                            e.currentTarget.src = "https://placehold.co/200x150/gray/white?text=Invalid+Image";
+                          }}
+                        />
+                      </div>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}

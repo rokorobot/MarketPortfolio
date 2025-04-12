@@ -610,6 +610,7 @@ export function registerRoutes(app: Express) {
       const updateData = {
         name: req.body.name || existingCategory.name,
         description: req.body.description !== undefined ? req.body.description : existingCategory.description,
+        imageUrl: req.body.imageUrl !== undefined ? req.body.imageUrl : existingCategory.imageUrl,
       };
       
       // Update the category
