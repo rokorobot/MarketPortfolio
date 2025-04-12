@@ -4,7 +4,7 @@ import { Layout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ExternalLink, Tag, Trash2, Share2, Twitter, Edit, Save, X, Loader2, Upload, Image, Heart } from "lucide-react";
+import { ExternalLink, Tag, Trash2, Share2, Twitter, Edit, Save, X, Loader2, Upload, Image, Heart, User } from "lucide-react";
 import { type PortfolioItem } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -754,12 +754,23 @@ export default function Item() {
                       <div className="mt-6">
                         <h3 className="text-sm font-medium mb-2">Author</h3>
                         <div className="flex items-center flex-wrap gap-3">
-                          {/* Author name as a link to search by author */}
+                          {/* Author profile image and name as a link to search by author */}
                           <a 
                             href={`/?author=${encodeURIComponent(item.author)}`}
-                            className="text-muted-foreground font-medium hover:text-primary hover:underline inline-flex items-center"
+                            className="text-muted-foreground font-medium hover:text-primary hover:underline inline-flex items-center gap-2"
                             title="View all works by this author"
                           >
+                            {item.authorProfileImage ? (
+                              <img 
+                                src={item.authorProfileImage} 
+                                alt={`${item.author} profile`} 
+                                className="w-6 h-6 rounded-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center">
+                                <User className="h-3 w-3" />
+                              </div>
+                            )}
                             {item.author}
                           </a>
                           
