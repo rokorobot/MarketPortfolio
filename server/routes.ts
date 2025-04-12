@@ -9,6 +9,7 @@ import { generateTagsFromImage, generateTagsFromText } from "./openai-service";
 // Import both email services so we can choose between them
 import { sendContactFormEmail as sendGridEmail } from "./sendgrid-service";
 import { sendContactFormEmail as nodeMailerEmail } from "./nodemailer-service";
+import { extractObjktProfileImage } from "./objkt-service";
 import session from "express-session";
 import { z } from "zod";
 
@@ -331,9 +332,27 @@ export function registerRoutes(app: Express) {
   app.post("/api/items", requireAuth, requireAdmin, async (req, res) => {
     try {
       const newItem = insertPortfolioItemSchema.parse(req.body);
+      
+      // If an author URL is provided, check if it's from OBJKT.com and try to extract profile image
+      if (newItem.authorUrl && newItem.authorUrl.includes('objkt.com')) {
+        console.log('Extracting profile image from OBJKT URL:', newItem.authorUrl);
+        try {
+          const profileImage = await extractObjktProfileImage(newItem.authorUrl);
+          if (profileImage) {
+            // Add the profile image URL to the item
+            newItem.authorProfileImage = profileImage;
+            console.log('Found author profile image:', profileImage);
+          }
+        } catch (profileError) {
+          console.error('Error extracting profile image:', profileError);
+          // Continue without profile image if extraction fails
+        }
+      }
+      
       const item = await storage.createItem(newItem);
       res.status(201).json(item);
     } catch (error) {
+      console.error('Error creating item:', error);
       res.status(400).json({ message: "Invalid item data" });
     }
   });
@@ -376,12 +395,35 @@ export function registerRoutes(app: Express) {
         return res.status(404).json({ message: "Item not found" });
       }
       
+      // Check if authorUrl has been updated and it's from OBJKT.com
+      const newAuthorUrl = req.body.authorUrl !== undefined ? req.body.authorUrl : existingItem.authorUrl;
+      let profileImage = existingItem.authorProfileImage;
+      
+      // If authorUrl has changed or profile image is missing but now we have an OBJKT URL
+      if (newAuthorUrl && 
+          newAuthorUrl.includes('objkt.com') && 
+          (!existingItem.authorProfileImage || newAuthorUrl !== existingItem.authorUrl)) {
+        console.log('Extracting updated profile image from OBJKT URL:', newAuthorUrl);
+        try {
+          const newProfileImage = await extractObjktProfileImage(newAuthorUrl);
+          if (newProfileImage) {
+            // Use the new profile image
+            profileImage = newProfileImage;
+            console.log('Found updated author profile image:', newProfileImage);
+          }
+        } catch (profileError) {
+          console.error('Error extracting profile image:', profileError);
+          // Continue with existing or no profile image if extraction fails
+        }
+      }
+      
       // Only allow updating specific fields
       const updateData = {
         title: req.body.title || existingItem.title,
         description: req.body.description || existingItem.description,
         author: req.body.author !== undefined ? req.body.author : existingItem.author, // Handle null/empty author values
-        authorUrl: req.body.authorUrl !== undefined ? req.body.authorUrl : existingItem.authorUrl, // Handle null/empty authorUrl values
+        authorUrl: newAuthorUrl,
+        authorProfileImage: profileImage, // Include the profile image (new or existing)
         category: req.body.category || existingItem.category,
         tags: req.body.tags || existingItem.tags,
         marketplaceUrl1: req.body.marketplaceUrl1 || existingItem.marketplaceUrl1,
