@@ -264,9 +264,6 @@ export function DraggableGrid({
                     >
                       <ItemCard 
                         item={item} 
-                        onClick={isArranging ? undefined : () => {
-                          startShowcase(localItems.slice(index));
-                        }} 
                       />
                     </div>
                   )}

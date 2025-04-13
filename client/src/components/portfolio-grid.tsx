@@ -113,11 +113,10 @@ export function PortfolioGrid({
       
       {/* Grid layout */}
       <div className={gridClass}>
-        {items.map((item, index) => (
+        {items.map((item) => (
           <ItemCard 
             key={item.id} 
             item={item}
-            onClick={() => startShowcase(items.slice(index))}
           />
         ))}
       </div>
