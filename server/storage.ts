@@ -7,7 +7,7 @@ import {
   favorites, type Favorite, type InsertFavorite
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, sql, isNotNull, ne } from "drizzle-orm";
+import { eq, and, desc, asc, sql, isNotNull, ne } from "drizzle-orm";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 
@@ -89,7 +89,7 @@ export class DatabaseStorage implements IStorage {
   async getItems(): Promise<PortfolioItem[]> {
     return await db.select()
       .from(portfolioItems)
-      .orderBy(portfolioItems.createdAt); // Show oldest items first, in chronological order
+      .orderBy(portfolioItems.displayOrder); // Order by display order
   }
   
   async getItemsPaginated(page: number, pageSize: number): Promise<PaginatedResult<PortfolioItem>> {
@@ -520,6 +520,24 @@ export class DatabaseStorage implements IStorage {
       return true;
     } catch (error) {
       console.error("Error updating author profile image:", error);
+      return false;
+    }
+  }
+  
+  async updateItemsOrder(items: {id: number, displayOrder: number}[]): Promise<boolean> {
+    try {
+      // Use a transaction to ensure all updates succeed or fail together
+      await db.transaction(async (tx) => {
+        for (const item of items) {
+          await tx.update(portfolioItems)
+            .set({ displayOrder: item.displayOrder })
+            .where(eq(portfolioItems.id, item.id));
+        }
+      });
+      
+      return true;
+    } catch (error) {
+      console.error("Error updating items order:", error);
       return false;
     }
   }
