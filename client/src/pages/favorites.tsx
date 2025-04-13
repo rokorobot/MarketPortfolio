@@ -110,9 +110,9 @@ export default function Favorites() {
       </div>
       
       {isLoading ? (
-        <PortfolioGridSkeleton />
+        <PortfolioGridSkeleton showShowcaseButton={false} />
       ) : filteredItems.length > 0 ? (
-        <PortfolioGrid items={filteredItems} />
+        <PortfolioGrid items={filteredItems} showShowcaseButton={false} />
       ) : (
         <Card className="p-12 text-center">
           <div className="flex flex-col items-center justify-center">

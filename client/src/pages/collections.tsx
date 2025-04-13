@@ -150,9 +150,9 @@ export default function Collections() {
         </div>
         
         {itemsLoading ? (
-          <PortfolioGridSkeleton />
+          <PortfolioGridSkeleton showShowcaseButton={false} />
         ) : items && items.length > 0 ? (
-          <PortfolioGrid items={items} />
+          <PortfolioGrid items={items} showShowcaseButton={false} />
         ) : (
           <Card className="p-12 text-center">
             <div className="flex flex-col items-center justify-center">
