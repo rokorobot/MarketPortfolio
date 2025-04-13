@@ -67,7 +67,10 @@ export function registerRoutes(app: Express) {
   }));
   
   // Authentication routes
-  app.post("/api/auth/login", async (req, res) => {
+  // Authentication routes - need to support both /api/auth/* and /api/* endpoints
+  
+  // Login endpoint
+  const loginHandler = async (req: Request, res: Response) => {
     try {
       const { username, password } = req.body;
       console.log("Login attempt:", { username, passwordLength: password?.length || 0 });
@@ -103,9 +106,14 @@ export function registerRoutes(app: Express) {
       console.error("Login error:", error);
       return res.status(500).json({ message: "Login failed" });
     }
-  });
+  };
   
-  app.post("/api/auth/logout", (req, res) => {
+  // Register both routes for compatibility
+  app.post("/api/auth/login", loginHandler);
+  app.post("/api/login", loginHandler);
+  
+  // Logout endpoint
+  const logoutHandler = (req: Request, res: Response) => {
     req.session.destroy((err) => {
       if (err) {
         return res.status(500).json({ message: "Logout failed" });
@@ -113,9 +121,14 @@ export function registerRoutes(app: Express) {
       res.clearCookie('connect.sid');
       return res.json({ message: "Logged out successfully" });
     });
-  });
+  };
   
-  app.post("/api/auth/register", async (req, res) => {
+  // Register both routes for compatibility
+  app.post("/api/auth/logout", logoutHandler);
+  app.post("/api/logout", logoutHandler);
+  
+  // Register endpoint
+  const registerHandler = async (req: Request, res: Response) => {
     try {
       // Only admin can create new users
       if (req.session.userRole !== 'admin') {
@@ -139,9 +152,14 @@ export function registerRoutes(app: Express) {
       console.error("Registration error:", error);
       return res.status(400).json({ message: "Invalid user data" });
     }
-  });
+  };
   
-  app.get("/api/auth/me", async (req, res) => {
+  // Register both routes for compatibility
+  app.post("/api/auth/register", registerHandler);
+  app.post("/api/register", registerHandler);
+  
+  // Get current user endpoint
+  const getCurrentUserHandler = async (req: Request, res: Response) => {
     if (!req.session || !req.session.userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
@@ -157,7 +175,11 @@ export function registerRoutes(app: Express) {
       username: user.username,
       role: user.role
     });
-  });
+  };
+  
+  // Register both routes for compatibility
+  app.get("/api/auth/me", getCurrentUserHandler);
+  app.get("/api/user", getCurrentUserHandler);
   app.get("/api/items", async (req, res) => {
     const { category, page = '1', pageSize } = req.query;
     
