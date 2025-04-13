@@ -22,6 +22,7 @@ import {
   AlertDialogTrigger
 } from "@/components/ui/alert-dialog";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { getProxiedImageUrl } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ShareLinkGenerator } from "@/components/share-link-generator";
 import { ShareImageGenerator } from "@/components/share-image-generator";
@@ -337,13 +338,18 @@ export default function Item() {
               <div className={isGif ? "md:col-span-9 -ml-2 md:-ml-4" : "md:col-span-7 -ml-2 md:-ml-4"}>
                 <div className="sticky top-0 pt-4">
                   <img
-                    src={item.imageUrl}
+                    src={getProxiedImageUrl(item.imageUrl)}
                     alt={item.title}
                     className={`object-contain hover:scale-105 transition-transform duration-300 rounded-lg mx-auto ${
                       isGif 
                         ? 'w-full max-h-[90vh] min-h-[550px]' 
                         : 'w-full max-h-[750px]'
                     }`}
+                    onError={(e) => {
+                      e.currentTarget.src = "https://placehold.co/600x400/gray/white?text=Image+Not+Available";
+                      console.log('Item detail image failed to load:', item.imageUrl);
+                    }}
+                    crossOrigin="anonymous"
                   />
                   {isGif && (
                     <div className="mt-2 text-xs text-center">

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
 import { type PortfolioItem } from "@shared/schema";
 import { ExternalLink } from "lucide-react";
+import { getProxiedImageUrl } from "@/lib/utils";
 
 export function ItemCard({ item }: { item: PortfolioItem }) {
   const [, navigate] = useLocation();
@@ -14,9 +15,14 @@ export function ItemCard({ item }: { item: PortfolioItem }) {
         onClick={() => navigate(`/item/${item.id}`)}
       >
         <img
-          src={item.imageUrl}
+          src={getProxiedImageUrl(item.imageUrl)}
           alt={item.title}
           className="object-cover w-full h-full hover:scale-105 transition-transform"
+          onError={(e) => {
+            e.currentTarget.src = "https://placehold.co/400x300/gray/white?text=Image+Not+Available";
+            console.log('Item image failed to load:', item.imageUrl);
+          }}
+          crossOrigin="anonymous"
         />
       </div>
       <CardContent className="flex-1 p-4">

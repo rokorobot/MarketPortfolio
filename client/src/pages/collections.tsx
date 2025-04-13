@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PortfolioGrid, PortfolioGridSkeleton } from "@/components/portfolio-grid";
 import { type PortfolioItem, type CategoryModel } from "@shared/schema";
+import { getProxiedImageUrl } from "@/lib/utils";
 
 export default function Collections() {
   const { category } = useParams<{ category?: string }>();
@@ -158,7 +159,22 @@ export default function Collections() {
               onClick={() => handleCategorySelect(category)}
             >
               <div className="flex flex-col items-center text-center h-full justify-center">
-                <Grid3X3 className="h-12 w-12 mb-4 text-primary" />
+                {category.imageUrl ? (
+                  <div className="w-24 h-24 mb-4 overflow-hidden rounded-md">
+                    <img 
+                      src={getProxiedImageUrl(category.imageUrl)} 
+                      alt={category.name} 
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = "https://placehold.co/200x200/gray/white?text=Collection";
+                        console.log('Collection image failed to load:', category.imageUrl);
+                      }}
+                      crossOrigin="anonymous"
+                    />
+                  </div>
+                ) : (
+                  <Grid3X3 className="h-12 w-12 mb-4 text-primary" />
+                )}
                 <h3 className="text-xl font-medium mb-2">{category.name}</h3>
                 {category.description && (
                   <p className="text-muted-foreground text-sm">
