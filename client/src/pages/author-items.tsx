@@ -124,13 +124,13 @@ export default function AuthorItemsPage() {
         </div>
 
         {isLoading ? (
-          <PortfolioGridSkeleton />
+          <PortfolioGridSkeleton showShowcaseButton={false} />
         ) : error ? (
           <div className="text-center py-12">
             <p className="text-red-500">{(error as Error).message}</p>
           </div>
         ) : items && items.length > 0 ? (
-          <PortfolioGrid items={items} />
+          <PortfolioGrid items={items} showShowcaseButton={false} />
         ) : (
           <div className="text-center py-12">
             <p className="text-muted-foreground">No items found for this author.</p>
