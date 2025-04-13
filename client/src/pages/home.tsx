@@ -10,6 +10,9 @@ import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Badge } from "@/components/ui/badge";
 import { queryClient } from "@/lib/queryClient";
+import { DraggableGrid } from "@/components/dnd-grid";
+import { useAuth } from "@/hooks/use-auth";
+import { useItemReordering } from "@/hooks/use-item-reordering";
 
 export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -19,6 +22,7 @@ export default function Home() {
   const [selectedAuthor, setSelectedAuthor] = useState<string | null>(null);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [, setLocation] = useLocation();
+  const { isAdmin } = useAuth();
   
   // Get URL parameters on component mount
   useEffect(() => {
@@ -105,6 +109,19 @@ export default function Home() {
   
   // Extract items from the paginated response
   const items = data?.items;
+  
+  // Set up item reordering functionality
+  const {
+    items: reorderableItems,
+    isArranging,
+    startArranging,
+    cancelArranging,
+    saveArrangement,
+    isSaving
+  } = useItemReordering({
+    queryKey: ["/api/items", selectedCategory, currentPage],
+    initialItems: items || []
+  });
 
   // Filter items based on search query, selected author, and tag
   useEffect(() => {
@@ -271,7 +288,20 @@ export default function Home() {
             </div>
           )}
           
-          <PortfolioGrid items={filteredItems.length > 0 ? filteredItems : (items || [])} />
+          {/* Use DraggableGrid for admin users, regular PortfolioGrid for others */}
+          {(selectedAuthor || selectedTag || debouncedSearchQuery) ? (
+            <PortfolioGrid items={filteredItems.length > 0 ? filteredItems : (items || [])} />
+          ) : (
+            <DraggableGrid 
+              items={reorderableItems} 
+              canEdit={isAdmin}
+              isArranging={isArranging}
+              isSaving={isSaving}
+              onStartArranging={startArranging}
+              onCancelArranging={cancelArranging}
+              onSaveArrangement={saveArrangement}
+            />
+          )}
           
           {/* Pagination controls - only show when not filtering/searching */}
           {!debouncedSearchQuery && !selectedAuthor && !selectedTag && data && data.totalPages > 1 && (

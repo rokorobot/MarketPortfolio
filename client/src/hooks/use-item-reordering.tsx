@@ -13,7 +13,7 @@ export function useItemReordering({
   queryKey,
   initialItems,
 }: {
-  queryKey: string | string[];
+  queryKey: unknown[] | string;
   initialItems: PortfolioItem[];
 }) {
   const [items, setItems] = useState<PortfolioItem[]>(initialItems);

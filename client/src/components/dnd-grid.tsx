@@ -1,11 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
-import { Card } from '@/components/ui/card';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 import { PortfolioItem } from '@shared/schema';
+import { ArrowUpDown, Save, XCircle } from 'lucide-react';
 import { ItemCard } from './item-card';
-import { Button } from './ui/button';
-import { Save, Undo } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { useAuth } from '@/hooks/use-auth';
 
 type DraggableGridProps = {
@@ -13,152 +11,144 @@ type DraggableGridProps = {
   onOrderChange?: (orderedItems: PortfolioItem[]) => Promise<void>;
   collectionId?: number | string;
   canEdit?: boolean;
+  isArranging?: boolean;
+  isSaving?: boolean;
+  onStartArranging?: () => void;
+  onCancelArranging?: () => void;
+  onSaveArrangement?: () => void;
 };
 
 export function DraggableGrid({ 
-  items: initialItems, 
+  items, 
   onOrderChange,
   collectionId,
-  canEdit = false
+  canEdit,
+  isArranging = false,
+  isSaving = false,
+  onStartArranging,
+  onCancelArranging,
+  onSaveArrangement
 }: DraggableGridProps) {
-  const [items, setItems] = useState<PortfolioItem[]>([]);
-  const [isArranging, setIsArranging] = useState(false);
-  const [originalOrder, setOriginalOrder] = useState<PortfolioItem[]>([]);
-  const [isSaving, setIsSaving] = useState(false);
-  const { toast } = useToast();
+  // Local state for draggable items
+  const [localItems, setLocalItems] = useState<PortfolioItem[]>(items);
   const { isAdmin } = useAuth();
 
-  useEffect(() => {
-    // When initialItems change, update the items state
-    setItems(initialItems);
-  }, [initialItems]);
+  // Show edit controls only if user is admin and canEdit is true
+  const showEditControls = isAdmin && canEdit;
+  
+  // Update local items when props change (if not in arrangement mode)
+  if (JSON.stringify(items) !== JSON.stringify(localItems) && !isArranging) {
+    setLocalItems(items);
+  }
 
   const handleDragEnd = (result: DropResult) => {
-    // Dropped outside the list
+    // Dropped outside the list or no destination
     if (!result.destination) {
       return;
     }
 
-    const reorderedItems = Array.from(items);
-    const [removed] = reorderedItems.splice(result.source.index, 1);
-    reorderedItems.splice(result.destination.index, 0, removed);
+    // Source and destination indices
+    const sourceIndex = result.source.index;
+    const destinationIndex = result.destination.index;
 
-    setItems(reorderedItems);
-  };
-
-  const startArranging = () => {
-    setOriginalOrder([...items]); // Save the original order
-    setIsArranging(true);
-    toast({
-      title: "Arrangement Mode Activated",
-      description: "Drag and drop items to rearrange them. Click Save when done.",
-    });
-  };
-
-  const cancelArranging = () => {
-    setItems(originalOrder); // Restore the original order
-    setIsArranging(false);
-    toast({
-      title: "Changes Discarded",
-      description: "Items have been restored to their original order.",
-    });
-  };
-
-  const saveArrangement = async () => {
-    if (!onOrderChange) return;
-    
-    try {
-      setIsSaving(true);
-      await onOrderChange(items);
-      setIsArranging(false);
-      toast({
-        title: "Order Saved",
-        description: "The new item arrangement has been saved successfully.",
-      });
-    } catch (error) {
-      toast({
-        title: "Error Saving Order",
-        description: "There was a problem saving the arrangement. Please try again.",
-        variant: "destructive",
-      });
-      console.error("Error saving item order:", error);
-    } finally {
-      setIsSaving(false);
+    // If position didn't change
+    if (sourceIndex === destinationIndex) {
+      return;
     }
-  };
 
-  const shouldShowArrangeButton = canEdit && isAdmin && !isArranging && onOrderChange;
-  const shouldShowActionButtons = isArranging && onOrderChange;
+    // Reorder items in local state
+    const reorderedItems = Array.from(localItems);
+    const [removed] = reorderedItems.splice(sourceIndex, 1);
+    reorderedItems.splice(destinationIndex, 0, removed);
+
+    // Update local state
+    setLocalItems(reorderedItems);
+  };
 
   return (
-    <div className="space-y-4">
-      {shouldShowArrangeButton && (
-        <div className="flex justify-end mb-4">
-          <Button 
-            variant="outline" 
-            onClick={startArranging} 
-            className="text-sm"
-          >
-            Arrange Items
-          </Button>
-        </div>
-      )}
-
-      {shouldShowActionButtons && (
+    <div className="space-y-6">
+      {/* Controls panel for reordering */}
+      {showEditControls && (
         <div className="flex justify-end gap-2 mb-4">
-          <Button 
-            variant="outline" 
-            onClick={cancelArranging} 
-            className="text-sm"
-            disabled={isSaving}
-          >
-            <Undo className="w-4 h-4 mr-2" />
-            Cancel
-          </Button>
-          <Button 
-            onClick={saveArrangement} 
-            className="text-sm"
-            disabled={isSaving}
-          >
-            <Save className="w-4 h-4 mr-2" />
-            {isSaving ? "Saving..." : "Save Arrangement"}
-          </Button>
+          {!isArranging ? (
+            <Button
+              variant="outline"
+              onClick={onStartArranging}
+              className="flex items-center gap-2"
+            >
+              <ArrowUpDown className="h-4 w-4" />
+              Arrange Items
+            </Button>
+          ) : (
+            <>
+              <Button
+                variant="outline"
+                onClick={onCancelArranging}
+                className="flex items-center gap-2"
+                disabled={isSaving}
+              >
+                <XCircle className="h-4 w-4" />
+                Cancel
+              </Button>
+              <Button
+                onClick={onSaveArrangement}
+                className="flex items-center gap-2"
+                disabled={isSaving}
+              >
+                {isSaving ? (
+                  <span className="loading loading-spinner loading-xs"></span>
+                ) : (
+                  <Save className="h-4 w-4" />
+                )}
+                Save Order
+              </Button>
+            </>
+          )}
         </div>
       )}
 
-      {isArranging ? (
-        <DragDropContext onDragEnd={handleDragEnd}>
-          <Droppable droppableId="portfolio-items">
-            {(provided) => (
-              <div
-                {...provided.droppableProps}
-                ref={provided.innerRef}
-                className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
-              >
-                {items.map((item, index) => (
-                  <Draggable key={item.id.toString()} draggableId={item.id.toString()} index={index}>
-                    {(provided, snapshot) => (
-                      <div
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                        className={`transition-transform duration-100 ${snapshot.isDragging ? 'scale-105 z-50 shadow-lg' : ''}`}
-                      >
-                        <ItemCard item={item} />
-                      </div>
-                    )}
-                  </Draggable>
-                ))}
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
-        </DragDropContext>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {items.map(item => (
-            <ItemCard key={item.id} item={item} />
-          ))}
+      {/* Draggable grid */}
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <Droppable droppableId="droppable-portfolio-items" direction="horizontal" isDropDisabled={!isArranging}>
+          {(provided) => (
+            <div
+              {...provided.droppableProps}
+              ref={provided.innerRef}
+              className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 ${
+                isArranging ? 'ring-2 ring-primary/20 rounded-md p-4' : ''
+              }`}
+            >
+              {localItems.map((item, index) => (
+                <Draggable 
+                  key={`item-${item.id}`} 
+                  draggableId={`item-${item.id}`} 
+                  index={index}
+                  isDragDisabled={!isArranging}
+                >
+                  {(provided, snapshot) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.draggableProps}
+                      {...provided.dragHandleProps}
+                      className={`transition-transform ${
+                        snapshot.isDragging ? 'scale-105 z-10 shadow-lg' : ''
+                      } ${isArranging ? 'cursor-move' : ''}`}
+                    >
+                      <ItemCard item={item} />
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>
+
+      {/* Notice shown when in arrange mode */}
+      {isArranging && (
+        <div className="bg-muted p-4 rounded-md mt-4 text-sm text-center">
+          <p>Drag and drop items to reorder them, then click Save Order.</p>
         </div>
       )}
     </div>

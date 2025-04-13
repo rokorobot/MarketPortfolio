@@ -1,13 +1,8 @@
 import { createContext, ReactNode, useContext } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { apiRequest, getQueryFn } from '@/lib/queryClient';
+import { getQueryFn } from '@/lib/queryClient';
 import { useToast } from './use-toast';
-
-interface User {
-  id: number;
-  username: string;
-  role: string;
-}
+import { User } from '@shared/schema';
 
 interface AuthContextType {
   user: User | null;
@@ -25,31 +20,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     data: user,
     error,
     isLoading,
-  } = useQuery<User | null, Error>({
+  } = useQuery<User | null>({
     queryKey: ['/api/auth/me'],
-    queryFn: getQueryFn({ on401: 'returnNull' }),
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    retry: false,
-    onError: (error) => {
-      // Only show toast for errors that aren't 401
-      if (error.message !== 'Not authenticated') {
-        toast({
-          title: 'Authentication Error',
-          description: error.message,
-          variant: 'destructive',
-        });
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/auth/me');
+        if (response.status === 401) return null;
+        if (!response.ok) throw new Error('Failed to fetch user data');
+        return response.json();
+      } catch (err) {
+        const error = err as Error;
+        // Only show toast for errors that aren't 401
+        if (error.message !== 'Not authenticated') {
+          toast({
+            title: 'Authentication Error',
+            description: error.message,
+            variant: 'destructive',
+          });
+        }
+        throw error;
       }
     },
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    retry: false,
   });
 
-  const isAdmin = !!user && user.role === 'admin';
+  // Safe type checking for user role
+  const isAdmin = Boolean(user && user.role === 'admin');
 
   return (
     <AuthContext.Provider
       value={{
         user: user || null,
         isLoading,
-        error,
+        error: error as Error | null,
         isAdmin,
       }}
     >
