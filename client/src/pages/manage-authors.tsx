@@ -3,13 +3,14 @@ import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Layout } from "@/components/layout";
-import { Loader2, User, Edit, Save, X } from "lucide-react";
+import { Loader2, User, Edit, Save, X, Upload, Image as ImageIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { getProxiedImageUrl } from "@/lib/utils";
 import {
   Form,
   FormControl,
@@ -19,6 +20,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -45,6 +47,13 @@ interface AuthorEditorProps {
 }
 
 function AuthorEditor({ author, onCancel, onSave, isSaving }: AuthorEditorProps) {
+  const [activeTab, setActiveTab] = useState<string>("url");
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [uploadedImagePath, setUploadedImagePath] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
+  
   const form = useForm<AuthorProfileFormValues>({
     resolver: zodResolver(authorProfileSchema),
     defaultValues: {
@@ -52,33 +61,192 @@ function AuthorEditor({ author, onCancel, onSave, isSaving }: AuthorEditorProps)
     },
   });
 
+  // Image upload mutation
+  const uploadImageMutation = useMutation({
+    mutationFn: async (formData: FormData) => {
+      const response = await fetch('/api/authors/upload-image', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to upload image');
+      }
+      
+      return await response.json();
+    },
+    onSuccess: (data) => {
+      // Set the uploaded image path to be used in the form submission
+      setUploadedImagePath(data.imagePath);
+      setPreviewImage(data.imagePath);
+      
+      toast({
+        title: "Success",
+        description: "Image uploaded successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: `Failed to upload image: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Handle file selection for image upload
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    
+    const file = e.target.files[0];
+    
+    // Check if the file is an image
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Error",
+        description: "Please select an image file",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Display a preview of the selected image
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        setPreviewImage(event.target.result as string);
+      }
+    };
+    reader.readAsDataURL(file);
+    
+    // Upload the file
+    const formData = new FormData();
+    formData.append('image', file);
+    
+    setIsUploading(true);
+    try {
+      await uploadImageMutation.mutateAsync(formData);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+  
+  // Clear the uploaded image
+  const clearUploadedImage = () => {
+    setPreviewImage(null);
+    setUploadedImagePath(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   function onSubmit(data: AuthorProfileFormValues) {
-    onSave(author.name, data.authorProfileImage || null);
+    // If using the upload tab and we have an uploaded path, use that instead
+    if (activeTab === "upload" && uploadedImagePath) {
+      onSave(author.name, uploadedImagePath);
+    } else {
+      onSave(author.name, data.authorProfileImage || null);
+    }
   }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="authorProfileImage"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Profile Image URL</FormLabel>
-              <FormControl>
-                <Input 
-                  {...field} 
-                  placeholder="https://assets.objkt.media/profile/..." 
-                  value={field.value || ''} 
+        <div className="pb-4">
+          <Tabs defaultValue="url" className="w-full" onValueChange={setActiveTab}>
+            <TabsList className="mb-2">
+              <TabsTrigger value="url">
+                <ImageIcon className="h-4 w-4 mr-2" />
+                Image URL
+              </TabsTrigger>
+              <TabsTrigger value="upload">
+                <Upload className="h-4 w-4 mr-2" />
+                Upload Image
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="url">
+              <FormField
+                control={form.control}
+                name="authorProfileImage"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Profile Image URL</FormLabel>
+                    <FormControl>
+                      <Input 
+                        {...field} 
+                        placeholder="https://assets.objkt.media/profile/..." 
+                        value={field.value || ''} 
+                        disabled={activeTab !== "url"}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Direct URL to the author's profile image from OBJKT.com or any other source. Right-click on the profile image and select "Copy Image Address".
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </TabsContent>
+            
+            <TabsContent value="upload">
+              <div className="space-y-4">
+                <FormItem>
+                  <FormLabel>Upload Profile Image</FormLabel>
+                  <FormControl>
+                    <div className="grid w-full max-w-sm items-center gap-1.5">
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        ref={fileInputRef}
+                        onChange={handleFileSelect}
+                        disabled={isUploading}
+                        className="cursor-pointer"
+                      />
+                    </div>
+                  </FormControl>
+                  <FormDescription>
+                    Upload an image file (JPEG, PNG, GIF) for the author's profile.
+                  </FormDescription>
+                </FormItem>
+              </div>
+            </TabsContent>
+          </Tabs>
+          
+          {/* Image Preview Section */}
+          {(form.watch("authorProfileImage") || previewImage) && (
+            <div className="mt-4">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm font-medium">Image Preview:</p>
+                {activeTab === "upload" && uploadedImagePath && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={clearUploadedImage}
+                    type="button"
+                    className="h-8"
+                  >
+                    <X className="h-4 w-4 mr-1" /> Clear
+                  </Button>
+                )}
+              </div>
+              <Card className="overflow-hidden w-36 h-36 flex items-center justify-center">
+                <img 
+                  src={getProxiedImageUrl(previewImage || form.watch("authorProfileImage") || "")} 
+                  alt="Author profile preview" 
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    console.log('Author profile preview image failed to load:', previewImage || form.watch("authorProfileImage"));
+                    e.currentTarget.src = "https://placehold.co/150x150/gray/white?text=Invalid+Image";
+                  }}
+                  crossOrigin="anonymous"
                 />
-              </FormControl>
-              <FormDescription>
-                Direct URL to the author's profile image from OBJKT.com. Right-click on the profile image at OBJKT.com and select "Copy Image Address".
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
+              </Card>
+            </div>
           )}
-        />
+        </div>
+        
         <div className="flex justify-end space-x-2">
           <Button 
             type="button" 
@@ -90,9 +258,9 @@ function AuthorEditor({ author, onCancel, onSave, isSaving }: AuthorEditorProps)
           </Button>
           <Button 
             type="submit"
-            disabled={isSaving}
+            disabled={isSaving || isUploading}
           >
-            {isSaving ? (
+            {isSaving || isUploading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Saving...
