@@ -175,11 +175,11 @@ export function DraggableGrid({
     <div className="space-y-6">
       {/* Controls panel with showcase and reordering buttons */}
       <div className="flex justify-between items-center mb-4">
-        {/* Showcase button on the left */}
+        {/* Showcase button on the left with active styling */}
         <Button
-          variant="outline"
+          variant="default"
           onClick={handleStartShowcase}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
           disabled={localItems.length === 0 || isArranging}
         >
           <Eye className="h-4 w-4" />

@@ -2,10 +2,12 @@ import { useEffect } from "react";
 import { ItemCard } from "./item-card";
 import { type PortfolioItem } from "@shared/schema";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useShowcase } from "@/hooks/use-showcase";
+import { Eye } from "lucide-react";
 
 // Default grid settings if site settings are not available
 const DEFAULT_GRID_SETTINGS = {
@@ -24,6 +26,12 @@ export function PortfolioGrid({ items }: { items: PortfolioItem[] }) {
     queryKey: ['/api/site-settings'],
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes to avoid too many refetches
   });
+  
+  // Function to start the showcase with all items
+  const handleStartShowcase = () => {
+    if (items.length === 0) return;
+    startShowcase(items);
+  };
   
   // Calculate column values based on settings
   const desktopCols = settings?.grid_columns_desktop || DEFAULT_GRID_SETTINGS.grid_columns_desktop;
@@ -79,14 +87,30 @@ export function PortfolioGrid({ items }: { items: PortfolioItem[] }) {
   }, [mobileCols, tabletCols, desktopCols]);
   
   return (
-    <div className={gridClass}>
-      {items.map((item, index) => (
-        <ItemCard 
-          key={item.id} 
-          item={item}
-          onClick={() => startShowcase(items.slice(index))}
-        />
-      ))}
+    <div className="space-y-6">
+      {/* Showcase button */}
+      <div className="flex justify-between items-center mb-4">
+        <Button
+          variant="default"
+          onClick={handleStartShowcase}
+          className="flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+          disabled={items.length === 0}
+        >
+          <Eye className="h-4 w-4" />
+          Showcase
+        </Button>
+      </div>
+      
+      {/* Grid layout */}
+      <div className={gridClass}>
+        {items.map((item, index) => (
+          <ItemCard 
+            key={item.id} 
+            item={item}
+            onClick={() => startShowcase(items.slice(index))}
+          />
+        ))}
+      </div>
     </div>
   );
 }
@@ -136,18 +160,26 @@ export function PortfolioGridSkeleton() {
   }, [mobileCols, tabletCols, desktopCols]);
   
   return (
-    <div className={gridClass}>
-      {Array.from({ length: skeletonCount }).map((_, i) => (
-        <Card key={i} className="overflow-hidden h-full flex flex-col">
-          <Skeleton className="aspect-[4/3] w-full" />
-          <div className="p-4 flex-1">
-            <Skeleton className="h-6 w-3/4 mx-auto" />
-          </div>
-          <div className="p-4 pt-0 flex gap-2">
-            <Skeleton className="h-9 w-full" />
-          </div>
-        </Card>
-      ))}
+    <div className="space-y-6">
+      {/* Skeleton for showcase button */}
+      <div className="flex justify-between items-center mb-4">
+        <Skeleton className="h-10 w-28" />
+      </div>
+      
+      {/* Skeleton grid layout */}
+      <div className={gridClass}>
+        {Array.from({ length: skeletonCount }).map((_, i) => (
+          <Card key={i} className="overflow-hidden h-full flex flex-col">
+            <Skeleton className="aspect-[4/3] w-full" />
+            <div className="p-4 flex-1">
+              <Skeleton className="h-6 w-3/4 mx-auto" />
+            </div>
+            <div className="p-4 pt-0 flex gap-2">
+              <Skeleton className="h-9 w-full" />
+            </div>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }
