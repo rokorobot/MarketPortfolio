@@ -319,13 +319,24 @@ export class DatabaseStorage implements IStorage {
   }
 
   async validateUser(username: string, password: string): Promise<User | null> {
+    console.log(`Validating user ${username} with password of length ${password.length}`);
     const user = await this.getUserByUsername(username);
+    console.log(`User lookup result: ${user ? 'Found user with ID ' + user.id : 'No user found'}`);
+    
     if (!user) return null;
     
-    const isValidPassword = await comparePasswords(password, user.password);
-    if (!isValidPassword) return null;
-    
-    return user;
+    try {
+      console.log(`Comparing passwords for user ${username}`);
+      const isValidPassword = await comparePasswords(password, user.password);
+      console.log(`Password validation result for ${username}: ${isValidPassword ? 'Valid' : 'Invalid'}`);
+      
+      if (!isValidPassword) return null;
+      
+      return user;
+    } catch (error) {
+      console.error(`Error comparing passwords for user ${username}:`, error);
+      return null;
+    }
   }
   
   // Share links methods

@@ -70,11 +70,15 @@ export function registerRoutes(app: Express) {
   app.post("/api/auth/login", async (req, res) => {
     try {
       const { username, password } = req.body;
+      console.log("Login attempt:", { username, passwordLength: password?.length || 0 });
+      
       if (!username || !password) {
         return res.status(400).json({ message: "Username and password required" });
       }
       
       const user = await storage.validateUser(username, password);
+      console.log("User validation result:", user ? "Found user" : "No user found");
+      
       if (!user) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
@@ -83,6 +87,12 @@ export function registerRoutes(app: Express) {
       req.session.userId = user.id;
       req.session.username = user.username;
       req.session.userRole = user.role;
+      
+      console.log("Login successful:", {
+        id: user.id,
+        username: user.username,
+        role: user.role
+      });
       
       return res.json({
         id: user.id,
