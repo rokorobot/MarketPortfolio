@@ -180,10 +180,14 @@ export default function AddCollection() {
                       <p className="text-sm mb-2">Image Preview:</p>
                       <Card className="overflow-hidden w-48 h-48 flex items-center justify-center">
                         <img 
-                          src={previewImage} 
+                          src={previewImage.includes('objkt.com') ? `https://api.allorigins.win/raw?url=${encodeURIComponent(previewImage)}` : previewImage} 
                           alt="Collection preview" 
                           className="w-full h-full object-cover"
-                          onError={() => setPreviewImage(null)}
+                          onError={(e) => {
+                            setPreviewImage(null);
+                            console.log('Add Collection preview image failed to load:', previewImage);
+                          }}
+                          crossOrigin="anonymous"
                         />
                       </Card>
                     </div>

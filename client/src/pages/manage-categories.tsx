@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { Redirect, useLocation, Link } from "wouter";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { getProxiedImageUrl } from "@/lib/utils";
 import { insertCategorySchema, type CategoryModel } from "@shared/schema";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -375,12 +376,14 @@ export default function ManageCategories() {
                   {category.imageUrl && (
                     <div className="mb-4">
                       <img 
-                        src={category.imageUrl} 
+                        src={getProxiedImageUrl(category.imageUrl)} 
                         alt={category.name}
                         className="w-full h-40 object-cover rounded-md" 
                         onError={(e) => {
                           e.currentTarget.src = "https://placehold.co/400x150/gray/white?text=Collection+Image";
+                          console.log('Card image failed to load:', category.imageUrl);
                         }}
+                        crossOrigin="anonymous"
                       />
                     </div>
                   )}
@@ -515,12 +518,14 @@ export default function ManageCategories() {
                       <div className="mt-2">
                         <p className="text-sm mb-1">Image Preview:</p>
                         <img 
-                          src={field.value} 
+                          src={field.value.includes('objkt.com') ? `https://api.allorigins.win/raw?url=${encodeURIComponent(field.value)}` : field.value} 
                           alt="Collection preview" 
                           className="max-w-[200px] max-h-[150px] object-cover rounded-md border"
                           onError={(e) => {
                             e.currentTarget.src = "https://placehold.co/200x150/gray/white?text=Invalid+Image";
+                            console.log('Image failed to load:', field.value);
                           }}
+                          crossOrigin="anonymous"
                         />
                       </div>
                     )}
