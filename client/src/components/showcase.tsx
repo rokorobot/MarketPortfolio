@@ -18,7 +18,10 @@ export function Showcase({ items, isOpen, onClose }: ShowcaseProps) {
   const [showControls, setShowControls] = useState(false);
   const [slideInterval, setSlideInterval] = useState(8000); // Default 8 seconds
   
-  const currentItem = items[currentIndex];
+  // Make sure we have valid items and currentIndex is within bounds
+  const hasItems = Array.isArray(items) && items.length > 0;
+  const safeCurrentIndex = hasItems ? Math.min(currentIndex, items.length - 1) : 0;
+  const currentItem = hasItems ? items[safeCurrentIndex] : null;
   
   // Fetch showcase interval from site settings
   useEffect(() => {
@@ -63,11 +66,12 @@ export function Showcase({ items, isOpen, onClose }: ShowcaseProps) {
       isAutoplay, 
       isOpen, 
       slideInterval,
-      itemsCount: items.length,
+      itemsCount: Array.isArray(items) ? items.length : 0,
       currentIndex
     });
     
-    if (isAutoplay && isOpen && items.length > 0) {
+    // Only create a timer if we have valid items
+    if (isAutoplay && isOpen && hasItems) {
       console.log('Showcase: starting autoplay timer with interval', slideInterval, 'ms');
       
       // Clean up any existing timer
@@ -86,26 +90,26 @@ export function Showcase({ items, isOpen, onClose }: ShowcaseProps) {
         });
       }, slideInterval);
       
-      console.log('Showcase: new timer created');
+      console.log('Showcase: new timer created with ID:', newTimer);
       setTimer(newTimer);
       
       return () => {
-        console.log('Showcase: cleaning up timer on unmount/dependency change');
+        console.log('Showcase: cleaning up timer on unmount/dependency change:', newTimer);
         window.clearInterval(newTimer);
       };
     } else if (timer) {
-      console.log('Showcase: autoplay disabled or dialog closed, clearing timer');
+      console.log('Showcase: autoplay disabled, dialog closed, or no items - clearing timer:', timer);
       window.clearInterval(timer);
       setTimer(null);
     }
     
     return () => {
       if (timer) {
-        console.log('Showcase: cleaning up timer in final cleanup');
+        console.log('Showcase: cleaning up timer in final cleanup:', timer);
         window.clearInterval(timer);
       }
     };
-  }, [isAutoplay, isOpen, items.length, slideInterval]);
+  }, [isAutoplay, isOpen, hasItems, items, slideInterval]);
   
   // Reset state when dialog is closed
   useEffect(() => {
@@ -121,12 +125,14 @@ export function Showcase({ items, isOpen, onClose }: ShowcaseProps) {
   
   // Go to previous item
   const handlePrevious = () => {
+    if (!hasItems) return;
     setCurrentIndex(prev => (prev - 1 + items.length) % items.length);
     setIsAutoplay(false);
   };
   
   // Go to next item
   const handleNext = () => {
+    if (!hasItems) return;
     setCurrentIndex(prev => (prev + 1) % items.length);
     setIsAutoplay(false);
   };
