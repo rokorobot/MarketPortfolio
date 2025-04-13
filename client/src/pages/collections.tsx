@@ -14,6 +14,7 @@ export default function Collections() {
   const [_, navigate] = useLocation();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(category || null);
   const [selectedCategoryName, setSelectedCategoryName] = useState<string | null>(null);
+  const [selectedCategoryData, setSelectedCategoryData] = useState<CategoryModel | null>(null);
 
   // Get all categories
   const { data: categories, isLoading: categoriesLoading } = useQuery<CategoryModel[]>({
@@ -46,7 +47,7 @@ export default function Collections() {
     }
   }, [selectedCategory, navigate]);
 
-  // Set the selected category name when categories load
+  // Set the selected category data when categories load
   useEffect(() => {
     if (categories && selectedCategory) {
       // Try to match by slug format first
@@ -56,13 +57,16 @@ export default function Collections() {
       
       if (matchedCategory) {
         setSelectedCategoryName(matchedCategory.name);
+        setSelectedCategoryData(matchedCategory);
       } else {
         // If no match by slug, try direct match
         const directMatch = categories.find(cat => cat.name === selectedCategory);
         if (directMatch) {
           setSelectedCategoryName(directMatch.name);
+          setSelectedCategoryData(directMatch);
         } else {
           setSelectedCategoryName(selectedCategory);
+          setSelectedCategoryData(null);
         }
       }
     }
@@ -73,12 +77,14 @@ export default function Collections() {
     const slug = category.name.replace(/\s+/g, '-').toLowerCase();
     setSelectedCategory(slug);
     setSelectedCategoryName(category.name);
+    setSelectedCategoryData(category);
   };
 
   // Handle back button click
   const handleBackClick = () => {
     setSelectedCategory(null);
     setSelectedCategoryName(null);
+    setSelectedCategoryData(null);
     navigate("/collections");
   };
 
@@ -104,17 +110,43 @@ export default function Collections() {
   if (selectedCategory) {
     return (
       <Layout>
-        <div className="flex items-center mb-6">
+        <div className="mb-2">
           <Button 
             variant="ghost" 
             size="sm" 
             onClick={handleBackClick}
-            className="mr-2"
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
             Back to Collections
           </Button>
-          <h1 className="text-4xl font-bold">{selectedCategoryName || selectedCategory}</h1>
+        </div>
+        
+        <div className="flex items-center gap-4 mb-6">
+          {selectedCategoryData && selectedCategoryData.imageUrl ? (
+            <div className="w-20 h-20 overflow-hidden rounded-md flex-shrink-0">
+              <img 
+                src={getProxiedImageUrl(selectedCategoryData.imageUrl)} 
+                alt={selectedCategoryName || selectedCategory}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  console.log('Collection image failed to load:', selectedCategoryData.imageUrl);
+                  e.currentTarget.style.display = 'none';
+                }}
+                crossOrigin="anonymous"
+              />
+            </div>
+          ) : (
+            <div className="w-20 h-20 rounded-md bg-muted flex items-center justify-center">
+              <Grid3X3 className="h-8 w-8 text-muted-foreground" />
+            </div>
+          )}
+          
+          <div>
+            <h1 className="text-4xl font-bold">{selectedCategoryName || selectedCategory}</h1>
+            {selectedCategoryData && selectedCategoryData.description && (
+              <p className="text-muted-foreground mt-2">{selectedCategoryData.description}</p>
+            )}
+          </div>
         </div>
         
         {itemsLoading ? (
