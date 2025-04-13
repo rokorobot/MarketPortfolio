@@ -1063,6 +1063,45 @@ export function registerRoutes(app: Express) {
     }
   });
   
+  // Upload author profile image (admin only)
+  app.post("/api/authors/upload-image", requireAuth, requireAdmin, (req: Request, res: Response) => {
+    try {
+      const filesReq = req as FileRequest;
+      
+      // Check if files were uploaded
+      if (!filesReq.files || !filesReq.files.image) {
+        return res.status(400).json({ message: "No image file uploaded" });
+      }
+      
+      const imageFile = filesReq.files.image as UploadedFile;
+      
+      // Validate file is an image
+      if (!imageFile.mimetype.startsWith('image/')) {
+        return res.status(400).json({ message: "Uploaded file is not an image" });
+      }
+      
+      // Generate unique filename
+      const fileExtension = path.extname(imageFile.name);
+      const hashedFileName = crypto.randomBytes(16).toString('hex') + fileExtension;
+      const uploadPath = path.join(process.cwd(), 'uploads', hashedFileName);
+      
+      // Move the file
+      imageFile.mv(uploadPath, (err) => {
+        if (err) {
+          return res.status(500).json({ message: "Error uploading file", error: err });
+        }
+        
+        // Return the file path that can be used to access the image
+        res.json({ 
+          imagePath: `/uploads/${hashedFileName}`,
+          message: "Author profile image uploaded successfully" 
+        });
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Error processing author image upload", error });
+    }
+  });
+
   // Update author profile image
   app.patch("/api/authors/:authorName", requireAuth, requireAdmin, async (req, res) => {
     try {
