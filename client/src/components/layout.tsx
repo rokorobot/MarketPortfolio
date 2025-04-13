@@ -123,11 +123,16 @@ const ShowcaseIntervalSetting = () => {
 const ShowcaseButton = () => {
   // We don't need useShowcase here, we'll just dispatch a custom event
   // that will be handled by the PortfolioGrid component
+  const [location] = useLocation();
+  
+  // Only use inactive styling on the portfolio/home page (/)
+  const isPortfolioPage = location === "/";
+  
   return (
     <Button 
       variant="outline"
       size="sm" 
-      className="gap-2"
+      className={`gap-2 ${!isPortfolioPage ? "bg-primary text-primary-foreground hover:bg-primary/90" : ""}`}
       onClick={() => {
         // Dispatch custom event that will be handled by PortfolioGrid
         document.dispatchEvent(new CustomEvent('start-showcase'));
