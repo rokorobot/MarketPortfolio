@@ -499,13 +499,14 @@ export class DatabaseStorage implements IStorage {
         marketplaceUrl2: portfolioItems.marketplaceUrl2,
         marketplaceName1: portfolioItems.marketplaceName1,
         marketplaceName2: portfolioItems.marketplaceName2,
+        displayOrder: portfolioItems.displayOrder,
         createdAt: portfolioItems.createdAt,
         updatedAt: portfolioItems.updatedAt
       })
       .from(portfolioItems)
       .innerJoin(favorites, eq(portfolioItems.id, favorites.itemId))
       .where(eq(favorites.userId, userId))
-      .orderBy(portfolioItems.createdAt);
+      .orderBy(portfolioItems.displayOrder);
     
     return items;
   }
@@ -554,7 +555,8 @@ export class DatabaseStorage implements IStorage {
           marketplaceUrl1: "https://objkt.com/asset/123456",
           marketplaceUrl2: "https://opensea.io/assets/ethereum/123456",
           marketplaceName1: "OBJKT",
-          marketplaceName2: "OpenSea"
+          marketplaceName2: "OpenSea",
+          displayOrder: 0
         },
         {
           title: "NFT Series: Creative Space",
@@ -564,7 +566,8 @@ export class DatabaseStorage implements IStorage {
           marketplaceUrl1: "https://objkt.com/asset/789012",
           marketplaceUrl2: "https://foundation.app/123456",
           marketplaceName1: "OBJKT",
-          marketplaceName2: "Foundation"
+          marketplaceName2: "Foundation",
+          displayOrder: 1
         },
         {
           title: "Digital Masterpiece",
@@ -574,7 +577,8 @@ export class DatabaseStorage implements IStorage {
           marketplaceUrl1: "https://superrare.com/artwork/123456",
           marketplaceUrl2: "https://opensea.io/assets/ethereum/789012",
           marketplaceName1: "SuperRare",
-          marketplaceName2: "OpenSea"
+          marketplaceName2: "OpenSea",
+          displayOrder: 2
         }
       ]);
     }
