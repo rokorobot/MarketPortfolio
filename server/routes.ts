@@ -438,6 +438,37 @@ export function registerRoutes(app: Express) {
       res.status(500).json({ message: "Failed to update item" });
     }
   });
+  // Update the display order of multiple items
+  app.post("/api/items/update-order", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const { items } = req.body;
+      
+      if (!Array.isArray(items)) {
+        return res.status(400).json({ message: "Items must be an array" });
+      }
+      
+      // Validate each item has id and displayOrder
+      for (const item of items) {
+        if (typeof item !== "object" || item === null || !("id" in item) || !("displayOrder" in item)) {
+          return res.status(400).json({
+            message: "Each item must have id and displayOrder properties",
+            receivedItem: item
+          });
+        }
+      }
+      
+      const success = await storage.updateItemsOrder(items);
+      
+      if (success) {
+        res.json({ success, message: "Items order updated successfully" });
+      } else {
+        res.status(500).json({ success, message: "Failed to update items order" });
+      }
+    } catch (error) {
+      console.error("Error updating items order:", error);
+      res.status(500).json({ message: "Failed to update items order" });
+    }
+  });
   
   // Share link endpoints
   
