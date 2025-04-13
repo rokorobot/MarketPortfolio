@@ -1,13 +1,14 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { PortfolioItem } from '@shared/schema';
-import { ArrowUpDown, Save, XCircle, Loader2 } from 'lucide-react';
+import { ArrowUpDown, Save, XCircle, Loader2, Play, Eye } from 'lucide-react';
 import { ItemCard } from './item-card';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import { useShowcase } from '@/hooks/use-showcase';
 
 type DraggableGridProps = {
   items: PortfolioItem[];
@@ -29,6 +30,7 @@ export function DraggableGrid({
   const { isAdmin } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { startShowcase } = useShowcase();
   
   // Fetch grid settings from site settings
   const { data: settings } = useQuery<Record<string, string | null>>({
@@ -155,47 +157,75 @@ export function DraggableGrid({
     saveOrderMutation.mutate(orderedItems);
   };
 
+  // Function to start the showcase
+  const handleStartShowcase = () => {
+    if (localItems.length === 0) {
+      toast({
+        title: 'No items to showcase',
+        description: 'There are no items available to showcase.',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    startShowcase(localItems);
+  };
+
   return (
     <div className="space-y-6">
-      {/* Controls panel for reordering */}
-      {showEditControls && (
-        <div className="flex justify-end gap-2 mb-4">
-          {!isArranging ? (
-            <Button
-              variant="outline"
-              onClick={startArranging}
-              className="flex items-center gap-2"
-            >
-              <ArrowUpDown className="h-4 w-4" />
-              Arrange Items
-            </Button>
-          ) : (
-            <>
+      {/* Controls panel with showcase and reordering buttons */}
+      <div className="flex justify-between items-center mb-4">
+        {/* Showcase button on the left */}
+        <Button
+          variant="outline"
+          onClick={handleStartShowcase}
+          className="flex items-center gap-2"
+          disabled={localItems.length === 0 || isArranging}
+        >
+          <Eye className="h-4 w-4" />
+          Showcase
+        </Button>
+        
+        {/* Admin controls on the right */}
+        {showEditControls && (
+          <div className="flex gap-2">
+            {!isArranging ? (
               <Button
                 variant="outline"
-                onClick={cancelArranging}
+                onClick={startArranging}
                 className="flex items-center gap-2"
-                disabled={saveOrderMutation.isPending}
               >
-                <XCircle className="h-4 w-4" />
-                Cancel
+                <ArrowUpDown className="h-4 w-4" />
+                Arrange Items
               </Button>
-              <Button
-                onClick={saveArrangement}
-                className="flex items-center gap-2"
-                disabled={saveOrderMutation.isPending}
-              >
-                {saveOrderMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Save className="h-4 w-4" />
-                )}
-                Save Order
-              </Button>
-            </>
-          )}
-        </div>
-      )}
+            ) : (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={cancelArranging}
+                  className="flex items-center gap-2"
+                  disabled={saveOrderMutation.isPending}
+                >
+                  <XCircle className="h-4 w-4" />
+                  Cancel
+                </Button>
+                <Button
+                  onClick={saveArrangement}
+                  className="flex items-center gap-2"
+                  disabled={saveOrderMutation.isPending}
+                >
+                  {saveOrderMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4" />
+                  )}
+                  Save Order
+                </Button>
+              </>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Draggable grid */}
       <DragDropContext onDragEnd={handleDragEnd}>
