@@ -213,7 +213,7 @@ export class DatabaseStorage implements IStorage {
     return await db.select()
       .from(portfolioItems)
       .where(eq(portfolioItems.category, category))
-      .orderBy(portfolioItems.createdAt); // Show oldest items first, in chronological order
+      .orderBy(portfolioItems.displayOrder); // Order by display order
   }
   
   async getUniqueAuthors(): Promise<{name: string, count: number, profileImage: string | null}[]> {
@@ -265,7 +265,7 @@ export class DatabaseStorage implements IStorage {
     return await db.select()
       .from(portfolioItems)
       .where(eq(portfolioItems.author, authorName))
-      .orderBy(portfolioItems.createdAt); // Show oldest items first, in chronological order
+      .orderBy(portfolioItems.displayOrder); // Order by display order
   }
 
   async createItem(item: InsertPortfolioItem): Promise<PortfolioItem> {
