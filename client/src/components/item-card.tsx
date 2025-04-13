@@ -46,11 +46,6 @@ export function ItemCard({
         >
           {item.title}
         </div>
-        
-        {/* Description - shortened with ellipsis */}
-        <p className="text-sm text-muted-foreground mt-2 line-clamp-2 text-center">
-          {item.description}
-        </p>
       </CardContent>
       <CardFooter className="p-4 pt-0 gap-2">
         {item.marketplaceUrl1 && (
