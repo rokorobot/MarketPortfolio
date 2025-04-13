@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -22,7 +22,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Layout } from "@/components/layout";
-import { Loader2, Pencil, Trash2, Plus, AlertCircle, ArrowUp, ArrowDown } from "lucide-react";
+import { Loader2, Pencil, Trash2, Plus, AlertCircle, ArrowUp, ArrowDown, X, Upload, Image as ImageIcon } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -53,6 +53,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Extend the schema with additional validation
 const formSchema = insertCategorySchema
@@ -88,6 +89,11 @@ export default function ManageCategories() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<CategoryModel | null>(null);
   const [sortType, setSortType] = useState<'name' | 'date'>('date');
+  const [activeTab, setActiveTab] = useState<string>("url");
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [uploadedImagePath, setUploadedImagePath] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Fetch all categories from the database
   const { data: categories = [], isLoading: categoriesLoading, refetch: refetchCategories } = useQuery<CategoryModel[]>({
@@ -131,6 +137,11 @@ export default function ManageCategories() {
         description: editingCategory.description,
         imageUrl: editingCategory.imageUrl || "",
       });
+      
+      // Reset the upload states
+      setPreviewImage(null);
+      setUploadedImagePath(null);
+      setActiveTab("url");
     }
   }, [editingCategory, editForm]);
   
@@ -168,6 +179,11 @@ export default function ManageCategories() {
   // Edit category mutation
   const editCategoryMutation = useMutation({
     mutationFn: async (data: { id: number; update: EditFormValues }) => {
+      // If using the upload tab and we have an uploaded path, use that instead
+      if (activeTab === "upload" && uploadedImagePath) {
+        data.update.imageUrl = uploadedImagePath;
+      }
+      
       const response = await apiRequest("PATCH", `/api/categories/${data.id}`, data.update);
       return await response.json();
     },
@@ -175,6 +191,11 @@ export default function ManageCategories() {
       // Close the edit dialog
       setIsEditDialogOpen(false);
       setEditingCategory(null);
+      
+      // Reset upload states
+      setPreviewImage(null);
+      setUploadedImagePath(null);
+      setActiveTab("url");
       
       // Invalidate all categories queries to refresh the data
       queryClient.invalidateQueries({ queryKey: ['/api/categories'] });
@@ -192,6 +213,40 @@ export default function ManageCategories() {
       toast({
         title: "Error",
         description: `Failed to update collection: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Image upload mutation
+  const uploadImageMutation = useMutation({
+    mutationFn: async (formData: FormData) => {
+      const response = await fetch('/api/collections/upload-image', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to upload image');
+      }
+      
+      return await response.json();
+    },
+    onSuccess: (data) => {
+      // Set the uploaded image path to be used in the form submission
+      setUploadedImagePath(data.imagePath);
+      setPreviewImage(data.imagePath);
+      
+      toast({
+        title: "Success",
+        description: "Image uploaded successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: `Failed to upload image: ${error.message}`,
         variant: "destructive",
       });
     },
@@ -232,6 +287,52 @@ export default function ManageCategories() {
   async function onAddSubmit(data: z.infer<typeof formSchema>) {
     await addCategoryMutation.mutate(data);
   }
+  
+  // Handle file selection for image upload
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    
+    const file = e.target.files[0];
+    
+    // Check if the file is an image
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Error",
+        description: "Please select an image file",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Display a preview of the selected image
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        setPreviewImage(event.target.result as string);
+      }
+    };
+    reader.readAsDataURL(file);
+    
+    // Upload the file
+    const formData = new FormData();
+    formData.append('image', file);
+    
+    setIsUploading(true);
+    try {
+      await uploadImageMutation.mutateAsync(formData);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+  
+  // Clear the uploaded image
+  const clearUploadedImage = () => {
+    setPreviewImage(null);
+    setUploadedImagePath(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
   
   // Handle form submission for editing a category
   async function onEditSubmit(data: EditFormValues) {
@@ -502,37 +603,92 @@ export default function ManageCategories() {
                 )}
               />
               
-              <FormField
-                control={editForm.control}
-                name="imageUrl"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Collection Image URL</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter URL to collection image" {...field} value={field.value || ""} />
-                    </FormControl>
-                    <FormDescription>
-                      Provide a URL to an image that represents this collection
-                    </FormDescription>
-                    {field.value && (
-                      <div className="mt-2">
-                        <p className="text-sm mb-1">Image Preview:</p>
-                        <img 
-                          src={getProxiedImageUrl(field.value)} 
-                          alt="Collection preview" 
-                          className="max-w-[200px] max-h-[150px] object-cover rounded-md border"
-                          onError={(e) => {
-                            e.currentTarget.src = "https://placehold.co/200x150/gray/white?text=Invalid+Image";
-                            console.log('Image failed to load:', field.value);
-                          }}
-                          crossOrigin="anonymous"
-                        />
-                      </div>
-                    )}
-                    <FormMessage />
-                  </FormItem>
+              <div className="pb-4">
+                <Tabs defaultValue="url" className="w-full" onValueChange={setActiveTab}>
+                  <TabsList className="mb-2">
+                    <TabsTrigger value="url">Image URL</TabsTrigger>
+                    <TabsTrigger value="upload">Upload Image</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="url">
+                    <FormField
+                      control={editForm.control}
+                      name="imageUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Collection Image URL</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="Enter URL to collection image" 
+                              {...field} 
+                              value={field.value || ""} 
+                              disabled={activeTab !== "url"}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Provide a URL to an image that represents this collection
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </TabsContent>
+                  
+                  <TabsContent value="upload">
+                    <div className="space-y-4">
+                      <FormItem>
+                        <FormLabel>Upload Collection Image</FormLabel>
+                        <FormControl>
+                          <div className="grid w-full max-w-sm items-center gap-1.5">
+                            <Input
+                              type="file"
+                              accept="image/*"
+                              ref={fileInputRef}
+                              onChange={handleFileSelect}
+                              disabled={isUploading}
+                              className="cursor-pointer"
+                            />
+                          </div>
+                        </FormControl>
+                        <FormDescription>
+                          Upload an image file (JPEG, PNG, GIF) to represent this collection.
+                        </FormDescription>
+                      </FormItem>
+                    </div>
+                  </TabsContent>
+                </Tabs>
+                
+                {(editForm.watch("imageUrl") || previewImage) && (
+                  <div className="mt-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-medium">Image Preview:</p>
+                      {activeTab === "upload" && uploadedImagePath && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={clearUploadedImage}
+                          type="button"
+                          className="h-8"
+                        >
+                          <X className="h-4 w-4 mr-1" /> Clear
+                        </Button>
+                      )}
+                    </div>
+                    <Card className="overflow-hidden w-48 h-48 flex items-center justify-center">
+                      <img 
+                        src={getProxiedImageUrl(previewImage || editForm.watch("imageUrl") || "")} 
+                        alt="Collection preview" 
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          console.log('Edit Collection preview image failed to load:', previewImage || editForm.watch("imageUrl"));
+                          e.currentTarget.src = "https://placehold.co/200x200/gray/white?text=Invalid+Image";
+                        }}
+                        crossOrigin="anonymous"
+                      />
+                    </Card>
+                  </div>
                 )}
-              />
+              </div>
               
               <DialogFooter>
                 <Button 
