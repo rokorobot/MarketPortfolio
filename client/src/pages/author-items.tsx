@@ -7,6 +7,7 @@ import { ArrowLeft, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { PortfolioItem } from "@shared/schema";
 import React from "react";
+import { getProxiedImageUrl } from "@/lib/utils";
 
 // Author type definition
 interface Author {
@@ -79,15 +80,16 @@ export default function AuthorItemsPage() {
               ) : (!authorError && authorDetails && authorDetails.profileImage) ? (
                 <div className="relative">
                   <img 
-                    src={authorDetails.profileImage} 
+                    src={getProxiedImageUrl(authorDetails.profileImage)} 
                     alt={`${authorName} profile`} 
                     className="w-24 h-24 rounded-full object-cover shadow-md"
                     onError={(e) => {
-                      console.log("Image failed to load:", authorDetails.profileImage);
+                      console.log("Author profile image failed to load:", authorDetails.profileImage);
                       e.currentTarget.style.display = 'none';
                       const fallback = document.getElementById(`fallback-${authorName}`);
                       if (fallback) fallback.style.display = 'flex';
                     }}
+                    crossOrigin="anonymous"
                   />
                   <div 
                     id={`fallback-${authorName}`}

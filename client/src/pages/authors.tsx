@@ -7,6 +7,7 @@ import { Loader2, User, Settings } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
+import { getProxiedImageUrl } from "@/lib/utils";
 
 // Define the type for author data
 interface Author {
@@ -70,9 +71,15 @@ export default function AuthorsPage() {
                   <CardHeader className="py-4 flex flex-col items-center">
                     {author.profileImage ? (
                       <img 
-                        src={author.profileImage} 
+                        src={getProxiedImageUrl(author.profileImage)} 
                         alt={`${author.name} profile`} 
                         className="w-24 h-24 rounded-full object-cover mb-3"
+                        onError={(e) => {
+                          console.log('Author profile image failed to load:', author.profileImage);
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = "https://placehold.co/100x100/gray/white?text=Author";
+                        }}
+                        crossOrigin="anonymous"
                       />
                     ) : (
                       <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center mb-3">

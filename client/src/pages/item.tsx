@@ -623,9 +623,14 @@ export default function Item() {
                           {/* Current Image Preview */}
                           <div className="relative aspect-[4/3] w-full max-w-md mx-auto overflow-hidden rounded-lg border border-border">
                             <img 
-                              src={newImageUrl || item.imageUrl} 
+                              src={getProxiedImageUrl(newImageUrl || item.imageUrl)} 
                               alt={item.title} 
                               className="object-contain w-full h-full"
+                              onError={(e) => {
+                                console.log('Edit preview image failed to load:', newImageUrl || item.imageUrl);
+                                e.currentTarget.src = "https://placehold.co/400x300/gray/white?text=Image+Preview";
+                              }}
+                              crossOrigin="anonymous"
                             />
                           </div>
                           
@@ -768,9 +773,41 @@ export default function Item() {
                           >
                             {item.authorProfileImage ? (
                               <img 
-                                src={item.authorProfileImage} 
+                                src={getProxiedImageUrl(item.authorProfileImage)} 
                                 alt={`${item.author} profile`} 
                                 className="w-6 h-6 rounded-full object-cover"
+                                onError={(e) => {
+                                  console.log('Author profile image failed to load:', item.authorProfileImage);
+                                  e.currentTarget.onerror = null;
+                                  // Replace with generic user icon div
+                                  const parent = e.currentTarget.parentElement;
+                                  if (parent) {
+                                    const div = document.createElement('div');
+                                    div.className = "w-6 h-6 rounded-full bg-muted flex items-center justify-center";
+                                    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                                    svg.setAttribute("viewBox", "0 0 24 24");
+                                    svg.setAttribute("width", "12");
+                                    svg.setAttribute("height", "12");
+                                    svg.setAttribute("fill", "none");
+                                    svg.setAttribute("stroke", "currentColor");
+                                    svg.setAttribute("stroke-width", "2");
+                                    svg.setAttribute("stroke-linecap", "round");
+                                    svg.setAttribute("stroke-linejoin", "round");
+                                    svg.classList.add("h-3", "w-3");
+                                    
+                                    const path1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                                    path1.setAttribute("d", "M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2");
+                                    
+                                    const path2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                                    path2.setAttribute("d", "M12 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8z");
+                                    
+                                    svg.appendChild(path1);
+                                    svg.appendChild(path2);
+                                    div.appendChild(svg);
+                                    parent.replaceChild(div, e.currentTarget);
+                                  }
+                                }}
+                                crossOrigin="anonymous"
                               />
                             ) : (
                               <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center">
