@@ -4,6 +4,7 @@ import { Loader2, Download, Share } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
 import type { PortfolioItem } from "@shared/schema";
+import { getProxiedImageUrl } from "@/lib/utils";
 
 interface ShareImageGeneratorProps {
   item: PortfolioItem;
@@ -50,8 +51,11 @@ export function ShareImageGenerator({ item }: ShareImageGeneratorProps) {
       
       await new Promise<void>((resolve, reject) => {
         img.onload = () => resolve();
-        img.onerror = () => reject(new Error("Failed to load image"));
-        img.src = item.imageUrl;
+        img.onerror = (e) => {
+          console.error("Failed to load image for share card:", item.imageUrl, e);
+          reject(new Error("Failed to load image"));
+        };
+        img.src = getProxiedImageUrl(item.imageUrl);
       });
       
       // Calculate image position and size to maintain aspect ratio
