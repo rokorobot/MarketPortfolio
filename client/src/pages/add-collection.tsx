@@ -40,6 +40,10 @@ export default function AddCollection() {
   const { user, isAdmin, isLoading: authLoading } = useAuth();
   const [, navigate] = useLocation();
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<string>("url");
+  const [uploadedImagePath, setUploadedImagePath] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -52,6 +56,11 @@ export default function AddCollection() {
   
   const addCategoryMutation = useMutation({
     mutationFn: async (data: z.infer<typeof formSchema>) => {
+      // If we have an uploaded image path, use that instead of the URL
+      if (activeTab === "upload" && uploadedImagePath) {
+        data.imageUrl = uploadedImagePath;
+      }
+      
       const response = await apiRequest("POST", "/api/categories", data);
       return await response.json();
     },
@@ -77,6 +86,39 @@ export default function AddCollection() {
     },
   });
   
+  const uploadImageMutation = useMutation({
+    mutationFn: async (formData: FormData) => {
+      const response = await fetch('/api/collections/upload-image', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to upload image');
+      }
+      
+      return await response.json();
+    },
+    onSuccess: (data) => {
+      // Set the uploaded image path to be used in the form submission
+      setUploadedImagePath(data.imagePath);
+      setPreviewImage(data.imagePath);
+      
+      toast({
+        title: "Success",
+        description: "Image uploaded successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: `Failed to upload image: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+  
   const handlePreviewImage = (url: string) => {
     if (url) {
       setPreviewImage(url);
@@ -85,16 +127,61 @@ export default function AddCollection() {
     }
   };
   
-  // Watch for imageUrl changes to update preview
+  // Watch for imageUrl changes to update preview when URL tab is active
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
-      if (name === 'imageUrl') {
+      if (name === 'imageUrl' && activeTab === "url") {
         handlePreviewImage(value.imageUrl as string);
       }
     });
     
     return () => subscription.unsubscribe();
-  }, [form]);
+  }, [form, activeTab]);
+  
+  // Handle file selection for upload
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    
+    const file = e.target.files[0];
+    
+    // Check if the file is an image
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Error",
+        description: "Please select an image file",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Display a preview of the selected image
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        setPreviewImage(event.target.result as string);
+      }
+    };
+    reader.readAsDataURL(file);
+    
+    // Upload the file
+    const formData = new FormData();
+    formData.append('image', file);
+    
+    setIsUploading(true);
+    try {
+      await uploadImageMutation.mutateAsync(formData);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+  
+  const clearUploadedImage = () => {
+    setPreviewImage(null);
+    setUploadedImagePath(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
   
   async function onSubmit(data: z.infer<typeof formSchema>) {
     await addCategoryMutation.mutate(data);
@@ -162,43 +249,90 @@ export default function AddCollection() {
               )}
             />
             
-            <FormField
-              control={form.control}
-              name="imageUrl"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Collection Image URL</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="Enter image URL" 
-                      {...field} 
-                      value={field.value || ""}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Provide a URL to an image that represents this collection.
-                  </FormDescription>
-                  {previewImage && (
-                    <div className="mt-2">
-                      <p className="text-sm mb-2">Image Preview:</p>
-                      <Card className="overflow-hidden w-48 h-48 flex items-center justify-center">
-                        <img 
-                          src={getProxiedImageUrl(previewImage)} 
-                          alt="Collection preview" 
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            setPreviewImage(null);
-                            console.log('Add Collection preview image failed to load:', previewImage);
-                          }}
-                          crossOrigin="anonymous"
+            <Tabs defaultValue="url" className="w-full" onValueChange={setActiveTab}>
+              <TabsList className="mb-2">
+                <TabsTrigger value="url">Image URL</TabsTrigger>
+                <TabsTrigger value="upload">Upload Image</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="url">
+                <FormField
+                  control={form.control}
+                  name="imageUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Collection Image URL</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="Enter image URL" 
+                          {...field} 
+                          value={field.value || ""}
+                          disabled={activeTab !== "url"}
                         />
-                      </Card>
-                    </div>
+                      </FormControl>
+                      <FormDescription>
+                        Provide a URL to an image that represents this collection.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
                   )}
-                  <FormMessage />
-                </FormItem>
+                />
+              </TabsContent>
+              
+              <TabsContent value="upload">
+                <div className="space-y-4">
+                  <FormItem>
+                    <FormLabel>Upload Collection Image</FormLabel>
+                    <FormControl>
+                      <div className="grid w-full max-w-sm items-center gap-1.5">
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          ref={fileInputRef}
+                          onChange={handleFileSelect}
+                          disabled={isUploading}
+                          className="cursor-pointer"
+                        />
+                      </div>
+                    </FormControl>
+                    <FormDescription>
+                      Upload an image file (JPEG, PNG, GIF) to represent this collection.
+                    </FormDescription>
+                  </FormItem>
+                </div>
+              </TabsContent>
+              
+              {previewImage && (
+                <div className="mt-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm font-medium">Image Preview:</p>
+                    {activeTab === "upload" && uploadedImagePath && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={clearUploadedImage}
+                        type="button"
+                        className="h-8"
+                      >
+                        <X className="h-4 w-4 mr-1" /> Clear
+                      </Button>
+                    )}
+                  </div>
+                  <Card className="overflow-hidden w-48 h-48 flex items-center justify-center">
+                    <img 
+                      src={getProxiedImageUrl(previewImage)} 
+                      alt="Collection preview" 
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        setPreviewImage(null);
+                        console.log('Add Collection preview image failed to load:', previewImage);
+                      }}
+                      crossOrigin="anonymous"
+                    />
+                  </Card>
+                </div>
               )}
-            />
+            </Tabs>
             
             <div className="flex items-center gap-4">
               <Button

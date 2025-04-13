@@ -2,7 +2,7 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer } from "http";
 import { storage } from "./storage";
 import { PORTFOLIO_CATEGORIES, insertPortfolioItemSchema, insertUserSchema, insertShareLinkSchema, insertCategorySchema } from "@shared/schema";
-import { UploadedFile } from "express-fileupload";
+import { UploadedFile, FileArray } from "express-fileupload";
 import path from "path";
 import crypto from "crypto";
 import { generateTagsFromImage, generateTagsFromText } from "./openai-service";
@@ -24,9 +24,7 @@ declare module 'express-session' {
 
 // Type definition for the extended request with files
 interface FileRequest extends Request {
-  files?: {
-    image?: UploadedFile | UploadedFile[];
-  };
+  files?: FileArray | null;
 }
 
 // Session-enabled request type
@@ -585,14 +583,16 @@ export function registerRoutes(app: Express) {
   });
   
   // Upload collection image (admin only)
-  app.post("/api/collections/upload-image", requireAuth, requireAdmin, async (req: FileRequest, res) => {
+  app.post("/api/collections/upload-image", requireAuth, requireAdmin, (req: Request, res: Response) => {
     try {
+      const filesReq = req as FileRequest;
+      
       // Check if files were uploaded
-      if (!req.files || !req.files.image) {
+      if (!filesReq.files || !filesReq.files.image) {
         return res.status(400).json({ message: "No image file uploaded" });
       }
       
-      const imageFile = req.files.image as UploadedFile;
+      const imageFile = filesReq.files.image as UploadedFile;
       
       // Validate file is an image
       if (!imageFile.mimetype.startsWith('image/')) {
