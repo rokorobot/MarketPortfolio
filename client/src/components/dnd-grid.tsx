@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { PortfolioItem } from '@shared/schema';
 import { ArrowUpDown, Save, XCircle, Loader2 } from 'lucide-react';
@@ -6,7 +6,7 @@ import { ItemCard } from './item-card';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 
 type DraggableGridProps = {
@@ -29,6 +29,49 @@ export function DraggableGrid({
   const { isAdmin } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Fetch grid settings from site settings
+  const { data: settings } = useQuery<Record<string, string | null>>({
+    queryKey: ['/api/site-settings'],
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+  });
+  
+  // Default grid settings if site settings are not available
+  const DEFAULT_GRID_SETTINGS = {
+    grid_columns_desktop: '6',
+    grid_columns_tablet: '3',
+    grid_columns_mobile: '1',
+  };
+  
+  // Calculate column values based on settings
+  const desktopCols = settings?.grid_columns_desktop || DEFAULT_GRID_SETTINGS.grid_columns_desktop;
+  const tabletCols = settings?.grid_columns_tablet || DEFAULT_GRID_SETTINGS.grid_columns_tablet;
+  const mobileCols = settings?.grid_columns_mobile || DEFAULT_GRID_SETTINGS.grid_columns_mobile;
+  
+  // Use Tailwind classes for responsive grid based on settings
+  const gridClass = useMemo(() => {
+    // Base grid with gap
+    let classes = "grid gap-6 ";
+    
+    // Mobile columns (base)
+    if (mobileCols === '1') classes += "grid-cols-1 ";
+    else if (mobileCols === '2') classes += "grid-cols-2 ";
+    
+    // Tablet columns (md)
+    if (tabletCols === '1') classes += "md:grid-cols-1 ";
+    else if (tabletCols === '2') classes += "md:grid-cols-2 ";
+    else if (tabletCols === '3') classes += "md:grid-cols-3 ";
+    
+    // Desktop columns (lg)
+    if (desktopCols === '1') classes += "lg:grid-cols-1 ";
+    else if (desktopCols === '2') classes += "lg:grid-cols-2 ";
+    else if (desktopCols === '3') classes += "lg:grid-cols-3 ";
+    else if (desktopCols === '4') classes += "lg:grid-cols-4 ";
+    else if (desktopCols === '5') classes += "lg:grid-cols-5 ";
+    else if (desktopCols === '6') classes += "lg:grid-cols-6 ";
+    
+    return classes.trim();
+  }, [mobileCols, tabletCols, desktopCols]);
   
   // Show edit controls only if user is admin and canEdit is true
   const showEditControls = isAdmin && canEdit;
@@ -161,7 +204,7 @@ export function DraggableGrid({
             <div
               {...provided.droppableProps}
               ref={provided.innerRef}
-              className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 ${
+              className={`${gridClass} ${
                 isArranging ? 'ring-2 ring-primary/20 rounded-md p-4' : ''
               }`}
             >
