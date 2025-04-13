@@ -125,12 +125,14 @@ const ShowcaseButton = () => {
   // that will be handled by the PortfolioGrid component
   const [location] = useLocation();
   
-  // Button always has primary styling in the header as it only shows on homepage
+  // Only use inactive styling on the portfolio/home page (/)
+  const isPortfolioPage = location === "/";
+  
   return (
     <Button 
-      variant="default"
+      variant="outline"
       size="sm" 
-      className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+      className={`gap-2 ${!isPortfolioPage ? "bg-primary text-primary-foreground hover:bg-primary/90" : ""}`}
       onClick={() => {
         // Dispatch custom event that will be handled by PortfolioGrid
         document.dispatchEvent(new CustomEvent('start-showcase'));
@@ -216,8 +218,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               </>
             )}
             
-            {/* Only show showcase button on specific pages */}
-            {location === "/" && <ShowcaseButton />}
+            <ShowcaseButton />
             
             {/* Standalone dropdown for showcase settings - available to all users */}
             <DropdownMenu>
