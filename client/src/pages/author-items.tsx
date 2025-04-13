@@ -76,13 +76,13 @@ export default function AuthorItemsPage() {
             
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 mt-4 mb-8">
               {isLoadingAuthor ? (
-                <div className="w-24 h-24 rounded-full bg-muted animate-pulse" />
+                <div className="w-32 h-32 rounded-full bg-muted animate-pulse" />
               ) : (!authorError && authorDetails && authorDetails.profileImage) ? (
                 <div className="relative">
                   <img 
                     src={getProxiedImageUrl(authorDetails.profileImage)} 
                     alt={`${authorName} profile`} 
-                    className="w-24 h-24 rounded-full object-cover shadow-md"
+                    className="w-32 h-32 rounded-full object-cover shadow-md"
                     onError={(e) => {
                       console.log("Author profile image failed to load:", authorDetails.profileImage);
                       e.currentTarget.style.display = 'none';
@@ -94,14 +94,14 @@ export default function AuthorItemsPage() {
                   <div 
                     id={`fallback-${authorName}`}
                     style={{display: 'none'}}
-                    className="absolute top-0 left-0 w-24 h-24 rounded-full bg-muted items-center justify-center shadow-md"
+                    className="absolute top-0 left-0 w-32 h-32 rounded-full bg-muted items-center justify-center shadow-md"
                   >
-                    <User className="h-12 w-12 text-muted-foreground/50" />
+                    <User className="h-16 w-16 text-muted-foreground/50" />
                   </div>
                 </div>
               ) : (
-                <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center shadow-md">
-                  <User className="h-12 w-12 text-muted-foreground/50" />
+                <div className="w-32 h-32 rounded-full bg-muted flex items-center justify-center shadow-md">
+                  <User className="h-16 w-16 text-muted-foreground/50" />
                 </div>
               )}
               
