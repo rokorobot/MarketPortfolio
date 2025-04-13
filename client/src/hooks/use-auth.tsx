@@ -32,11 +32,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryKey: ['/api/user'],
     queryFn: async () => {
       try {
-        const response = await fetch('/api/user');
+        const response = await fetch('/api/user', {
+          credentials: 'include'
+        });
         console.log('User endpoint response status:', response.status);
+        
         if (response.status === 401) return null;
         if (!response.ok) throw new Error('Failed to fetch user data');
-        return response.json();
+        
+        // Safely parse the response
+        try {
+          const text = await response.text();
+          
+          // Handle empty responses
+          if (!text) return null;
+          
+          // Check for HTML error pages
+          if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
+            console.error('Received HTML instead of JSON for user data');
+            return null;
+          }
+          
+          return JSON.parse(text);
+        } catch (parseError) {
+          console.error('Error parsing user data:', parseError);
+          return null;
+        }
       } catch (err) {
         const error = err as Error;
         // Only show toast for errors that aren't 401
@@ -47,7 +68,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             variant: 'destructive',
           });
         }
-        throw error;
+        console.error('Auth error:', error);
+        return null;
       }
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
@@ -58,13 +80,56 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginData) => {
       console.log('Attempting login with credentials:', { username: credentials.username, passwordLength: credentials.password?.length || 0 });
-      const response = await apiRequest('POST', '/api/login', credentials);
+      
+      // Use the native fetch API for more control
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(credentials),
+        credentials: 'include'
+      });
+      
       console.log('Login response status:', response.status);
+      
+      // Handle non-OK responses
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Login failed');
+        try {
+          // Try to parse as JSON first
+          const text = await response.text();
+          
+          // Check if this is HTML (error page)
+          if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
+            console.error('Received HTML error response:', text.substring(0, 100));
+            throw new Error(`Login failed with status ${response.status}`);
+          }
+          
+          // Try to parse as JSON
+          try {
+            const errorData = JSON.parse(text);
+            throw new Error(errorData.message || 'Login failed');
+          } catch (jsonError) {
+            // Not valid JSON
+            throw new Error(`Login failed: ${text || response.statusText}`);
+          }
+        } catch (error) {
+          if (error instanceof Error) throw error;
+          throw new Error(`Login failed with status ${response.status}`);
+        }
       }
-      return response.json();
+      
+      // Parse successful response
+      try {
+        const text = await response.text();
+        if (!text) {
+          throw new Error('Empty response received');
+        }
+        return JSON.parse(text);
+      } catch (error) {
+        console.error('Error parsing login response:', error);
+        throw new Error('Failed to parse login response');
+      }
     },
     onSuccess: () => {
       refetch();
@@ -86,9 +151,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Logout mutation
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('POST', '/api/logout');
+      // Use native fetch for more control
+      const response = await fetch('/api/logout', {
+        method: 'POST',
+        credentials: 'include'
+      });
+      console.log('Logout response status:', response.status);
+      
       if (!response.ok) {
-        throw new Error('Logout failed');
+        try {
+          const text = await response.text();
+          console.error('Logout failed with response:', text);
+          throw new Error('Logout failed');
+        } catch (error) {
+          throw new Error('Logout failed');
+        }
       }
     },
     onSuccess: () => {
