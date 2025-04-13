@@ -49,13 +49,30 @@ export function ShareImageGenerator({ item }: ShareImageGeneratorProps) {
       const img = new Image();
       img.crossOrigin = "anonymous";
       
+      // Check if the image is from OBJKT (our utility will replace with a placeholder)
+      const isObjktImage = item.imageUrl.includes('objkt.com') || item.imageUrl.includes('assets.objkt.media');
+      const imageUrl = getProxiedImageUrl(item.imageUrl);
+      
+      // If using placeholder for OBJKT, add some text
+      if (isObjktImage) {
+        // Add additional context to canvas
+        ctx.font = "bold 30px system-ui, sans-serif";
+        ctx.fillStyle = "#fff";
+        ctx.textAlign = "center";
+        ctx.fillText("OBJKT Image Preview", width / 2, 100);
+        
+        // Add a subtitle
+        ctx.font = "20px system-ui, sans-serif";
+        ctx.fillText("(Image cannot be loaded due to CORS restrictions)", width / 2, 140);
+      }
+      
       await new Promise<void>((resolve, reject) => {
         img.onload = () => resolve();
         img.onerror = (e) => {
-          console.error("Failed to load image for share card:", item.imageUrl, e);
+          console.error("Failed to load image for share card:", imageUrl, e);
           reject(new Error("Failed to load image"));
         };
-        img.src = getProxiedImageUrl(item.imageUrl);
+        img.src = imageUrl;
       });
       
       // Calculate image position and size to maintain aspect ratio
