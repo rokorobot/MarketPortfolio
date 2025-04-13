@@ -14,12 +14,14 @@ type DraggableGridProps = {
   items: PortfolioItem[];
   queryKey: unknown[];
   canEdit?: boolean;
+  showShowcaseButton?: boolean;
 };
 
 export function DraggableGrid({ 
   items, 
   queryKey,
-  canEdit = false
+  canEdit = false,
+  showShowcaseButton = false
 }: DraggableGridProps) {
   // Local state
   const [localItems, setLocalItems] = useState<PortfolioItem[]>(items);

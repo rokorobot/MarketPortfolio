@@ -17,7 +17,15 @@ const DEFAULT_GRID_SETTINGS = {
   items_per_page: '12'
 };
 
-export function PortfolioGrid({ items }: { items: PortfolioItem[] }) {
+interface PortfolioGridProps {
+  items: PortfolioItem[];
+  showShowcaseButton?: boolean;
+}
+
+export function PortfolioGrid({ 
+  items,
+  showShowcaseButton = false
+}: PortfolioGridProps) {
   // Get the showcase functionality
   const { startShowcase } = useShowcase();
   
@@ -88,18 +96,20 @@ export function PortfolioGrid({ items }: { items: PortfolioItem[] }) {
   
   return (
     <div className="space-y-6">
-      {/* Showcase button */}
-      <div className="flex justify-between items-center mb-4">
-        <Button
-          variant="default"
-          onClick={handleStartShowcase}
-          className="flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
-          disabled={items.length === 0}
-        >
-          <Eye className="h-4 w-4" />
-          Showcase
-        </Button>
-      </div>
+      {/* Showcase button - only shown when showShowcaseButton is true */}
+      {showShowcaseButton && (
+        <div className="flex justify-between items-center mb-4">
+          <Button
+            variant="default"
+            onClick={handleStartShowcase}
+            className="flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+            disabled={items.length === 0}
+          >
+            <Eye className="h-4 w-4" />
+            Showcase
+          </Button>
+        </div>
+      )}
       
       {/* Grid layout */}
       <div className={gridClass}>
@@ -115,7 +125,7 @@ export function PortfolioGrid({ items }: { items: PortfolioItem[] }) {
   );
 }
 
-export function PortfolioGridSkeleton() {
+export function PortfolioGridSkeleton({ showShowcaseButton = false }: { showShowcaseButton?: boolean } = {}) {
   // Fetch grid settings from site settings (for consistent skeleton display)
   const { data: settings } = useQuery<Record<string, string | null>>({
     queryKey: ['/api/site-settings'],
@@ -161,10 +171,12 @@ export function PortfolioGridSkeleton() {
   
   return (
     <div className="space-y-6">
-      {/* Skeleton for showcase button */}
-      <div className="flex justify-between items-center mb-4">
-        <Skeleton className="h-10 w-28" />
-      </div>
+      {/* Skeleton for showcase button - only shown when showShowcaseButton is true */}
+      {showShowcaseButton && (
+        <div className="flex justify-between items-center mb-4">
+          <Skeleton className="h-10 w-28" />
+        </div>
+      )}
       
       {/* Skeleton grid layout */}
       <div className={gridClass}>

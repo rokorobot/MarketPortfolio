@@ -251,7 +251,7 @@ export default function Home() {
       </div>
       
       {isLoading ? (
-        <PortfolioGridSkeleton />
+        <PortfolioGridSkeleton showShowcaseButton={true} />
       ) : (
         <>
           {/* Show search results if searching */}
@@ -276,12 +276,16 @@ export default function Home() {
           
           {/* Use DraggableGrid for admin users (when not filtering), regular PortfolioGrid for others */}
           {(selectedAuthor || selectedTag || debouncedSearchQuery) ? (
-            <PortfolioGrid items={filteredItems.length > 0 ? filteredItems : (items || [])} />
+            <PortfolioGrid 
+              items={filteredItems.length > 0 ? filteredItems : (items || [])} 
+              showShowcaseButton={true}
+            />
           ) : (
             <DraggableGrid 
               items={items || []} 
               queryKey={["/api/items", selectedCategory, currentPage]}
               canEdit={isAdmin}
+              showShowcaseButton={true}
             />
           )}
           
