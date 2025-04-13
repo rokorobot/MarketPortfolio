@@ -518,7 +518,7 @@ export default function ManageCategories() {
                       <div className="mt-2">
                         <p className="text-sm mb-1">Image Preview:</p>
                         <img 
-                          src={field.value.includes('objkt.com') ? `https://api.allorigins.win/raw?url=${encodeURIComponent(field.value)}` : field.value} 
+                          src={getProxiedImageUrl(field.value)} 
                           alt="Collection preview" 
                           className="max-w-[200px] max-h-[150px] object-cover rounded-md border"
                           onError={(e) => {

@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { Redirect, useLocation } from "wouter";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { getProxiedImageUrl } from "@/lib/utils";
 import { insertCategorySchema } from "@shared/schema";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -180,7 +181,7 @@ export default function AddCollection() {
                       <p className="text-sm mb-2">Image Preview:</p>
                       <Card className="overflow-hidden w-48 h-48 flex items-center justify-center">
                         <img 
-                          src={previewImage.includes('objkt.com') ? `https://api.allorigins.win/raw?url=${encodeURIComponent(previewImage)}` : previewImage} 
+                          src={getProxiedImageUrl(previewImage)} 
                           alt="Collection preview" 
                           className="w-full h-full object-cover"
                           onError={(e) => {
