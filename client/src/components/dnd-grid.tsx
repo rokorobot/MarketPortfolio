@@ -1,45 +1,69 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { PortfolioItem } from '@shared/schema';
-import { ArrowUpDown, Save, XCircle } from 'lucide-react';
+import { ArrowUpDown, Save, XCircle, Loader2 } from 'lucide-react';
 import { ItemCard } from './item-card';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 
 type DraggableGridProps = {
   items: PortfolioItem[];
-  onOrderChange?: (orderedItems: PortfolioItem[]) => Promise<void>;
-  collectionId?: number | string;
+  queryKey: unknown[];
   canEdit?: boolean;
-  isArranging?: boolean;
-  isSaving?: boolean;
-  onStartArranging?: () => void;
-  onCancelArranging?: () => void;
-  onSaveArrangement?: () => void;
 };
 
 export function DraggableGrid({ 
   items, 
-  onOrderChange,
-  collectionId,
-  canEdit,
-  isArranging = false,
-  isSaving = false,
-  onStartArranging,
-  onCancelArranging,
-  onSaveArrangement
+  queryKey,
+  canEdit = false
 }: DraggableGridProps) {
-  // Local state for draggable items
+  // Local state
   const [localItems, setLocalItems] = useState<PortfolioItem[]>(items);
+  const [isArranging, setIsArranging] = useState(false);
+  const [originalItems, setOriginalItems] = useState<PortfolioItem[]>([]);
+  
+  // Hooks
   const { isAdmin } = useAuth();
-
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
   // Show edit controls only if user is admin and canEdit is true
   const showEditControls = isAdmin && canEdit;
   
-  // Update local items when props change (if not in arrangement mode)
-  if (JSON.stringify(items) !== JSON.stringify(localItems) && !isArranging) {
-    setLocalItems(items);
-  }
+  // Update localItems when items prop changes
+  useEffect(() => {
+    if (!isArranging) {
+      setLocalItems(items);
+    }
+  }, [items, isArranging]);
+
+  // Save order mutation
+  const saveOrderMutation = useMutation({
+    mutationFn: async (orderedItems: { id: number; displayOrder: number }[]) => {
+      const response = await apiRequest('POST', '/api/items/update-order', { 
+        items: orderedItems 
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey });
+      toast({
+        title: 'Order updated',
+        description: 'The items have been reordered successfully.',
+      });
+      setIsArranging(false);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Error',
+        description: `Failed to update order: ${error.message}`,
+        variant: 'destructive'
+      });
+    }
+  });
 
   const handleDragEnd = (result: DropResult) => {
     // Dropped outside the list or no destination
@@ -65,6 +89,29 @@ export function DraggableGrid({
     setLocalItems(reorderedItems);
   };
 
+  const startArranging = () => {
+    setOriginalItems([...localItems]);
+    setIsArranging(true);
+    toast({
+      title: 'Arrangement Mode',
+      description: 'Drag and drop items to rearrange them, then click Save.',
+    });
+  };
+
+  const cancelArranging = () => {
+    setLocalItems(originalItems);
+    setIsArranging(false);
+  };
+
+  const saveArrangement = () => {
+    const orderedItems = localItems.map((item, index) => ({
+      id: item.id,
+      displayOrder: index
+    }));
+    
+    saveOrderMutation.mutate(orderedItems);
+  };
+
   return (
     <div className="space-y-6">
       {/* Controls panel for reordering */}
@@ -73,7 +120,7 @@ export function DraggableGrid({
           {!isArranging ? (
             <Button
               variant="outline"
-              onClick={onStartArranging}
+              onClick={startArranging}
               className="flex items-center gap-2"
             >
               <ArrowUpDown className="h-4 w-4" />
@@ -83,20 +130,20 @@ export function DraggableGrid({
             <>
               <Button
                 variant="outline"
-                onClick={onCancelArranging}
+                onClick={cancelArranging}
                 className="flex items-center gap-2"
-                disabled={isSaving}
+                disabled={saveOrderMutation.isPending}
               >
                 <XCircle className="h-4 w-4" />
                 Cancel
               </Button>
               <Button
-                onClick={onSaveArrangement}
+                onClick={saveArrangement}
                 className="flex items-center gap-2"
-                disabled={isSaving}
+                disabled={saveOrderMutation.isPending}
               >
-                {isSaving ? (
-                  <span className="loading loading-spinner loading-xs"></span>
+                {saveOrderMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <Save className="h-4 w-4" />
                 )}

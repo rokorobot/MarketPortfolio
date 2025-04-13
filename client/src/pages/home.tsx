@@ -12,7 +12,6 @@ import { Badge } from "@/components/ui/badge";
 import { queryClient } from "@/lib/queryClient";
 import { DraggableGrid } from "@/components/dnd-grid";
 import { useAuth } from "@/hooks/use-auth";
-import { useItemReordering } from "@/hooks/use-item-reordering";
 
 export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -109,19 +108,6 @@ export default function Home() {
   
   // Extract items from the paginated response
   const items = data?.items;
-  
-  // Set up item reordering functionality
-  const {
-    items: reorderableItems,
-    isArranging,
-    startArranging,
-    cancelArranging,
-    saveArrangement,
-    isSaving
-  } = useItemReordering({
-    queryKey: ["/api/items", selectedCategory, currentPage],
-    initialItems: items || []
-  });
 
   // Filter items based on search query, selected author, and tag
   useEffect(() => {
@@ -288,18 +274,14 @@ export default function Home() {
             </div>
           )}
           
-          {/* Use DraggableGrid for admin users, regular PortfolioGrid for others */}
+          {/* Use DraggableGrid for admin users (when not filtering), regular PortfolioGrid for others */}
           {(selectedAuthor || selectedTag || debouncedSearchQuery) ? (
             <PortfolioGrid items={filteredItems.length > 0 ? filteredItems : (items || [])} />
           ) : (
             <DraggableGrid 
-              items={reorderableItems} 
+              items={items || []} 
+              queryKey={["/api/items", selectedCategory, currentPage]}
               canEdit={isAdmin}
-              isArranging={isArranging}
-              isSaving={isSaving}
-              onStartArranging={startArranging}
-              onCancelArranging={cancelArranging}
-              onSaveArrangement={saveArrangement}
             />
           )}
           
