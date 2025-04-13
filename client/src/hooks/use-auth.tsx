@@ -1,14 +1,21 @@
 import { createContext, ReactNode, useContext } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { getQueryFn } from '@/lib/queryClient';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { getQueryFn, apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from './use-toast';
 import { User } from '@shared/schema';
+
+interface LoginData {
+  username: string;
+  password: string;
+}
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   error: Error | null;
   isAdmin: boolean;
+  login: (credentials: LoginData) => Promise<User>;
+  logout: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | null>(null);
@@ -20,6 +27,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     data: user,
     error,
     isLoading,
+    refetch,
   } = useQuery<User | null>({
     queryKey: ['/api/auth/me'],
     queryFn: async () => {
@@ -45,6 +53,67 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     retry: false,
   });
 
+  // Login mutation
+  const loginMutation = useMutation({
+    mutationFn: async (credentials: LoginData) => {
+      const response = await apiRequest('POST', '/api/auth/login', credentials);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Login failed');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      refetch();
+      toast({
+        title: 'Login Successful',
+        description: 'Welcome back!',
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Login Failed',
+        description: error.message,
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  });
+
+  // Logout mutation
+  const logoutMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/auth/logout');
+      if (!response.ok) {
+        throw new Error('Logout failed');
+      }
+    },
+    onSuccess: () => {
+      queryClient.setQueryData(['/api/auth/me'], null);
+      toast({
+        title: 'Logged Out',
+        description: 'You have been successfully logged out',
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Logout Failed',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  });
+
+  // Login function
+  const login = async (credentials: LoginData) => {
+    return loginMutation.mutateAsync(credentials);
+  };
+
+  // Logout function
+  const logout = async () => {
+    return logoutMutation.mutateAsync();
+  };
+
   // Safe type checking for user role
   const isAdmin = Boolean(user && user.role === 'admin');
 
@@ -52,9 +121,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider
       value={{
         user: user || null,
-        isLoading,
+        isLoading: isLoading || loginMutation.isPending || logoutMutation.isPending,
         error: error as Error | null,
         isAdmin,
+        login,
+        logout,
       }}
     >
       {children}
