@@ -5,14 +5,28 @@ import { type PortfolioItem } from "@shared/schema";
 import { ExternalLink } from "lucide-react";
 import { getProxiedImageUrl } from "@/lib/utils";
 
-export function ItemCard({ item }: { item: PortfolioItem }) {
+export function ItemCard({ 
+  item, 
+  onClick
+}: { 
+  item: PortfolioItem;
+  onClick?: () => void;
+}) {
   const [, navigate] = useLocation();
+  
+  const handleClick = () => {
+    if (onClick) {
+      onClick();
+    } else {
+      navigate(`/item/${item.id}`);
+    }
+  };
   
   return (
     <Card className="overflow-hidden h-full flex flex-col">
       <div 
         className="relative aspect-[4/3] block cursor-pointer" 
-        onClick={() => navigate(`/item/${item.id}`)}
+        onClick={handleClick}
       >
         <img
           src={getProxiedImageUrl(item.imageUrl)}
@@ -28,7 +42,7 @@ export function ItemCard({ item }: { item: PortfolioItem }) {
       <CardContent className="flex-1 p-4">
         <div 
           className="text-xl font-semibold hover:text-primary cursor-pointer text-center" 
-          onClick={() => navigate(`/item/${item.id}`)}
+          onClick={handleClick}
         >
           {item.title}
         </div>

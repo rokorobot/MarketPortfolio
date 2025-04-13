@@ -254,7 +254,12 @@ export function DraggableGrid({
                         snapshot.isDragging ? 'scale-105 z-10 shadow-lg' : ''
                       } ${isArranging ? 'cursor-move' : ''}`}
                     >
-                      <ItemCard item={item} />
+                      <ItemCard 
+                        item={item} 
+                        onClick={isArranging ? undefined : () => {
+                          startShowcase(localItems.slice(index));
+                        }} 
+                      />
                     </div>
                   )}
                 </Draggable>

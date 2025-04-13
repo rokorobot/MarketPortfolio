@@ -80,8 +80,12 @@ export function PortfolioGrid({ items }: { items: PortfolioItem[] }) {
   
   return (
     <div className={gridClass}>
-      {items.map((item) => (
-        <ItemCard key={item.id} item={item} />
+      {items.map((item, index) => (
+        <ItemCard 
+          key={item.id} 
+          item={item}
+          onClick={() => startShowcase(items.slice(index))}
+        />
       ))}
     </div>
   );
