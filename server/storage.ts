@@ -109,7 +109,7 @@ export class DatabaseStorage implements IStorage {
       .from(portfolioItems)
       .limit(validPageSize)
       .offset(offset)
-      .orderBy(portfolioItems.createdAt); // Oldest items first, in chronological order
+      .orderBy(portfolioItems.displayOrder); // Order by display order
     
     // Calculate total pages
     const totalPages = Math.ceil(total / validPageSize);
@@ -144,7 +144,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(portfolioItems.category, category))
       .limit(validPageSize)
       .offset(offset)
-      .orderBy(portfolioItems.createdAt); // Oldest items first, in chronological order
+      .orderBy(portfolioItems.displayOrder); // Order by display order
     
     // Calculate total pages
     const totalPages = Math.ceil(total / validPageSize);
