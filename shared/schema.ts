@@ -16,6 +16,7 @@ export const portfolioItems = pgTable("portfolio_items", {
   marketplaceUrl2: text("marketplace_url2"),
   marketplaceName1: text("marketplace_name1"),
   marketplaceName2: text("marketplace_name2"),
+  displayOrder: integer("display_order").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

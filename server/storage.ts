@@ -46,6 +46,7 @@ export interface IStorage {
   createItem(item: InsertPortfolioItem): Promise<PortfolioItem>;
   updateItem(id: number, item: Partial<PortfolioItem>): Promise<PortfolioItem>;
   deleteItem(id: number): Promise<boolean>;
+  updateItemsOrder(items: {id: number, displayOrder: number}[]): Promise<boolean>;
   
   // Users
   getUser(id: number): Promise<User | undefined>;
