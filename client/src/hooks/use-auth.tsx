@@ -29,10 +29,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isLoading,
     refetch,
   } = useQuery<User | null>({
-    queryKey: ['/api/auth/me'],
+    queryKey: ['/api/user'],
     queryFn: async () => {
       try {
-        const response = await fetch('/api/auth/me');
+        const response = await fetch('/api/user');
+        console.log('User endpoint response status:', response.status);
         if (response.status === 401) return null;
         if (!response.ok) throw new Error('Failed to fetch user data');
         return response.json();
@@ -56,7 +57,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Login mutation
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginData) => {
-      const response = await apiRequest('POST', '/api/auth/login', credentials);
+      console.log('Attempting login with credentials:', { username: credentials.username, passwordLength: credentials.password?.length || 0 });
+      const response = await apiRequest('POST', '/api/login', credentials);
+      console.log('Login response status:', response.status);
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Login failed');
@@ -83,13 +86,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Logout mutation
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('POST', '/api/auth/logout');
+      const response = await apiRequest('POST', '/api/logout');
       if (!response.ok) {
         throw new Error('Logout failed');
       }
     },
     onSuccess: () => {
-      queryClient.setQueryData(['/api/auth/me'], null);
+      queryClient.setQueryData(['/api/user'], null);
       toast({
         title: 'Logged Out',
         description: 'You have been successfully logged out',
