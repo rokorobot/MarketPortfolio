@@ -127,7 +127,7 @@ const ShowcaseButton = () => {
     <Button 
       variant="outline"
       size="sm" 
-      className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+      className="gap-2"
       onClick={() => {
         // Dispatch custom event that will be handled by PortfolioGrid
         document.dispatchEvent(new CustomEvent('start-showcase'));
