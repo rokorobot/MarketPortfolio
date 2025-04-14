@@ -223,9 +223,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
             {/* Standalone dropdown for showcase settings - available to all users */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2">
+                <Button variant="outline" size="sm" className="px-2">
                   <Clock className="h-4 w-4" />
-                  Settings
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
