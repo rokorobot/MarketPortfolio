@@ -328,48 +328,8 @@ export default function Item() {
   // Check if the image is a GIF by looking at the file extension
   const isGif = item.imageUrl.toLowerCase().endsWith('.gif');
   
-  // Function to handle proper back navigation with pagination
+  // Simple back navigation using history
   const handleBackNavigation = () => {
-    const referrer = document.referrer;
-    
-    // If we came from a page within this app and can parse it
-    if (referrer && referrer.includes(window.location.host)) {
-      try {
-        const url = new URL(referrer);
-        const path = url.pathname;
-        const searchParams = url.searchParams;
-        
-        // Preserve pagination and filtering
-        const page = searchParams.get('page');
-        const category = searchParams.get('category');
-        const author = searchParams.get('author');
-        const tag = searchParams.get('tag');
-        
-        let targetPath = path;
-        const params = new URLSearchParams();
-        
-        // Preserve all important parameters
-        if (page) params.append('page', page);
-        if (category) params.append('category', category);
-        if (author) params.append('author', author);
-        if (tag) params.append('tag', tag);
-        
-        // Add query params if we have any
-        const queryString = params.toString();
-        if (queryString) {
-          targetPath += `?${queryString}`;
-        }
-        
-        // Navigate to the constructed URL
-        navigate(targetPath);
-        return;
-      } catch (e) {
-        console.error("Error parsing referrer URL:", e);
-        // If there's an error, fall back to history.back()
-      }
-    }
-    
-    // Fallback to default behavior
     window.history.back();
   };
 
