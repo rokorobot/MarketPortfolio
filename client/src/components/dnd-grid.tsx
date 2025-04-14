@@ -236,44 +236,63 @@ export function DraggableGrid({
       )}
 
       {/* Draggable grid */}
-      <DragDropContext onDragEnd={handleDragEnd}>
-        <Droppable droppableId="droppable-portfolio-items" direction="horizontal" isDropDisabled={!isArranging}>
-          {(provided) => (
-            <div
-              {...provided.droppableProps}
-              ref={provided.innerRef}
-              className={`${gridClass} ${
-                isArranging ? 'ring-2 ring-primary/20 rounded-md p-4' : ''
-              }`}
-            >
-              {localItems.map((item, index) => (
-                <Draggable 
-                  key={`item-${item.id}`} 
-                  draggableId={`item-${item.id}`} 
-                  index={index}
-                  isDragDisabled={!isArranging}
-                >
-                  {(provided, snapshot) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.draggableProps}
-                      {...provided.dragHandleProps}
-                      className={`transition-transform ${
-                        snapshot.isDragging ? 'scale-105 z-10 shadow-lg' : ''
-                      } ${isArranging ? 'cursor-move' : ''}`}
-                    >
-                      <ItemCard 
-                        item={item} 
-                      />
-                    </div>
-                  )}
-                </Draggable>
-              ))}
-              {provided.placeholder}
-            </div>
-          )}
-        </Droppable>
-      </DragDropContext>
+      {isArranging ? (
+        // When in arranging mode, we use a flat list layout that allows easier reordering
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Droppable droppableId="droppable-portfolio-items">
+            {(provided) => (
+              <div
+                {...provided.droppableProps}
+                ref={provided.innerRef}
+                className="space-y-4 p-4 ring-2 ring-primary/20 rounded-md"
+              >
+                {localItems.map((item, index) => (
+                  <Draggable 
+                    key={`item-${item.id}`} 
+                    draggableId={`item-${item.id}`} 
+                    index={index}
+                  >
+                    {(provided, snapshot) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                        className={`transition-transform cursor-move bg-card ${
+                          snapshot.isDragging ? 'scale-[1.02] z-10 shadow-lg' : ''
+                        }`}
+                      >
+                        <div className="p-2 border rounded-md flex items-center gap-4">
+                          <div className="flex-shrink-0 w-16 h-16 overflow-hidden rounded">
+                            {item.imageUrl && (
+                              <img 
+                                src={item.imageUrl} 
+                                alt={item.title} 
+                                className="object-cover w-full h-full"
+                              />
+                            )}
+                          </div>
+                          <div className="flex-grow">
+                            <div className="font-medium truncate">{item.title}</div>
+                            <div className="text-sm text-muted-foreground">Position: {index + 1}</div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        </DragDropContext>
+      ) : (
+        // In normal view, use the regular grid layout
+        <div className={gridClass}>
+          {localItems.map((item) => (
+            <ItemCard key={`item-${item.id}`} item={item} />
+          ))}
+        </div>
+      )}
 
       {/* Notice shown when in arrange mode */}
       {isArranging && (
