@@ -4,7 +4,7 @@ import { Layout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ExternalLink, Tag, Trash2, Share2, Twitter, Edit, Save, X, Loader2, Upload, Image, Heart, User } from "lucide-react";
+import { ExternalLink, Tag, Trash2, Share2, Twitter, Edit, Save, X, Loader2, Upload, Image, Heart, User, ChevronLeft } from "lucide-react";
 import { type PortfolioItem } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -331,6 +331,17 @@ export default function Item() {
   return (
     <Layout>
       <div className="w-full max-w-[1400px] mx-auto px-0 space-y-6">
+        {/* Back button */}
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={() => window.history.back()}
+          className="mb-4 flex items-center"
+        >
+          <ChevronLeft className="h-4 w-4 mr-1" />
+          Back
+        </Button>
+        
         <Card className="shadow-lg border-0 overflow-hidden">
           <CardContent className="p-2 md:p-4">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-8">
