@@ -294,7 +294,15 @@ export function registerRoutes(app: Express) {
   });
 
   app.get("/api/items/:id", async (req, res) => {
-    const item = await storage.getItem(parseInt(req.params.id));
+    const id = parseInt(req.params.id);
+    
+    // Check if id is a valid number
+    if (isNaN(id) || id <= 0) {
+      res.status(400).json({ message: "Invalid item ID" });
+      return;
+    }
+    
+    const item = await storage.getItem(id);
     if (!item) {
       res.status(404).json({ message: "Item not found" });
       return;

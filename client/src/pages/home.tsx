@@ -97,7 +97,7 @@ export default function Home() {
     
     // Update URL without refreshing
     const newUrl = params.toString() ? `/?${params.toString()}` : '/';
-    window.history.replaceState({}, '', newUrl);
+    window.history.pushState({}, '', newUrl);
   }, [currentPage, selectedCategory, selectedAuthor, selectedTag]);
   
   // Update query to include pagination and handle paginated response

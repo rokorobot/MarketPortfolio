@@ -205,6 +205,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getItem(id: number): Promise<PortfolioItem | undefined> {
+    // Ensure id is a valid number
+    if (isNaN(id) || id <= 0) {
+      return undefined;
+    }
+    
     const [item] = await db.select().from(portfolioItems).where(eq(portfolioItems.id, id));
     return item;
   }
@@ -301,6 +306,11 @@ export class DatabaseStorage implements IStorage {
 
   // User methods
   async getUser(id: number): Promise<User | undefined> {
+    // Ensure id is a valid number
+    if (isNaN(id) || id <= 0) {
+      return undefined;
+    }
+    
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
   }
@@ -408,6 +418,11 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getCategory(id: number): Promise<CategoryModel | undefined> {
+    // Ensure id is a valid number
+    if (isNaN(id) || id <= 0) {
+      return undefined;
+    }
+    
     const [category] = await db.select().from(categories).where(eq(categories.id, id));
     return category;
   }
