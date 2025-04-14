@@ -64,8 +64,41 @@ export default function Home() {
     totalPages: number;
   }
   
+  // Get initial page from URL if present
+  const getInitialPage = () => {
+    const params = new URLSearchParams(window.location.search);
+    const pageParam = params.get('page');
+    return pageParam ? parseInt(pageParam, 10) : 1;
+  };
+  
   // Add pagination state
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(getInitialPage);
+  
+  // Update URL when page changes
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    
+    // Update or add the page parameter
+    if (currentPage > 1) {
+      params.set('page', currentPage.toString());
+    } else {
+      params.delete('page');
+    }
+    
+    // Keep other parameters
+    if (selectedCategory) params.set('category', selectedCategory);
+    else params.delete('category');
+    
+    if (selectedAuthor) params.set('author', selectedAuthor);
+    else params.delete('author');
+    
+    if (selectedTag) params.set('tag', selectedTag);
+    else params.delete('tag');
+    
+    // Update URL without refreshing
+    const newUrl = params.toString() ? `/?${params.toString()}` : '/';
+    window.history.replaceState({}, '', newUrl);
+  }, [currentPage, selectedCategory, selectedAuthor, selectedTag]);
   
   // Update query to include pagination and handle paginated response
   const { data, isLoading } = useQuery<PaginatedResponse>({
@@ -296,7 +329,10 @@ export default function Home() {
                 variant="outline" 
                 size="icon"
                 disabled={currentPage <= 1}
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                onClick={() => {
+                  setCurrentPage(prev => Math.max(1, prev - 1));
+                  // URL is updated by the useEffect
+                }}
                 aria-label="Previous page"
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -317,7 +353,10 @@ export default function Home() {
                         key={pageNumber}
                         variant={pageNumber === currentPage ? "default" : "outline"}
                         className="h-8 w-8"
-                        onClick={() => setCurrentPage(pageNumber)}
+                        onClick={() => {
+                          setCurrentPage(pageNumber);
+                          // URL is updated by the useEffect
+                        }}
                         aria-label={`Page ${pageNumber}`}
                         aria-current={pageNumber === currentPage ? "page" : undefined}
                       >
@@ -339,7 +378,10 @@ export default function Home() {
                 variant="outline" 
                 size="icon"
                 disabled={currentPage >= data.totalPages}
-                onClick={() => setCurrentPage(prev => Math.min(data.totalPages, prev + 1))}
+                onClick={() => {
+                  setCurrentPage(prev => Math.min(data.totalPages, prev + 1));
+                  // URL is updated by the useEffect
+                }}
                 aria-label="Next page"
               >
                 <ChevronRight className="h-4 w-4" />
