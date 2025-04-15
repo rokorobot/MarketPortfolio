@@ -224,11 +224,11 @@ export function Showcase({ items, isOpen, onClose }: ShowcaseProps) {
               </div>
               
               {/* Navigation controls */}
-              <div className="flex justify-center items-center gap-2 bg-black/30 rounded-full px-3 py-1.5 backdrop-blur-sm">
+              <div className="flex justify-center items-center gap-2">
                 <Button 
                   variant="ghost"
                   size="icon"
-                  className="text-white/90 hover:bg-white/10 rounded-full h-8 w-8 p-0"
+                  className="text-white hover:bg-black/30 rounded-full h-8 w-8 p-0"
                   onClick={(e) => {
                     e.stopPropagation();
                     handlePrevious();
@@ -241,7 +241,7 @@ export function Showcase({ items, isOpen, onClose }: ShowcaseProps) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="text-white/90 hover:bg-white/10 rounded-full h-8 w-8 p-0"
+                  className="text-white hover:bg-black/30 rounded-full h-8 w-8 p-0"
                   onClick={(e) => {
                     e.stopPropagation();
                     toggleAutoplay();
@@ -258,7 +258,7 @@ export function Showcase({ items, isOpen, onClose }: ShowcaseProps) {
                 <Button 
                   variant="ghost"
                   size="icon"
-                  className="text-white/90 hover:bg-white/10 rounded-full h-8 w-8 p-0"
+                  className="text-white hover:bg-black/30 rounded-full h-8 w-8 p-0"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleNext();
@@ -268,7 +268,7 @@ export function Showcase({ items, isOpen, onClose }: ShowcaseProps) {
                   <span className="sr-only">Next</span>
                 </Button>
                 
-                <span className="text-xs text-white/90 px-2">
+                <span className="text-xs text-white px-2 drop-shadow-sm">
                   {currentIndex + 1}/{items.length}
                 </span>
               </div>
