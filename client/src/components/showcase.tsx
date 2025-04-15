@@ -204,75 +204,83 @@ export function Showcase({ items, isOpen, onClose }: ShowcaseProps) {
             />
           </div>
           
-          {/* Title and author metadata - conditionally visible at bottom */}
-          <div 
-            className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 transition-opacity duration-300 ${
-              showMetadata ? 'opacity-100' : 'opacity-0 pointer-events-none'
-            }`}
-          >
-            <div className="max-w-5xl mx-auto">
-              <div className="flex flex-col items-center">
-                <h2 className="text-3xl font-bold mb-1 text-white">{currentItem.title}</h2>
-                {currentItem.author && (
-                  <p className="text-lg text-gray-300 mb-3">
-                    By {currentItem.author}
-                  </p>
-                )}
+          {/* Controls at bottom - always visible */}
+          <div className="absolute bottom-4 left-0 right-0 z-10">
+            <div className="flex flex-col items-center">
+              {/* Title and author metadata - conditionally visible, positioned ABOVE controls */}
+              <div 
+                className={`mb-3 transition-opacity duration-300 ${
+                  showMetadata ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                }`}
+              >
+                <div className="text-center">
+                  <h2 className="text-2xl font-bold mb-1 text-white drop-shadow-md">{currentItem.title}</h2>
+                  {currentItem.author && (
+                    <p className="text-md text-gray-200 drop-shadow-md">
+                      By {currentItem.author}
+                    </p>
+                  )}
+                </div>
+              </div>
+              
+              {/* Navigation controls */}
+              <div className="flex justify-center items-center gap-2 bg-black/30 rounded-full px-3 py-1.5 backdrop-blur-sm">
+                <Button 
+                  variant="ghost"
+                  size="icon"
+                  className="text-white/90 hover:bg-white/10 rounded-full h-8 w-8 p-0"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePrevious();
+                  }}
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                  <span className="sr-only">Previous</span>
+                </Button>
+                
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-white/90 hover:bg-white/10 rounded-full h-8 w-8 p-0"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleAutoplay();
+                  }}
+                >
+                  {isAutoplay ? (
+                    <Pause className="h-5 w-5" />
+                  ) : (
+                    <Play className="h-5 w-5" />
+                  )}
+                  <span className="sr-only">{isAutoplay ? 'Pause' : 'Play'}</span>
+                </Button>
+                
+                <Button 
+                  variant="ghost"
+                  size="icon"
+                  className="text-white/90 hover:bg-white/10 rounded-full h-8 w-8 p-0"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleNext();
+                  }}
+                >
+                  <ChevronRight className="h-5 w-5" />
+                  <span className="sr-only">Next</span>
+                </Button>
+                
+                <span className="text-xs text-white/90 px-2">
+                  {currentIndex + 1}/{items.length}
+                </span>
               </div>
             </div>
           </div>
           
-          {/* Controls at bottom - always visible */}
-          <div className="absolute bottom-4 left-0 right-0 z-10">
-            <div className="flex justify-center items-center gap-2">
-              <Button 
-                variant="ghost"
-                size="icon"
-                className="text-white/90 hover:bg-black/20 rounded-full h-8 w-8 p-0"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handlePrevious();
-                }}
-              >
-                <ChevronLeft className="h-5 w-5" />
-                <span className="sr-only">Previous</span>
-              </Button>
-              
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-white/90 hover:bg-black/20 rounded-full h-8 w-8 p-0"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleAutoplay();
-                }}
-              >
-                {isAutoplay ? (
-                  <Pause className="h-5 w-5" />
-                ) : (
-                  <Play className="h-5 w-5" />
-                )}
-                <span className="sr-only">{isAutoplay ? 'Pause' : 'Play'}</span>
-              </Button>
-              
-              <Button 
-                variant="ghost"
-                size="icon"
-                className="text-white/90 hover:bg-black/20 rounded-full h-8 w-8 p-0"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleNext();
-                }}
-              >
-                <ChevronRight className="h-5 w-5" />
-                <span className="sr-only">Next</span>
-              </Button>
-              
-              <span className="text-xs text-white/80 bg-black/30 px-2 py-1 rounded-full">
-                {currentIndex + 1}/{items.length}
-              </span>
-            </div>
-          </div>
+          {/* Background gradient for bottom area - only visible with metadata */}
+          <div 
+            className={`absolute bottom-0 left-0 right-0 h-36 bg-gradient-to-t from-black/50 to-transparent transition-opacity duration-300 ${
+              showMetadata ? 'opacity-100' : 'opacity-0'
+            }`}
+          ></div>
           
           {/* Simplified Controls overlay - toggle visibility */}
           {showControls && (
