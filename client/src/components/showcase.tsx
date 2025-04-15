@@ -204,15 +204,13 @@ export function Showcase({ items, isOpen, onClose }: ShowcaseProps) {
             />
           </div>
           
-          {/* Controls at bottom - always visible */}
-          <div className="absolute bottom-4 left-0 right-0 z-10">
+          {/* Controls at bottom - only visible with metadata */}
+          <div className={`absolute bottom-4 left-0 right-0 z-10 transition-opacity duration-300 ${
+                showMetadata ? 'opacity-100' : 'opacity-0 pointer-events-none'
+              }`}>
             <div className="flex flex-col items-center">
-              {/* Title and author metadata - conditionally visible, positioned ABOVE controls */}
-              <div 
-                className={`mb-3 transition-opacity duration-300 ${
-                  showMetadata ? 'opacity-100' : 'opacity-0 pointer-events-none'
-                }`}
-              >
+              {/* Title and author metadata */}
+              <div className="mb-3">
                 <div className="text-center">
                   <h2 className="text-2xl font-bold mb-1 text-white drop-shadow-md">{currentItem.title}</h2>
                   {currentItem.author && (
@@ -282,46 +280,43 @@ export function Showcase({ items, isOpen, onClose }: ShowcaseProps) {
             }`}
           ></div>
           
-          {/* Simplified Controls overlay - toggle visibility */}
+          {/* Side navigation arrows - always visible */}
+          <Button 
+            className="absolute left-4 top-1/2 transform -translate-y-1/2 rounded-full p-2 bg-black/40 hover:bg-black/60 text-white h-10 w-10"
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation();
+              handlePrevious();
+            }}
+          >
+            <ChevronLeft className="h-6 w-6" />
+            <span className="sr-only">Previous</span>
+          </Button>
+          
+          <Button 
+            className="absolute right-4 top-1/2 transform -translate-y-1/2 rounded-full p-2 bg-black/40 hover:bg-black/60 text-white h-10 w-10"
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleNext();
+            }}
+          >
+            <ChevronRight className="h-6 w-6" />
+            <span className="sr-only">Next</span>
+          </Button>
+          
+          {/* Additional controls when showControls is true */}
           {showControls && (
-            <>
-              {/* Close button in the corner */}
-              <DialogClose className="absolute top-4 right-4 z-10">
-                <Button 
-                  size="icon" 
-                  variant="ghost" 
-                  className="text-white hover:bg-black/30"
-                >
-                  <X className="h-6 w-6" />
-                  <span className="sr-only">Close</span>
-                </Button>
-              </DialogClose>
-              
-              {/* Navigation arrows */}
+            <DialogClose className="absolute top-4 right-4 z-10">
               <Button 
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 rounded-full p-2 bg-black/40 hover:bg-black/60 text-white h-10 w-10"
-                size="icon"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handlePrevious();
-                }}
+                size="icon" 
+                variant="ghost" 
+                className="text-white hover:bg-black/30"
               >
-                <ChevronLeft className="h-6 w-6" />
-                <span className="sr-only">Previous</span>
+                <X className="h-6 w-6" />
+                <span className="sr-only">Close</span>
               </Button>
-              
-              <Button 
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 rounded-full p-2 bg-black/40 hover:bg-black/60 text-white h-10 w-10"
-                size="icon"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleNext();
-                }}
-              >
-                <ChevronRight className="h-6 w-6" />
-                <span className="sr-only">Next</span>
-              </Button>
-            </>
+            </DialogClose>
           )}
         </div>
       </DialogContent>
