@@ -16,6 +16,7 @@ export function Showcase({ items, isOpen, onClose }: ShowcaseProps) {
   const [isAutoplay, setIsAutoplay] = useState(true);
   const [timer, setTimer] = useState<number | null>(null);
   const [showControls, setShowControls] = useState(false);
+  const [showMetadata, setShowMetadata] = useState(true); // New state for toggling metadata visibility
   const [slideInterval, setSlideInterval] = useState(8000); // Default 8 seconds
   
   // Make sure we have valid items and currentIndex is within bounds
@@ -147,6 +148,11 @@ export function Showcase({ items, isOpen, onClose }: ShowcaseProps) {
     setShowControls(prev => !prev);
   };
   
+  // Toggle metadata visibility
+  const toggleMetadata = () => {
+    setShowMetadata(prev => !prev);
+  };
+  
   // Handle keyboard shortcuts
   useEffect(() => {
     if (!isOpen) return;
@@ -163,6 +169,9 @@ export function Showcase({ items, isOpen, onClose }: ShowcaseProps) {
         onClose();
       } else if (e.key === 'c') {
         toggleControls();
+      } else if (e.key === 'Control') {
+        toggleMetadata();
+        e.preventDefault(); // Prevent default behavior
       }
     };
     
@@ -195,8 +204,12 @@ export function Showcase({ items, isOpen, onClose }: ShowcaseProps) {
             />
           </div>
           
-          {/* Title and controls overlay - always visible at bottom */}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+          {/* Title and author metadata - conditionally visible at bottom */}
+          <div 
+            className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 transition-opacity duration-300 ${
+              showMetadata ? 'opacity-100' : 'opacity-0 pointer-events-none'
+            }`}
+          >
             <div className="max-w-5xl mx-auto">
               <div className="flex flex-col items-center">
                 <h2 className="text-3xl font-bold mb-1 text-white">{currentItem.title}</h2>
@@ -205,57 +218,59 @@ export function Showcase({ items, isOpen, onClose }: ShowcaseProps) {
                     By {currentItem.author}
                   </p>
                 )}
-                
-                {/* Minimal controls at bottom */}
-                <div className="flex items-center gap-2 mt-1">
-                  <Button 
-                    variant="ghost"
-                    size="icon"
-                    className="text-white/90 hover:bg-white/10 rounded-full h-8 w-8 p-0"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handlePrevious();
-                    }}
-                  >
-                    <ChevronLeft className="h-5 w-5" />
-                    <span className="sr-only">Previous</span>
-                  </Button>
-                  
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-white/90 hover:bg-white/10 rounded-full h-8 w-8 p-0"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleAutoplay();
-                    }}
-                  >
-                    {isAutoplay ? (
-                      <Pause className="h-5 w-5" />
-                    ) : (
-                      <Play className="h-5 w-5" />
-                    )}
-                    <span className="sr-only">{isAutoplay ? 'Pause' : 'Play'}</span>
-                  </Button>
-                  
-                  <Button 
-                    variant="ghost"
-                    size="icon"
-                    className="text-white/90 hover:bg-white/10 rounded-full h-8 w-8 p-0"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleNext();
-                    }}
-                  >
-                    <ChevronRight className="h-5 w-5" />
-                    <span className="sr-only">Next</span>
-                  </Button>
-                  
-                  <span className="text-xs text-white/60 mx-1">
-                    {currentIndex + 1}/{items.length}
-                  </span>
-                </div>
               </div>
+            </div>
+          </div>
+          
+          {/* Controls at bottom - always visible */}
+          <div className="absolute bottom-4 left-0 right-0 z-10">
+            <div className="flex justify-center items-center gap-2">
+              <Button 
+                variant="ghost"
+                size="icon"
+                className="text-white/90 hover:bg-black/20 rounded-full h-8 w-8 p-0"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handlePrevious();
+                }}
+              >
+                <ChevronLeft className="h-5 w-5" />
+                <span className="sr-only">Previous</span>
+              </Button>
+              
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-white/90 hover:bg-black/20 rounded-full h-8 w-8 p-0"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleAutoplay();
+                }}
+              >
+                {isAutoplay ? (
+                  <Pause className="h-5 w-5" />
+                ) : (
+                  <Play className="h-5 w-5" />
+                )}
+                <span className="sr-only">{isAutoplay ? 'Pause' : 'Play'}</span>
+              </Button>
+              
+              <Button 
+                variant="ghost"
+                size="icon"
+                className="text-white/90 hover:bg-black/20 rounded-full h-8 w-8 p-0"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleNext();
+                }}
+              >
+                <ChevronRight className="h-5 w-5" />
+                <span className="sr-only">Next</span>
+              </Button>
+              
+              <span className="text-xs text-white/80 bg-black/30 px-2 py-1 rounded-full">
+                {currentIndex + 1}/{items.length}
+              </span>
             </div>
           </div>
           
