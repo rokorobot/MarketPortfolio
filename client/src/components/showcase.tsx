@@ -196,107 +196,87 @@ export function Showcase({ items, isOpen, onClose }: ShowcaseProps) {
           </div>
           
           {/* Title and controls overlay - always visible at bottom */}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/40 to-transparent p-4 backdrop-blur-sm">
             <div className="max-w-5xl mx-auto">
               <div className="flex flex-col items-center">
-                <h2 className="text-3xl font-bold mb-1">{currentItem.title}</h2>
+                <h2 className="text-2xl font-medium mb-1 text-white/90">{currentItem.title}</h2>
                 {currentItem.author && (
-                  <p className="text-lg text-gray-300 mb-3">
+                  <p className="text-sm text-white/70 mb-2">
                     By {currentItem.author}
                   </p>
                 )}
                 
-                {/* Controls at bottom */}
-                <div className="flex items-center gap-4 mt-2">
+                {/* Minimal controls at bottom */}
+                <div className="flex items-center gap-2 mt-1">
                   <Button 
-                    variant="outline"
-                    size="sm"
-                    className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+                    variant="ghost"
+                    size="icon"
+                    className="text-white/90 hover:bg-white/10 rounded-full h-8 w-8 p-0"
                     onClick={(e) => {
                       e.stopPropagation();
                       handlePrevious();
                     }}
                   >
-                    <ChevronLeft className="h-5 w-5 mr-1" />
-                    Previous
+                    <ChevronLeft className="h-5 w-5" />
+                    <span className="sr-only">Previous</span>
                   </Button>
                   
                   <Button
-                    variant="outline"
-                    size="sm"
-                    className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+                    variant="ghost"
+                    size="icon"
+                    className="text-white/90 hover:bg-white/10 rounded-full h-8 w-8 p-0"
                     onClick={(e) => {
                       e.stopPropagation();
                       toggleAutoplay();
                     }}
                   >
                     {isAutoplay ? (
-                      <>
-                        <Pause className="h-4 w-4 mr-1" />
-                        Pause
-                      </>
+                      <Pause className="h-5 w-5" />
                     ) : (
-                      <>
-                        <Play className="h-4 w-4 mr-1" />
-                        Play
-                      </>
+                      <Play className="h-5 w-5" />
                     )}
+                    <span className="sr-only">{isAutoplay ? 'Pause' : 'Play'}</span>
                   </Button>
                   
                   <Button 
-                    variant="outline"
-                    size="sm"
-                    className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+                    variant="ghost"
+                    size="icon"
+                    className="text-white/90 hover:bg-white/10 rounded-full h-8 w-8 p-0"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleNext();
                     }}
                   >
-                    Next
-                    <ChevronRight className="h-5 w-5 ml-1" />
+                    <ChevronRight className="h-5 w-5" />
+                    <span className="sr-only">Next</span>
                   </Button>
-                </div>
-                
-                <div className="mt-2 text-white/70 text-sm">
-                  {currentIndex + 1} of {items.length}
+                  
+                  <span className="text-xs text-white/60 mx-1">
+                    {currentIndex + 1}/{items.length}
+                  </span>
                 </div>
               </div>
             </div>
           </div>
           
-          {/* Controls overlay - toggle visibility */}
+          {/* Simplified Controls overlay - toggle visibility */}
           {showControls && (
             <>
-              {/* Close button in the corner */}
+              {/* Close button in the corner with translucent background */}
               <DialogClose className="absolute top-4 right-4 z-10">
-                <Button size="icon" variant="ghost" className="text-white hover:bg-black/30">
-                  <X className="h-6 w-6" />
+                <Button 
+                  size="icon" 
+                  variant="ghost" 
+                  className="text-white/90 hover:bg-white/10 rounded-full h-8 w-8 p-0 backdrop-blur-sm"
+                >
+                  <X className="h-5 w-5" />
                   <span className="sr-only">Close</span>
                 </Button>
               </DialogClose>
               
-              {/* Control panel */}
-              <div className="absolute top-4 left-4 flex items-center gap-2 bg-black/40 p-2 rounded-lg">
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleAutoplay();
-                  }}
-                  className="text-white hover:bg-black/30"
-                >
-                  {isAutoplay ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
-                </Button>
-                
-                <div className="text-sm text-white/80 px-2">
-                  {currentIndex + 1} / {items.length}
-                </div>
-              </div>
-              
-              {/* Navigation arrows */}
+              {/* Navigation arrows - simplified and translucent */}
               <Button 
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 rounded-full p-2 bg-black/40 hover:bg-black/60 text-white"
+                className="absolute left-4 top-1/2 transform -translate-y-1/2 rounded-full bg-black/20 hover:bg-black/30 text-white/90 backdrop-blur-sm h-10 w-10 p-0"
                 size="icon"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -308,7 +288,7 @@ export function Showcase({ items, isOpen, onClose }: ShowcaseProps) {
               </Button>
               
               <Button 
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 rounded-full p-2 bg-black/40 hover:bg-black/60 text-white"
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 rounded-full bg-black/20 hover:bg-black/30 text-white/90 backdrop-blur-sm h-10 w-10 p-0"
                 size="icon"
                 onClick={(e) => {
                   e.stopPropagation();
