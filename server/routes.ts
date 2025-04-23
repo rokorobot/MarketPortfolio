@@ -86,6 +86,15 @@ export function registerRoutes(app: Express) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
       
+      // Check if email is verified (unless it's an admin account)
+      if (user.role !== 'admin' && !user.isEmailVerified) {
+        return res.status(403).json({ 
+          message: "Please verify your email address before logging in",
+          needsVerification: true,
+          email: user.email
+        });
+      }
+      
       // Set session data
       req.session.userId = user.id;
       req.session.username = user.username;
@@ -97,10 +106,14 @@ export function registerRoutes(app: Express) {
         role: user.role
       });
       
+      // Return user profile data
       return res.json({
         id: user.id,
         username: user.username,
-        role: user.role
+        email: user.email,
+        role: user.role,
+        displayName: user.displayName,
+        profileImage: user.profileImage
       });
     } catch (error) {
       console.error("Login error:", error);
@@ -127,26 +140,82 @@ export function registerRoutes(app: Express) {
   app.post("/api/auth/logout", logoutHandler);
   app.post("/api/logout", logoutHandler);
   
-  // Register endpoint
-  const registerHandler = async (req: Request, res: Response) => {
+  // Public register endpoint for visitor and creator/collector accounts
+  const publicRegisterHandler = async (req: Request, res: Response) => {
     try {
-      // Only admin can create new users
-      if (req.session.userRole !== 'admin') {
-        return res.status(403).json({ message: "Admin access required for registration" });
+      const { userType, ...userData } = req.body;
+      
+      // Validate user type
+      if (!userType || !['creator_collector', 'visitor'].includes(userType)) {
+        return res.status(400).json({ message: "Invalid user type" });
       }
       
-      const userData = insertUserSchema.parse(req.body);
+      // Check if username or email already exists
       const existingUser = await storage.getUserByUsername(userData.username);
-      
       if (existingUser) {
         return res.status(400).json({ message: "Username already exists" });
       }
       
-      const user = await storage.createUser(userData);
+      const existingEmail = await storage.getUserByEmail(userData.email);
+      if (existingEmail) {
+        return res.status(400).json({ message: "Email already exists" });
+      }
+      
+      // Assign role based on user type
+      let role = 'visitor';
+      if (userType === 'creator_collector') {
+        // By default, new creator/collector accounts get the "collector" role
+        // They can be upgraded to "creator" by an admin later
+        role = 'collector';
+      }
+      
+      // Generate verification token
+      const verificationToken = crypto.randomBytes(32).toString('hex');
+      
+      // Create the user with appropriate role and verification token
+      const parsedUserData = insertUserSchema.parse({
+        ...userData,
+        role,
+        verificationToken,
+        isEmailVerified: false
+      });
+      
+      const user = await storage.createUser(parsedUserData);
+      
+      // Send verification email
+      try {
+        // Get email service preference from site settings
+        const emailServiceSetting = await storage.getSiteSettingByKey('email_service');
+        const emailService = emailServiceSetting?.value || 'nodemailer';
+        
+        const verificationLink = `${req.protocol}://${req.get('host')}/verify-email?token=${verificationToken}`;
+        
+        const emailParams = {
+          to: userData.email,
+          from: process.env.EMAIL_FROM || 'noreply@portfolioapp.com',
+          subject: 'Verify your email address',
+          text: `Please verify your email address by clicking on the following link: ${verificationLink}`,
+          html: `<p>Please verify your email address by clicking on the following link:</p><p><a href="${verificationLink}">${verificationLink}</a></p>`
+        };
+        
+        // Send email using the preferred service
+        if (emailService === 'sendgrid') {
+          await sendGridEmail(emailParams);
+        } else {
+          await nodeMailerEmail(emailParams);
+        }
+      } catch (emailError) {
+        console.error("Failed to send verification email:", emailError);
+        // Continue with registration even if email fails
+      }
+      
+      // Return user without sensitive information
       return res.status(201).json({
         id: user.id,
         username: user.username,
-        role: user.role
+        email: user.email,
+        role: user.role,
+        message: "Registration successful. Please check your email to verify your account."
       });
     } catch (error) {
       console.error("Registration error:", error);
@@ -154,9 +223,76 @@ export function registerRoutes(app: Express) {
     }
   };
   
-  // Register both routes for compatibility
-  app.post("/api/auth/register", registerHandler);
-  app.post("/api/register", registerHandler);
+  // Admin registration endpoint for creating any type of user
+  const adminRegisterHandler = async (req: Request, res: Response) => {
+    try {
+      // Only admin can create users through this endpoint
+      if (req.session.userRole !== 'admin') {
+        return res.status(403).json({ message: "Admin access required for registration" });
+      }
+      
+      const userData = insertUserSchema.parse(req.body);
+      
+      // Check if username or email already exists
+      const existingUser = await storage.getUserByUsername(userData.username);
+      if (existingUser) {
+        return res.status(400).json({ message: "Username already exists" });
+      }
+      
+      const existingEmail = await storage.getUserByEmail(userData.email);
+      if (existingEmail) {
+        return res.status(400).json({ message: "Email already exists" });
+      }
+      
+      // Admin-created accounts are automatically verified
+      userData.isEmailVerified = true;
+      
+      const user = await storage.createUser(userData);
+      return res.status(201).json({
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role
+      });
+    } catch (error) {
+      console.error("Admin registration error:", error);
+      return res.status(400).json({ message: "Invalid user data" });
+    }
+  };
+  
+  // Email verification endpoint
+  app.get("/api/verify-email", async (req: Request, res: Response) => {
+    try {
+      const { token } = req.query;
+      
+      if (!token || typeof token !== 'string') {
+        return res.status(400).json({ message: "Invalid verification token" });
+      }
+      
+      const user = await storage.getUserByVerificationToken(token);
+      
+      if (!user) {
+        return res.status(400).json({ message: "Invalid or expired verification token" });
+      }
+      
+      // Mark user as verified and clear verification token
+      await storage.updateUser(user.id, {
+        isEmailVerified: true,
+        verificationToken: null
+      });
+      
+      return res.json({ message: "Email verified successfully. You can now log in." });
+    } catch (error) {
+      console.error("Email verification error:", error);
+      return res.status(500).json({ message: "Failed to verify email" });
+    }
+  });
+  
+  // Register both sets of routes for compatibility
+  app.post("/api/auth/register", publicRegisterHandler);
+  app.post("/api/register", publicRegisterHandler);
+  app.post("/api/auth/admin/register", adminRegisterHandler);
+  app.post("/api/admin/register", adminRegisterHandler);
   
   // Get current user endpoint
   const getCurrentUserHandler = async (req: Request, res: Response) => {
@@ -170,10 +306,20 @@ export function registerRoutes(app: Express) {
       return res.status(401).json({ message: "User not found" });
     }
     
+    // Return more complete user profile
     return res.json({
       id: user.id,
       username: user.username,
-      role: user.role
+      email: user.email,
+      role: user.role,
+      displayName: user.displayName || user.username,
+      profileImage: user.profileImage,
+      bio: user.bio,
+      website: user.website,
+      twitter: user.twitter,
+      instagram: user.instagram,
+      tezosWalletAddress: user.tezosWalletAddress,
+      ethereumWalletAddress: user.ethereumWalletAddress
     });
   };
   

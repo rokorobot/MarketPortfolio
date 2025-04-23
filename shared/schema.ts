@@ -38,16 +38,36 @@ export const categorySchema = z.string();
 export type CategoryEnum = string; // Changed from enum to string type
 
 // User roles
-export const USER_ROLES = ["admin", "guest"] as const;
+export const USER_ROLES = ["admin", "creator", "collector", "visitor"] as const;
 export const roleSchema = z.enum(USER_ROLES);
 export type Role = z.infer<typeof roleSchema>;
+
+// User types - used for signup process
+export const USER_TYPES = ["creator_collector", "visitor"] as const;
+export const userTypeSchema = z.enum(USER_TYPES);
+export type UserType = z.infer<typeof userTypeSchema>;
 
 // User table
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
-  role: text("role").notNull().default("guest"),
+  role: text("role").notNull().default("visitor"),
+  email: text("email").notNull().unique(),
+  displayName: text("display_name"),
+  bio: text("bio"),
+  profileImage: text("profile_image"),
+  tezosWalletAddress: text("tezos_wallet_address"),
+  ethereumWalletAddress: text("ethereum_wallet_address"),
+  website: text("website"),
+  twitter: text("twitter"),
+  instagram: text("instagram"),
+  isEmailVerified: boolean("is_email_verified").notNull().default(false),
+  verificationToken: text("verification_token"),
+  resetPasswordToken: text("reset_password_token"),
+  resetPasswordExpires: timestamp("reset_password_expires"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
   isActive: boolean("is_active").notNull().default(true),
 });
 
