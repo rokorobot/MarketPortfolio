@@ -51,8 +51,12 @@ export interface IStorage {
   // Users
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByVerificationToken(token: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, userData: Partial<User>): Promise<User>;
   validateUser(username: string, password: string): Promise<User | null>;
+  resendVerificationEmail(userId: number): Promise<boolean>;
   
   // Share links
   createShareLink(shareLink: InsertShareLink): Promise<ShareLink>;
@@ -319,11 +323,59 @@ export class DatabaseStorage implements IStorage {
     const [user] = await db.select().from(users).where(eq(users.username, username));
     return user;
   }
+  
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
+  
+  async getUserByVerificationToken(token: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.verificationToken, token));
+    return user;
+  }
+  
+  async updateUser(id: number, userData: Partial<User>): Promise<User> {
+    // Clean up any unwanted properties that shouldn't be updated (like id)
+    const { id: _, ...dataToUpdate } = userData as any;
+    
+    // Update the user
+    const [updatedUser] = await db.update(users)
+      .set({
+        ...dataToUpdate,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, id))
+      .returning();
+    
+    return updatedUser;
+  }
+  
+  async resendVerificationEmail(userId: number): Promise<boolean> {
+    const user = await this.getUser(userId);
+    if (!user || user.isEmailVerified) {
+      return false;
+    }
+    
+    // Generate a new verification token
+    const verificationToken = randomBytes(32).toString('hex');
+    
+    // Update the user with the new token
+    await this.updateUser(userId, { verificationToken });
+    
+    // The actual email sending will be handled by the controller
+    return true;
+  }
 
   async createUser(userData: InsertUser): Promise<User> {
+    // If password is not already hashed, hash it
+    let passwordToStore = userData.password;
+    if (!passwordToStore.includes('.')) {
+      passwordToStore = await hashPassword(passwordToStore);
+    }
+    
     const [user] = await db.insert(users).values({
       ...userData,
-      password: await hashPassword(userData.password)
+      password: passwordToStore
     }).returning();
     return user;
   }
@@ -615,7 +667,10 @@ export class DatabaseStorage implements IStorage {
       await this.createUser({
         username: "creator",
         password: "creator123", // This will be hashed before storage
+        email: "admin@portfolio.com",
+        displayName: "Admin Creator",
         role: "admin",
+        isEmailVerified: true,
         isActive: true
       });
       console.log("Created default creator account (admin role)");
@@ -627,10 +682,13 @@ export class DatabaseStorage implements IStorage {
       await this.createUser({
         username: "visitor",
         password: "visitor123", // This will be hashed before storage
-        role: "guest",
+        email: "visitor@portfolio.com",
+        displayName: "Guest Visitor",
+        role: "visitor",
+        isEmailVerified: true,
         isActive: true
       });
-      console.log("Created default visitor account (guest role)");
+      console.log("Created default visitor account (visitor role)");
     }
   }
 }

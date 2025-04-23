@@ -200,9 +200,21 @@ export function registerRoutes(app: Express) {
         
         // Send email using the preferred service
         if (emailService === 'sendgrid') {
-          await sendGridEmail(emailParams);
+          await sendGridEmail({
+            to: emailParams.to,
+            from: emailParams.from,
+            subject: emailParams.subject,
+            text: emailParams.text,
+            html: emailParams.html
+          });
         } else {
-          await nodeMailerEmail(emailParams);
+          await nodeMailerEmail({
+            to: emailParams.to,
+            from: emailParams.from,
+            subject: emailParams.subject,
+            text: emailParams.text,
+            html: emailParams.html
+          });
         }
       } catch (emailError) {
         console.error("Failed to send verification email:", emailError);
