@@ -1,31 +1,30 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useLocation } from "wouter";
+import { useAuth } from "@/hooks/use-auth";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-import { Link, useLocation } from "wouter";
-import { useAuth } from "@/hooks/use-auth";
-import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 
-// Define the login form schema
+// Schema for login form
 const loginSchema = z.object({
-  username: z.string().min(1, "Username is required"),
-  password: z.string().min(1, "Password is required"),
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
-// Define the registration form schema
+// Schema for registration form
 const registerSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
-  email: z.string().email("Please enter a valid email"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  confirmPassword: z.string().min(8, "Please confirm your password"),
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  confirmPassword: z.string().min(6, "Password must be at least 6 characters"),
+  displayName: z.string().optional(),
   userType: z.enum(["creator_collector", "visitor"], {
     required_error: "Please select an account type",
   }),
@@ -38,11 +37,13 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export default function AuthPage() {
-  const [, navigate] = useLocation();
-  const { toast } = useToast();
+  const [location, navigate] = useLocation();
   const { user, loginMutation, registerMutation } = useAuth();
   const [activeTab, setActiveTab] = useState<string>("login");
-  const [resendEmailTo, setResendEmailTo] = useState<string | null>(null);
+  const [resendEmailVisible, setResendEmailVisible] = useState(false);
+  const [resendEmail, setResendEmail] = useState("");
+  const [isResending, setIsResending] = useState(false);
+  const [resendMessage, setResendMessage] = useState("");
 
   // Redirect to home if already logged in
   if (user) {
@@ -50,7 +51,7 @@ export default function AuthPage() {
     return null;
   }
 
-  // Login form
+  // Setup forms
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -59,7 +60,6 @@ export default function AuthPage() {
     },
   });
 
-  // Register form
   const registerForm = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -67,110 +67,56 @@ export default function AuthPage() {
       email: "",
       password: "",
       confirmPassword: "",
+      displayName: "",
       userType: "visitor",
     },
   });
 
-  // Handle login
   const onLogin = (values: LoginFormValues) => {
-    loginMutation.mutate(values, {
-      onSuccess: () => {
-        toast({
-          title: "Logged in successfully",
-          description: "Welcome back!",
-        });
-        navigate("/");
-      },
-      onError: (error: any) => {
-        if (error.response?.data?.needsVerification) {
-          setResendEmailTo(error.response.data.email);
-          toast({
-            title: "Email verification required",
-            description: "Please check your email to verify your account.",
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Login failed",
-            description: error.message || "Invalid username or password",
-            variant: "destructive",
-          });
-        }
-      },
-    });
+    loginMutation.mutate(values);
   };
 
-  // Handle registration
   const onRegister = (values: RegisterFormValues) => {
-    // Remove confirmPassword before sending to API
-    const { confirmPassword, ...dataToSend } = values;
-    
-    registerMutation.mutate(dataToSend, {
+    // Remove confirmPassword as it's not needed in the API call
+    const { confirmPassword, ...registerData } = values;
+    registerMutation.mutate(registerData, {
       onSuccess: () => {
-        toast({
-          title: "Registration successful",
-          description: "Please check your email to verify your account.",
-        });
+        // Show verification message and reset form
         setActiveTab("login");
-      },
-      onError: (error: any) => {
-        toast({
-          title: "Registration failed",
-          description: error.message || "Unable to create account",
-          variant: "destructive",
-        });
+        registerForm.reset();
       },
     });
   };
 
-  // Handle resend verification email
-  const resendVerificationEmail = async () => {
-    if (!resendEmailTo) return;
-    
+  const handleResendEmail = async () => {
+    if (!resendEmail) return;
+
+    setIsResending(true);
     try {
       const response = await fetch("/api/resend-verification", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email: resendEmailTo }),
+        body: JSON.stringify({ email: resendEmail }),
       });
-      
-      if (response.ok) {
-        toast({
-          title: "Verification email sent",
-          description: "Please check your inbox and spam folder.",
-        });
-      } else {
-        toast({
-          title: "Failed to resend verification email",
-          description: "Please try again later.",
-          variant: "destructive",
-        });
-      }
+
+      const data = await response.json();
+      setResendMessage(data.message);
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Unable to send verification email",
-        variant: "destructive",
-      });
+      setResendMessage("An error occurred. Please try again.");
+    } finally {
+      setIsResending(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen">
-      {/* Left side - Form */}
-      <div className="flex-1 flex items-center justify-center p-8">
-        <div className="w-full max-w-md space-y-8">
-          <div className="text-center">
-            <h1 className="text-3xl font-bold">Portfolio App</h1>
-            <p className="text-muted-foreground mt-2">
-              Showcase your creative work
-            </p>
-          </div>
-
+    <div className="container py-10 max-w-screen-xl mx-auto">
+      <div className="grid md:grid-cols-2 gap-8 items-center">
+        {/* Auth Forms */}
+        <div>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-2 mb-4">
               <TabsTrigger value="login">Login</TabsTrigger>
               <TabsTrigger value="register">Register</TabsTrigger>
             </TabsList>
@@ -178,7 +124,7 @@ export default function AuthPage() {
             <TabsContent value="login">
               <Card>
                 <CardHeader>
-                  <CardTitle>Login</CardTitle>
+                  <CardTitle>Login to your account</CardTitle>
                   <CardDescription>
                     Enter your credentials to access your account
                   </CardDescription>
@@ -193,7 +139,7 @@ export default function AuthPage() {
                           <FormItem>
                             <FormLabel>Username</FormLabel>
                             <FormControl>
-                              <Input placeholder="username" {...field} />
+                              <Input {...field} autoComplete="username" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -206,7 +152,7 @@ export default function AuthPage() {
                           <FormItem>
                             <FormLabel>Password</FormLabel>
                             <FormControl>
-                              <Input type="password" placeholder="********" {...field} />
+                              <Input type="password" {...field} autoComplete="current-password" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -214,7 +160,7 @@ export default function AuthPage() {
                       />
                       <Button 
                         type="submit" 
-                        className="w-full"
+                        className="w-full" 
                         disabled={loginMutation.isPending}
                       >
                         {loginMutation.isPending ? (
@@ -222,21 +168,52 @@ export default function AuthPage() {
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             Logging in...
                           </>
-                        ) : "Log In"}
+                        ) : (
+                          "Login"
+                        )}
                       </Button>
                     </form>
                   </Form>
                 </CardContent>
-                {resendEmailTo && (
-                  <CardFooter className="flex-col items-center">
-                    <p className="text-sm text-muted-foreground mb-2">
-                      Your email needs verification. Didn't receive the email?
-                    </p>
-                    <Button variant="outline" onClick={resendVerificationEmail}>
-                      Resend Verification Email
-                    </Button>
-                  </CardFooter>
-                )}
+                <CardFooter className="flex flex-col space-y-2">
+                  <Button 
+                    variant="link" 
+                    onClick={() => setResendEmailVisible(!resendEmailVisible)}
+                    className="px-0 text-sm"
+                  >
+                    Need to verify your email?
+                  </Button>
+                  
+                  {resendEmailVisible && (
+                    <div className="w-full space-y-2">
+                      <Input
+                        type="email"
+                        placeholder="Enter your email"
+                        value={resendEmail}
+                        onChange={(e) => setResendEmail(e.target.value)}
+                      />
+                      <Button 
+                        onClick={handleResendEmail}
+                        disabled={isResending || !resendEmail}
+                        className="w-full"
+                        variant="outline"
+                        size="sm"
+                      >
+                        {isResending ? (
+                          <>
+                            <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                            Sending...
+                          </>
+                        ) : (
+                          "Resend Verification Email"
+                        )}
+                      </Button>
+                      {resendMessage && (
+                        <p className="text-sm text-muted-foreground mt-2">{resendMessage}</p>
+                      )}
+                    </div>
+                  )}
+                </CardFooter>
               </Card>
             </TabsContent>
 
@@ -245,7 +222,7 @@ export default function AuthPage() {
                 <CardHeader>
                   <CardTitle>Create an account</CardTitle>
                   <CardDescription>
-                    Join our community and showcase your creative work
+                    Fill in your details to create a new account
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -258,7 +235,7 @@ export default function AuthPage() {
                           <FormItem>
                             <FormLabel>Username</FormLabel>
                             <FormControl>
-                              <Input placeholder="username" {...field} />
+                              <Input {...field} autoComplete="username" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -271,7 +248,20 @@ export default function AuthPage() {
                           <FormItem>
                             <FormLabel>Email</FormLabel>
                             <FormControl>
-                              <Input type="email" placeholder="email@example.com" {...field} />
+                              <Input type="email" {...field} autoComplete="email" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={registerForm.control}
+                        name="displayName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Display Name (Optional)</FormLabel>
+                            <FormControl>
+                              <Input {...field} autoComplete="name" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -284,7 +274,7 @@ export default function AuthPage() {
                           <FormItem>
                             <FormLabel>Password</FormLabel>
                             <FormControl>
-                              <Input type="password" placeholder="********" {...field} />
+                              <Input type="password" {...field} autoComplete="new-password" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -297,13 +287,12 @@ export default function AuthPage() {
                           <FormItem>
                             <FormLabel>Confirm Password</FormLabel>
                             <FormControl>
-                              <Input type="password" placeholder="********" {...field} />
+                              <Input type="password" {...field} autoComplete="new-password" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-                      
                       <FormField
                         control={registerForm.control}
                         name="userType"
@@ -314,41 +303,45 @@ export default function AuthPage() {
                               <RadioGroup
                                 onValueChange={field.onChange}
                                 defaultValue={field.value}
-                                className="flex flex-col space-y-1"
+                                className="grid grid-cols-1 gap-4"
                               >
-                                <div className="flex items-center space-x-2">
-                                  <RadioGroupItem value="creator_collector" id="creator_collector" />
-                                  <Label htmlFor="creator_collector" className="cursor-pointer">Creator/Collector</Label>
+                                <div className="flex items-center space-x-2 border rounded-md p-3">
+                                  <RadioGroupItem value="creator_collector" id="creator" />
+                                  <label htmlFor="creator" className="text-sm font-medium leading-none cursor-pointer flex-1">
+                                    <div className="font-medium">Creator/Collector</div>
+                                    <p className="text-sm text-muted-foreground">
+                                      For artists, collectors, and content creators
+                                    </p>
+                                  </label>
                                 </div>
-                                <p className="text-xs pl-6 text-muted-foreground">
-                                  For artists, creators, and collectors who want to share and showcase work
-                                </p>
-                                
-                                <div className="flex items-center space-x-2 mt-2">
+                                <div className="flex items-center space-x-2 border rounded-md p-3">
                                   <RadioGroupItem value="visitor" id="visitor" />
-                                  <Label htmlFor="visitor" className="cursor-pointer">Visitor</Label>
+                                  <label htmlFor="visitor" className="text-sm font-medium leading-none cursor-pointer flex-1">
+                                    <div className="font-medium">Visitor</div>
+                                    <p className="text-sm text-muted-foreground">
+                                      For browsing and viewing content only
+                                    </p>
+                                  </label>
                                 </div>
-                                <p className="text-xs pl-6 text-muted-foreground">
-                                  For those who want to browse and favorite items
-                                </p>
                               </RadioGroup>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-                      
                       <Button 
                         type="submit" 
-                        className="w-full"
+                        className="w-full" 
                         disabled={registerMutation.isPending}
                       >
                         {registerMutation.isPending ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Creating account...
+                            Creating Account...
                           </>
-                        ) : "Register"}
+                        ) : (
+                          "Register"
+                        )}
                       </Button>
                     </form>
                   </Form>
@@ -357,33 +350,100 @@ export default function AuthPage() {
             </TabsContent>
           </Tabs>
         </div>
-      </div>
 
-      {/* Right side - Hero section */}
-      <div className="hidden lg:flex flex-1 bg-primary items-center justify-center text-white">
-        <div className="max-w-lg p-12">
-          <h1 className="text-4xl font-bold mb-6">Showcase Your Creative Work</h1>
-          <p className="text-lg mb-8">
-            Connect with the creative community. Share your portfolio with the world and discover amazing work from other creators.
-          </p>
-          <ul className="space-y-4 mb-8">
-            <li className="flex items-center">
-              <div className="h-6 w-6 rounded-full bg-white text-primary flex items-center justify-center mr-3">✓</div>
-              Create your personalized portfolio
-            </li>
-            <li className="flex items-center">
-              <div className="h-6 w-6 rounded-full bg-white text-primary flex items-center justify-center mr-3">✓</div>
-              Link to your marketplace listings
-            </li>
-            <li className="flex items-center">
-              <div className="h-6 w-6 rounded-full bg-white text-primary flex items-center justify-center mr-3">✓</div>
-              Share custom links with collectors
-            </li>
-            <li className="flex items-center">
-              <div className="h-6 w-6 rounded-full bg-white text-primary flex items-center justify-center mr-3">✓</div>
-              Organize your work with categories and tags
-            </li>
-          </ul>
+        {/* Hero Section */}
+        <div className="hidden md:block">
+          <div className="bg-muted/20 border rounded-xl p-8 h-full">
+            <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+              Digital Portfolio Platform
+            </h2>
+            <p className="text-lg mb-6">
+              A professional platform to showcase your creative works and connect with collectors around the world.
+            </p>
+            
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <div className="bg-primary/10 p-2 rounded-full">
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="24" 
+                    height="24" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    className="text-primary"
+                  >
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="m9 12 2 2 4-4"/>
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-medium">Showcase your work</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Upload and organize your portfolio items with detailed information
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-3">
+                <div className="bg-primary/10 p-2 rounded-full">
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="24" 
+                    height="24" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    className="text-primary"
+                  >
+                    <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/>
+                    <path d="m2 12 5.25 5"/>
+                    <path d="M2 12h7"/>
+                    <path d="m12 7 3.25 3"/>
+                    <path d="M12 7v5"/>
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-medium">Connect with marketplaces</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Link directly to NFT and digital art marketplaces
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-3">
+                <div className="bg-primary/10 p-2 rounded-full">
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="24" 
+                    height="24" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    className="text-primary"
+                  >
+                    <rect width="20" height="14" x="2" y="5" rx="2"/>
+                    <line x1="2" x2="22" y1="10" y2="10"/>
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-medium">Secure creator profiles</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Verified accounts with wallet integration for creators and collectors
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

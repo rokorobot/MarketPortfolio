@@ -693,6 +693,22 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
+import { migrateDatabase } from "./migration";
+
 export const storage = new DatabaseStorage();
-// Initialize the database with sample data
-storage.initialize().catch(console.error);
+
+// Run migration first, then initialize the database with sample data
+async function setupDatabase() {
+  try {
+    // First run migration to ensure database schema is up to date
+    await migrateDatabase();
+    
+    // Then initialize with sample data
+    await storage.initialize();
+  } catch (error) {
+    console.error("Database setup failed:", error);
+  }
+}
+
+// Run the setup
+setupDatabase().catch(console.error);

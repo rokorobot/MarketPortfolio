@@ -7,8 +7,8 @@ import path from "path";
 import crypto from "crypto";
 import { generateTagsFromImage, generateTagsFromText } from "./openai-service";
 // Import both email services so we can choose between them
-import { sendContactFormEmail as sendGridEmail } from "./sendgrid-service";
-import { sendContactFormEmail as nodeMailerEmail } from "./nodemailer-service";
+import { sendEmail as sendGridEmail } from "./sendgrid-service";
+import { sendEmail as nodeMailerEmail } from "./nodemailer-service";
 import { extractObjktProfileImage } from "./objkt-service";
 import session from "express-session";
 import { z } from "zod";
@@ -200,21 +200,9 @@ export function registerRoutes(app: Express) {
         
         // Send email using the preferred service
         if (emailService === 'sendgrid') {
-          await sendGridEmail({
-            to: emailParams.to,
-            from: emailParams.from,
-            subject: emailParams.subject,
-            text: emailParams.text,
-            html: emailParams.html
-          });
+          await sendGridEmail(emailParams);
         } else {
-          await nodeMailerEmail({
-            to: emailParams.to,
-            from: emailParams.from,
-            subject: emailParams.subject,
-            text: emailParams.text,
-            html: emailParams.html
-          });
+          await nodeMailerEmail(emailParams);
         }
       } catch (emailError) {
         console.error("Failed to send verification email:", emailError);
@@ -297,6 +285,63 @@ export function registerRoutes(app: Express) {
     } catch (error) {
       console.error("Email verification error:", error);
       return res.status(500).json({ message: "Failed to verify email" });
+    }
+  });
+  
+  // Resend verification email endpoint
+  app.post("/api/resend-verification", async (req: Request, res: Response) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+      }
+      
+      const user = await storage.getUserByEmail(email);
+      
+      if (!user) {
+        // Don't reveal that the email doesn't exist
+        return res.status(200).json({ message: "If your email exists in our system, a verification link has been sent." });
+      }
+      
+      if (user.isEmailVerified) {
+        return res.status(400).json({ message: "Your email is already verified. Please log in." });
+      }
+      
+      // Generate a new verification token
+      const verificationToken = crypto.randomBytes(32).toString('hex');
+      
+      // Update the user with the new token
+      await storage.updateUser(user.id, { verificationToken });
+      
+      // Generate the verification link
+      const verificationLink = `${req.protocol}://${req.get('host')}/verify-email?token=${verificationToken}`;
+      
+      // Prepare email
+      const emailParams = {
+        to: user.email,
+        from: process.env.EMAIL_FROM || 'noreply@portfolioapp.com',
+        subject: 'Verify your email address',
+        text: `Please verify your email address by clicking on the following link: ${verificationLink}`,
+        html: `<p>Please verify your email address by clicking on the following link:</p><p><a href="${verificationLink}">${verificationLink}</a></p>`
+      };
+      
+      // Get email service preference from site settings
+      const emailServiceSetting = await storage.getSiteSettingByKey('email_service');
+      const emailService = emailServiceSetting?.value || 'nodemailer';
+      
+      // Send email using the preferred service
+      if (emailService === 'sendgrid') {
+        await sendGridEmail(emailParams);
+      } else {
+        await nodeMailerEmail(emailParams);
+      }
+      
+      // Return success without revealing too much information
+      return res.status(200).json({ message: "If your email exists in our system, a verification link has been sent." });
+    } catch (error) {
+      console.error("Error resending verification email:", error);
+      return res.status(500).json({ message: "An error occurred while processing your request." });
     }
   });
   

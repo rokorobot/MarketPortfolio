@@ -9,6 +9,7 @@ import AddCollection from "@/pages/add-collection";
 import ManageCategories from "@/pages/manage-categories";
 import NotFound from "@/pages/not-found";
 import LoginPage from "@/pages/login";
+import AuthPage from "@/pages/auth-page";
 import SharePage from "@/pages/share";
 import AboutPage from "@/pages/about";
 import ContactPage from "@/pages/contact";
@@ -30,6 +31,7 @@ function Router() {
       <Route path="/item/:id" component={Item} />
       <Route path="/share/:shareCode" component={SharePage} />
       <Route path="/login" component={LoginPage} />
+      <Route path="/auth" component={AuthPage} />
       <Route path="/about" component={AboutPage} />
       <Route path="/contact" component={ContactPage} />
       <Route path="/favorites">
