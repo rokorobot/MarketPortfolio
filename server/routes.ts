@@ -414,13 +414,18 @@ export function registerRoutes(app: Express) {
       // Parse page parameter
       const pageNum = parseInt(page as string) || 1;
       
+      // Get the user ID and role from the session if available
+      const userId = req.session?.userId;
+      const userRole = req.session?.userRole;
+      
       // If category is provided, use category-specific pagination
       if (category && typeof category === 'string') {
+        // TODO: Update the category pagination for user-specific items
         const result = await storage.getItemsByCategoryPaginated(category, pageNum, pageSizeNum);
         res.json(result);
       } else {
-        // Use general pagination
-        const result = await storage.getItemsPaginated(pageNum, pageSizeNum);
+        // Use general pagination with user filtering
+        const result = await storage.getItemsPaginated(pageNum, pageSizeNum, userId, userRole);
         res.json(result);
       }
     } catch (error) {
@@ -583,9 +588,16 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  app.post("/api/items", requireAuth, requireAdmin, async (req, res) => {
+  app.post("/api/items", requireAuth, async (req, res) => {
     try {
       const newItem = insertPortfolioItemSchema.parse(req.body);
+      
+      // Get user ID from session - this will associate the item with the current user
+      const userId = req.session.userId;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User authentication required" });
+      }
       
       // If an author URL is provided, check if it's from OBJKT.com and try to extract profile image
       if (newItem.authorUrl && newItem.authorUrl.includes('objkt.com')) {
@@ -603,7 +615,8 @@ export function registerRoutes(app: Express) {
         }
       }
       
-      const item = await storage.createItem(newItem);
+      // Create the item with the user ID
+      const item = await storage.createItem(newItem, userId);
       res.status(201).json(item);
     } catch (error) {
       console.error('Error creating item:', error);

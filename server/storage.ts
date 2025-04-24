@@ -36,14 +36,14 @@ interface PaginatedResult<T> {
 
 export interface IStorage {
   // Portfolio items
-  getItems(): Promise<PortfolioItem[]>;
-  getItemsPaginated(page: number, pageSize: number): Promise<PaginatedResult<PortfolioItem>>;
+  getItems(userId?: number, userRole?: string): Promise<PortfolioItem[]>;
+  getItemsPaginated(page: number, pageSize: number, userId?: number, userRole?: string): Promise<PaginatedResult<PortfolioItem>>;
   getItem(id: number): Promise<PortfolioItem | undefined>;
   getItemsByCategory(category: string): Promise<PortfolioItem[]>;
   getItemsByCategoryPaginated(category: string, page: number, pageSize: number): Promise<PaginatedResult<PortfolioItem>>;
   getUniqueAuthors(): Promise<{name: string, count: number, profileImage: string | null}[]>;
   getItemsByAuthor(authorName: string): Promise<PortfolioItem[]>;
-  createItem(item: InsertPortfolioItem): Promise<PortfolioItem>;
+  createItem(item: InsertPortfolioItem, userId?: number): Promise<PortfolioItem>;
   updateItem(id: number, item: Partial<PortfolioItem>): Promise<PortfolioItem>;
   deleteItem(id: number): Promise<boolean>;
   updateItemsOrder(items: {id: number, displayOrder: number}[]): Promise<boolean>;
@@ -90,13 +90,30 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
-  async getItems(): Promise<PortfolioItem[]> {
+  /**
+   * Get all items - if userId is provided, only returns items associated with that user
+   * Admin users can see all items
+   */
+  async getItems(userId?: number, userRole?: string): Promise<PortfolioItem[]> {
+    // If admin user or no user ID specified, return all items
+    if (userRole === 'admin' || !userId) {
+      return await db.select()
+        .from(portfolioItems)
+        .orderBy(portfolioItems.displayOrder);
+    }
+    
+    // Otherwise, return only items associated with this user
     return await db.select()
       .from(portfolioItems)
-      .orderBy(portfolioItems.displayOrder); // Order by display order
+      .where(eq(portfolioItems.userId, userId))
+      .orderBy(portfolioItems.displayOrder);
   }
   
-  async getItemsPaginated(page: number, pageSize: number): Promise<PaginatedResult<PortfolioItem>> {
+  /**
+   * Get items with pagination - if userId is provided, only returns items associated with that user
+   * Admin users can see all items
+   */
+  async getItemsPaginated(page: number, pageSize: number, userId?: number, userRole?: string): Promise<PaginatedResult<PortfolioItem>> {
     // Ensure valid page and pageSize
     const validPage = Math.max(1, page);
     const validPageSize = Math.max(1, Math.min(100, pageSize)); // Limit max page size to 100
@@ -105,17 +122,33 @@ export class DatabaseStorage implements IStorage {
     const offset = (validPage - 1) * validPageSize;
     
     // Get total count
-    const countResult = await db.select({ count: sql`count(*)` }).from(portfolioItems);
+    let countResult;
+    let items;
+    
+    // If admin user or no user ID specified, query all items
+    if (userRole === 'admin' || !userId) {
+      countResult = await db.select({ count: sql`count(*)` }).from(portfolioItems);
+      
+      items = await db.select()
+        .from(portfolioItems)
+        .limit(validPageSize)
+        .offset(offset)
+        .orderBy(portfolioItems.displayOrder);
+    } else {
+      // Otherwise, query only user's items
+      countResult = await db.select({ count: sql`count(*)` })
+        .from(portfolioItems)
+        .where(eq(portfolioItems.userId, userId));
+      
+      items = await db.select()
+        .from(portfolioItems)
+        .where(eq(portfolioItems.userId, userId))
+        .limit(validPageSize)
+        .offset(offset)
+        .orderBy(portfolioItems.displayOrder);
+    }
+    
     const total = Number(countResult[0].count);
-    
-    // Get items for current page
-    const items = await db.select()
-      .from(portfolioItems)
-      .limit(validPageSize)
-      .offset(offset)
-      .orderBy(portfolioItems.displayOrder); // Order by display order
-    
-    // Calculate total pages
     const totalPages = Math.ceil(total / validPageSize);
     
     return {
@@ -277,8 +310,11 @@ export class DatabaseStorage implements IStorage {
       .orderBy(portfolioItems.displayOrder); // Order by display order
   }
 
-  async createItem(item: InsertPortfolioItem): Promise<PortfolioItem> {
-    const [newItem] = await db.insert(portfolioItems).values(item).returning();
+  async createItem(item: InsertPortfolioItem, userId?: number): Promise<PortfolioItem> {
+    // Include the userId in the item data if provided
+    const itemData = userId ? { ...item, userId } : item;
+    
+    const [newItem] = await db.insert(portfolioItems).values(itemData).returning();
     return newItem;
   }
   
@@ -563,30 +599,14 @@ export class DatabaseStorage implements IStorage {
   
   async getUserFavorites(userId: number): Promise<PortfolioItem[]> {
     // Join favorites and portfolio items to get all favorited items
-    const items = await db.select({
-        id: portfolioItems.id,
-        title: portfolioItems.title,
-        description: portfolioItems.description,
-        author: portfolioItems.author,
-        authorUrl: portfolioItems.authorUrl,
-        authorProfileImage: portfolioItems.authorProfileImage,
-        imageUrl: portfolioItems.imageUrl,
-        category: portfolioItems.category,
-        tags: portfolioItems.tags,
-        marketplaceUrl1: portfolioItems.marketplaceUrl1,
-        marketplaceUrl2: portfolioItems.marketplaceUrl2,
-        marketplaceName1: portfolioItems.marketplaceName1,
-        marketplaceName2: portfolioItems.marketplaceName2,
-        displayOrder: portfolioItems.displayOrder,
-        createdAt: portfolioItems.createdAt,
-        updatedAt: portfolioItems.updatedAt
-      })
+    const items = await db.select()
       .from(portfolioItems)
       .innerJoin(favorites, eq(portfolioItems.id, favorites.itemId))
       .where(eq(favorites.userId, userId))
       .orderBy(portfolioItems.displayOrder);
     
-    return items;
+    // Map to PortfolioItem format
+    return items.map(item => item.portfolio_items);
   }
   
   async updateAuthorProfileImage(authorName: string, profileImage: string | null): Promise<boolean> {

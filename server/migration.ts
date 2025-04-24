@@ -17,6 +17,8 @@ async function migrateDatabase() {
       WHERE table_name = 'users' AND column_name = 'email'
     `);
     
+    let migrationPerformed = false;
+    
     // If email column doesn't exist, we need to add all new columns
     if (checkEmailColumn.rowCount === 0) {
       console.log('Adding new columns to users table...');
@@ -55,10 +57,47 @@ async function migrateDatabase() {
         ALTER COLUMN email SET NOT NULL
       `);
       
-      console.log('Migration completed successfully!');
+      migrationPerformed = true;
+      console.log('User table migration completed successfully!');
     } else {
-      console.log('Migration not needed - email column already exists');
+      console.log('User migration not needed - email column already exists');
     }
+    
+    // Check if user_id column exists in portfolio_items table
+    const checkUserIdColumn = await pool.query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'portfolio_items' AND column_name = 'user_id'
+    `);
+    
+    if (checkUserIdColumn.rowCount === 0) {
+      console.log('Adding user_id column to portfolio_items table...');
+      
+      await pool.query(`
+        ALTER TABLE portfolio_items
+        ADD COLUMN user_id INTEGER REFERENCES users(id) ON DELETE SET NULL
+      `);
+      
+      // Assign all existing items to the first admin user if available
+      await pool.query(`
+        UPDATE portfolio_items 
+        SET user_id = (SELECT id FROM users WHERE role = 'admin' ORDER BY id LIMIT 1)
+        WHERE user_id IS NULL
+      `);
+      
+      migrationPerformed = true;
+      console.log('Portfolio items table migration completed successfully!');
+    } else {
+      console.log('Items migration not needed - user_id column already exists');
+    }
+    
+    if (migrationPerformed) {
+      console.log('All migrations completed successfully!');
+    } else {
+      console.log('No migrations needed.');
+    }
+    
+    return migrationPerformed;
   } catch (error) {
     console.error('Error during migration:', error);
     throw error;
