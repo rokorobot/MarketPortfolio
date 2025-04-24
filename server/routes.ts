@@ -188,7 +188,7 @@ export function registerRoutes(app: Express) {
         const emailServiceSetting = await storage.getSiteSettingByKey('email_service');
         const emailService = emailServiceSetting?.value || 'nodemailer';
         
-        const verificationLink = `${req.protocol}://${req.get('host')}/verify-email?token=${verificationToken}`;
+        const verificationLink = `${req.protocol}://${req.get('host')}/auth?verify=${verificationToken}`;
         
         const emailParams = {
           to: userData.email,
@@ -315,7 +315,7 @@ export function registerRoutes(app: Express) {
       await storage.updateUser(user.id, { verificationToken });
       
       // Generate the verification link
-      const verificationLink = `${req.protocol}://${req.get('host')}/verify-email?token=${verificationToken}`;
+      const verificationLink = `${req.protocol}://${req.get('host')}/auth?verify=${verificationToken}`;
       
       // Prepare email
       const emailParams = {

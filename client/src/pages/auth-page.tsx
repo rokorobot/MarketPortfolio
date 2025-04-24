@@ -44,6 +44,44 @@ export default function AuthPage() {
   const [resendEmail, setResendEmail] = useState("");
   const [isResending, setIsResending] = useState(false);
   const [resendMessage, setResendMessage] = useState("");
+  const [verifying, setVerifying] = useState(false);
+  const [verificationMessage, setVerificationMessage] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  // Check for verification token in URL
+  useEffect(() => {
+    const queryParams = new URLSearchParams(window.location.search);
+    const verifyToken = queryParams.get('verify');
+    
+    if (verifyToken) {
+      setVerifying(true);
+      
+      // Clear the token from URL to prevent multiple verification attempts
+      window.history.replaceState({}, document.title, window.location.pathname);
+      
+      // Call the verification API
+      fetch(`/api/verify-email?token=${verifyToken}`)
+        .then(response => response.json())
+        .then(data => {
+          setVerifying(false);
+          setVerificationMessage(data.message);
+          toast({
+            title: "Email verification",
+            description: data.message,
+            variant: data.message.includes("successfully") ? "default" : "destructive"
+          });
+        })
+        .catch(error => {
+          setVerifying(false);
+          setVerificationMessage("An error occurred during verification. Please try again.");
+          toast({
+            title: "Verification error",
+            description: "An error occurred during verification. Please try again.",
+            variant: "destructive"
+          });
+        });
+    }
+  }, [toast]);
 
   // Redirect to home if already logged in
   if (user) {
