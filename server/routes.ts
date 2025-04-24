@@ -192,7 +192,7 @@ export function registerRoutes(app: Express) {
         
         const emailParams = {
           to: userData.email,
-          from: process.env.EMAIL_FROM || 'noreply@portfolioapp.com',
+          from: process.env.VERIFIED_EMAIL || 'noreply@portfolioapp.com',
           subject: 'Verify your email address',
           text: `Please verify your email address by clicking on the following link: ${verificationLink}`,
           html: `<p>Please verify your email address by clicking on the following link:</p><p><a href="${verificationLink}">${verificationLink}</a></p>`
@@ -333,7 +333,7 @@ export function registerRoutes(app: Express) {
       // Prepare email
       const emailParams = {
         to: user.email,
-        from: process.env.EMAIL_FROM || 'noreply@portfolioapp.com',
+        from: process.env.VERIFIED_EMAIL || 'noreply@portfolioapp.com',
         subject: 'Verify your email address',
         text: `Please verify your email address by clicking on the following link: ${verificationLink}`,
         html: `<p>Please verify your email address by clicking on the following link:</p><p><a href="${verificationLink}">${verificationLink}</a></p>`

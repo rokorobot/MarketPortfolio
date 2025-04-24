@@ -44,44 +44,72 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
   }
 
   try {
-    console.log(`Sending email via SendGrid to: ${params.to}`);
-    
-    // Validate sender address
-    // SendGrid requires the sender domain to be verified
-    // For testing, we can use a verified domain or sandbox mode
-    let senderAddress = params.from;
-    
-    // Check if sender appears to be from a domain you control
-    // If not, consider using a default address from a verified domain
-    if (!senderAddress.includes('@portfolioapp.com') && 
-        !senderAddress.includes('sendgrid.net')) {
-      console.warn(`Warning: Using sender address ${senderAddress} which may not be verified with SendGrid`);
-      // Uncomment this line if you want to override with a verified address
-      // senderAddress = 'noreply@portfolioapp.com';
+    // Check if SendGrid API key is configured
+    if (!process.env.SENDGRID_API_KEY) {
+      console.error('SendGrid API key is not configured. Email will not be sent.');
+      return false;
     }
     
-    const mailData: any = {
+    console.log(`Preparing to send email via SendGrid to: ${params.to}`);
+    
+    // Validate sender address - this is CRUCIAL for SendGrid to work
+    // SendGrid requires the sender email to be verified through their Single Sender Verification
+    
+    // Use the verified sender email address from environment variables
+    // This must be an email that you've manually verified in SendGrid dashboard
+    const verifiedEmail = process.env.VERIFIED_EMAIL;
+    
+    if (!verifiedEmail) {
+      console.error('No verified sender email found in VERIFIED_EMAIL environment variable.');
+      console.error('You must verify a sender email in SendGrid and set it as VERIFIED_EMAIL.');
+      return false;
+    }
+    
+    console.log(`Using verified sender address: ${verifiedEmail}`);
+    
+    // Create the email with the verified sender
+    const mailData = {
       to: params.to,
-      from: senderAddress,
-      subject: params.subject
+      from: verifiedEmail, // Always use the verified email address
+      subject: params.subject,
+      text: params.text || '',
+      html: params.html || '',
     };
     
-    if (params.text) mailData.text = params.text;
-    if (params.html) mailData.html = params.html;
-    if (params.replyTo) mailData.replyTo = params.replyTo;
+    if (params.replyTo) {
+      mailData.replyTo = params.replyTo;
+    }
     
-    // Optional: Enable sandbox mode for testing without sending actual emails
-    // mailService.setMailSettings({ sandbox_mode: { enable: true } });
-    
-    await mailService.send(mailData);
+    // Send the email
+    console.log('Sending email with SendGrid...');
+    const response = await mailService.send(mailData);
     console.log(`Email sent successfully to ${params.to}`);
     return true;
   } catch (err) {
     const error = err as any;
     console.error('SendGrid email error:', error);
+    
+    // Detailed error logging for debugging
     if (error.response) {
-      console.error('SendGrid API response error:', error.response.body);
+      console.error('SendGrid API response error details:');
+      console.error(`Status code: ${error.code}`);
+      
+      if (error.response.body && error.response.body.errors) {
+        error.response.body.errors.forEach((err: any, index: number) => {
+          console.error(`Error ${index + 1}:`, err);
+        });
+      }
+      
+      // Common error codes and their meaning
+      if (error.code === 403) {
+        console.error('403 FORBIDDEN: This typically means your sender is not verified. Verify the email in SendGrid dashboard.');
+      } else if (error.code === 401) {
+        console.error('401 UNAUTHORIZED: Check your API key and ensure it has Mail Send permissions.');
+      } else if (error.code === 429) {
+        console.error('429 TOO MANY REQUESTS: You are being rate limited.');
+      }
     }
+    
     return false;
   }
 }
