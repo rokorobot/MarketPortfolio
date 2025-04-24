@@ -283,9 +283,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button variant="outline" size="sm" onClick={() => navigate("/login")}>
-                Sign In
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => navigate("/auth")}>
+                  <UserCircle className="h-4 w-4 mr-2" />
+                  Sign Up / Login
+                </Button>
+              </div>
             )}
           </div>
         </nav>
