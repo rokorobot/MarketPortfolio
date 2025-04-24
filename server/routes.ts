@@ -211,7 +211,7 @@ export function registerRoutes(app: Express) {
           }
         } else {
           try {
-            const success = await nodeMailerEmail(emailParams);
+            const success = await nodemailerService.sendEmail(emailParams);
             console.log(`Nodemailer email result: ${success ? 'Success' : 'Failed'}`);
           } catch (nodemailerError) {
             console.error("Nodemailer email error:", nodemailerError);
@@ -345,9 +345,9 @@ export function registerRoutes(app: Express) {
       
       // Send email using the preferred service
       if (emailService === 'sendgrid') {
-        await sendGridEmail(emailParams);
+        await sendgridService.sendEmail(emailParams);
       } else {
-        await nodeMailerEmail(emailParams);
+        await nodemailerService.sendEmail(emailParams);
       }
       
       // Return success without revealing too much information

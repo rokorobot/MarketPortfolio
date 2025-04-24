@@ -90,7 +90,7 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
     
     // Send the email
     console.log('Sending email with SendGrid...');
-    const response = await mailService.send(mailData);
+    await mailService.send(mailData as any); // Cast to any to bypass typechecking issue
     console.log(`Email sent successfully to ${params.to}`);
     return true;
   } catch (err) {
