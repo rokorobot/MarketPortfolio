@@ -26,6 +26,17 @@ interface EmailParams {
   replyTo?: string | undefined;
 }
 
+// Interface matching SendGrid's MailDataRequired format
+interface SendGridMailData {
+  to: string;
+  from: string;
+  subject: string;
+  text?: string;
+  html?: string;
+  replyTo?: string;
+  [key: string]: any; // Allow additional properties
+}
+
 export async function sendEmail(params: EmailParams): Promise<boolean> {
   if (!hasSendGridKey) {
     console.error('SendGrid email error: No API key configured');
@@ -58,12 +69,9 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
     // DEBUGGING: Let's output the current VERIFIED_EMAIL value
     console.log('VERIFIED_EMAIL environment variable is:', process.env.VERIFIED_EMAIL);
     
-    // For reliability, let's switch to using a fallback Gmail address
-    // If your account is sender@gmail.com, use that (verified in SendGrid) instead of customer@nftfolio.app
-    
     // Use the verified sender email address from environment variables
     // This must be an email that you've manually verified in SendGrid dashboard
-    const verifiedEmail = 'you@gmail.com'; // REPLACE THIS with your verified email
+    const verifiedEmail = process.env.VERIFIED_EMAIL || 'customer@nftfolio.app';
     
     console.log(`Using verified sender address: ${verifiedEmail}`);
     
@@ -120,19 +128,13 @@ export async function sendContactFormEmail(
   message: string,
   to: string
 ): Promise<boolean> {
-  // Log the message details to the console for demo purposes
+  // Log the message details to the console for debugging purposes
   console.log("======= CONTACT FORM SUBMISSION =======");
   console.log(`From: ${name} (${email})`);
   console.log(`To: ${to}`);
   console.log(`Message: ${message}`);
   console.log("=======================================");
   
-  // Skip actual SendGrid API call in demo mode and return success
-  // This ensures the contact form works even without proper SendGrid setup
-  // In a production environment, you would want to remove this
-  return true;
-  
-  /* This code is disabled for demo purposes
   const subject = `New Contact Form Submission from ${name}`;
   const text = `
 Name: ${name}
@@ -154,15 +156,14 @@ ${message}
 </div>
   `;
   
-  // Use the admin email as both to and from address since it's already verified
-  // This is a common practice when the sender address isn't verified
+  // Always use the verified email as the sender
+  // The verified email is set in the environment variable VERIFIED_EMAIL or defaults to customer@nftfolio.app
   return await sendEmail({
     to,
-    from: to, // Use the admin's email as the from address since it's likely verified
+    from: process.env.VERIFIED_EMAIL || 'customer@nftfolio.app',
     subject,
     text,
     html,
     replyTo: email // Allow direct reply to the sender
   });
-  */
 }
