@@ -7,8 +7,8 @@ import path from "path";
 import crypto from "crypto";
 import { generateTagsFromImage, generateTagsFromText } from "./openai-service";
 // Import both email services so we can choose between them
-import { sendEmail as sendGridEmail } from "./sendgrid-service";
-import { sendEmail as nodeMailerEmail } from "./nodemailer-service";
+import * as sendgridService from "./sendgrid-service";
+import * as nodemailerService from "./nodemailer-service";
 import { extractObjktProfileImage } from "./objkt-service";
 import session from "express-session";
 import { z } from "zod";
@@ -204,7 +204,7 @@ export function registerRoutes(app: Express) {
         
         if (emailService === 'sendgrid') {
           try {
-            const success = await sendGridEmail(emailParams);
+            const success = await sendgridService.sendEmail(emailParams);
             console.log(`SendGrid email result: ${success ? 'Success' : 'Failed'}`);
           } catch (sendgridError) {
             console.error("SendGrid email error:", sendgridError);
@@ -1188,7 +1188,7 @@ export function registerRoutes(app: Express) {
       try {
         // Try to send email via Nodemailer (preferred method)
         console.log("Attempting to send email via Nodemailer...");
-        const result = await nodeMailerEmail(name, email, message, adminEmail);
+        const result = await nodemailerService.sendContactFormEmail(name, email, message, adminEmail);
         
         if (result) {
           res.status(200).json({ 
@@ -1198,7 +1198,7 @@ export function registerRoutes(app: Express) {
         } else {
           // Fallback to SendGrid if Nodemailer fails
           console.log("Nodemailer failed, trying SendGrid as fallback...");
-          const sendGridResult = await sendGridEmail(name, email, message, adminEmail);
+          const sendGridResult = await sendgridService.sendContactFormEmail(name, email, message, adminEmail);
           
           if (sendGridResult) {
             res.status(200).json({ 

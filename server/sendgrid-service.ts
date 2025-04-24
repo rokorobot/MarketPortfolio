@@ -76,7 +76,7 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
     console.log(`Using verified sender address: ${verifiedEmail}`);
     
     // Create the email with the verified sender
-    const mailData = {
+    const mailData: SendGridMailData = {
       to: params.to,
       from: verifiedEmail, // Always use the verified email address
       subject: params.subject,
