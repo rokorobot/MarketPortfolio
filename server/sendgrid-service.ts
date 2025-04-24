@@ -1,11 +1,21 @@
 import { MailService } from '@sendgrid/mail';
 
-if (!process.env.SENDGRID_API_KEY) {
-  throw new Error("SENDGRID_API_KEY environment variable must be set");
+// Check if SendGrid API key is available but don't throw an error
+// This allows the service to initialize but will log warnings if used without a key
+const hasSendGridKey = !!process.env.SENDGRID_API_KEY;
+if (!hasSendGridKey) {
+  console.warn("WARNING: SENDGRID_API_KEY environment variable is not set. Email sending will fail.");
 }
 
 const mailService = new MailService();
-mailService.setApiKey(process.env.SENDGRID_API_KEY);
+if (hasSendGridKey && process.env.SENDGRID_API_KEY) {
+  try {
+    mailService.setApiKey(process.env.SENDGRID_API_KEY as string);
+    console.log("SendGrid API key configured successfully");
+  } catch (err: any) {
+    console.error("Error configuring SendGrid API key:", err);
+  }
+}
 
 interface EmailParams {
   to: string;
@@ -17,10 +27,42 @@ interface EmailParams {
 }
 
 export async function sendEmail(params: EmailParams): Promise<boolean> {
+  if (!hasSendGridKey) {
+    console.error('SendGrid email error: No API key configured');
+    // Fall back to console logging the email for development/debugging
+    console.log('========== EMAIL WOULD BE SENT ==========');
+    console.log('To:', params.to);
+    console.log('From:', params.from);
+    console.log('Subject:', params.subject);
+    console.log('Text:', params.text || '(no text content)');
+    console.log('HTML:', params.html || '(no HTML content)');
+    console.log('Reply-To:', params.replyTo || '(no reply-to address)');
+    console.log('=======================================');
+    
+    // Return false to indicate failure, or consider returning true for testing
+    return false;
+  }
+
   try {
+    console.log(`Sending email via SendGrid to: ${params.to}`);
+    
+    // Validate sender address
+    // SendGrid requires the sender domain to be verified
+    // For testing, we can use a verified domain or sandbox mode
+    let senderAddress = params.from;
+    
+    // Check if sender appears to be from a domain you control
+    // If not, consider using a default address from a verified domain
+    if (!senderAddress.includes('@portfolioapp.com') && 
+        !senderAddress.includes('sendgrid.net')) {
+      console.warn(`Warning: Using sender address ${senderAddress} which may not be verified with SendGrid`);
+      // Uncomment this line if you want to override with a verified address
+      // senderAddress = 'noreply@portfolioapp.com';
+    }
+    
     const mailData: any = {
       to: params.to,
-      from: params.from,
+      from: senderAddress,
       subject: params.subject
     };
     
@@ -28,10 +70,18 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
     if (params.html) mailData.html = params.html;
     if (params.replyTo) mailData.replyTo = params.replyTo;
     
+    // Optional: Enable sandbox mode for testing without sending actual emails
+    // mailService.setMailSettings({ sandbox_mode: { enable: true } });
+    
     await mailService.send(mailData);
+    console.log(`Email sent successfully to ${params.to}`);
     return true;
-  } catch (error) {
+  } catch (err) {
+    const error = err as any;
     console.error('SendGrid email error:', error);
+    if (error.response) {
+      console.error('SendGrid API response error:', error.response.body);
+    }
     return false;
   }
 }
