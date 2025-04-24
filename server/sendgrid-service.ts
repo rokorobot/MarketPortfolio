@@ -55,15 +55,15 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
     // Validate sender address - this is CRUCIAL for SendGrid to work
     // SendGrid requires the sender email to be verified through their Single Sender Verification
     
+    // DEBUGGING: Let's output the current VERIFIED_EMAIL value
+    console.log('VERIFIED_EMAIL environment variable is:', process.env.VERIFIED_EMAIL);
+    
+    // For reliability, let's switch to using a fallback Gmail address
+    // If your account is sender@gmail.com, use that (verified in SendGrid) instead of customer@nftfolio.app
+    
     // Use the verified sender email address from environment variables
     // This must be an email that you've manually verified in SendGrid dashboard
-    const verifiedEmail = process.env.VERIFIED_EMAIL;
-    
-    if (!verifiedEmail) {
-      console.error('No verified sender email found in VERIFIED_EMAIL environment variable.');
-      console.error('You must verify a sender email in SendGrid and set it as VERIFIED_EMAIL.');
-      return false;
-    }
+    const verifiedEmail = 'you@gmail.com'; // REPLACE THIS with your verified email
     
     console.log(`Using verified sender address: ${verifiedEmail}`);
     
