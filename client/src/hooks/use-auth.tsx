@@ -141,5 +141,18 @@ export function useAuth() {
   if (!context) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
-  return context;
+  
+  // Add convenience methods and derived properties
+  return {
+    ...context,
+    isAdmin: context.user?.role === 'admin',
+    logout: async () => {
+      try {
+        await context.logoutMutation.mutateAsync();
+        window.location.href = '/'; // Force navigation to home page after logout
+      } catch (error) {
+        console.error('Logout error:', error);
+      }
+    }
+  };
 }
