@@ -199,10 +199,23 @@ export function registerRoutes(app: Express) {
         };
         
         // Send email using the preferred service
+        console.log(`Using email service: ${emailService}`);
+        console.log(`Sending verification email to: ${userData.email}`);
+        
         if (emailService === 'sendgrid') {
-          await sendGridEmail(emailParams);
+          try {
+            const success = await sendGridEmail(emailParams);
+            console.log(`SendGrid email result: ${success ? 'Success' : 'Failed'}`);
+          } catch (sendgridError) {
+            console.error("SendGrid email error:", sendgridError);
+          }
         } else {
-          await nodeMailerEmail(emailParams);
+          try {
+            const success = await nodeMailerEmail(emailParams);
+            console.log(`Nodemailer email result: ${success ? 'Success' : 'Failed'}`);
+          } catch (nodemailerError) {
+            console.error("Nodemailer email error:", nodemailerError);
+          }
         }
       } catch (emailError) {
         console.error("Failed to send verification email:", emailError);
