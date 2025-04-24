@@ -19,6 +19,8 @@ export const portfolioItems = pgTable("portfolio_items", {
   displayOrder: integer("display_order").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+  // Add user ID to track who added this item
+  userId: integer("user_id").references(() => users.id, { onDelete: 'set null' }),
 });
 
 export const insertPortfolioItemSchema = createInsertSchema(portfolioItems).omit({
