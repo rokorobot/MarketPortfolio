@@ -36,27 +36,24 @@ interface PaginatedResult<T> {
 
 export interface IStorage {
   // Portfolio items
-  getItems(userId?: number, userRole?: string): Promise<PortfolioItem[]>;
-  getItemsPaginated(page: number, pageSize: number, userId?: number, userRole?: string): Promise<PaginatedResult<PortfolioItem>>;
+  getItems(userId?: string, userRole?: string): Promise<PortfolioItem[]>;
+  getItemsPaginated(page: number, pageSize: number, userId?: string, userRole?: string): Promise<PaginatedResult<PortfolioItem>>;
   getItem(id: number): Promise<PortfolioItem | undefined>;
   getItemsByCategory(category: string): Promise<PortfolioItem[]>;
   getItemsByCategoryPaginated(category: string, page: number, pageSize: number): Promise<PaginatedResult<PortfolioItem>>;
   getUniqueAuthors(): Promise<{name: string, count: number, profileImage: string | null}[]>;
   getItemsByAuthor(authorName: string): Promise<PortfolioItem[]>;
-  createItem(item: InsertPortfolioItem, userId?: number): Promise<PortfolioItem>;
+  createItem(item: InsertPortfolioItem, userId?: string): Promise<PortfolioItem>;
   updateItem(id: number, item: Partial<PortfolioItem>): Promise<PortfolioItem>;
   deleteItem(id: number): Promise<boolean>;
   updateItemsOrder(items: {id: number, displayOrder: number}[]): Promise<boolean>;
   
   // Users
-  getUser(id: number): Promise<User | undefined>;
+  getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
-  getUserByVerificationToken(token: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
-  updateUser(id: number, userData: Partial<User>): Promise<User>;
-  validateUser(username: string, password: string): Promise<User | null>;
-  resendVerificationEmail(userId: number): Promise<boolean>;
+  upsertUser(userData: Partial<User>): Promise<User>;
+  updateUser(id: string, userData: Partial<User>): Promise<User>;
   
   // Share links
   createShareLink(shareLink: InsertShareLink): Promise<ShareLink>;
@@ -81,9 +78,9 @@ export interface IStorage {
   deleteSiteSetting(id: number): Promise<boolean>;
   
   // Favorites
-  toggleFavorite(userId: number, itemId: number): Promise<boolean>;
-  isFavorited(userId: number, itemId: number): Promise<boolean>;
-  getUserFavorites(userId: number): Promise<PortfolioItem[]>;
+  toggleFavorite(userId: string, itemId: number): Promise<boolean>;
+  isFavorited(userId: string, itemId: number): Promise<boolean>;
+  getUserFavorites(userId: string): Promise<PortfolioItem[]>;
   
   // Author profile management
   updateAuthorProfileImage(authorName: string, profileImage: string | null): Promise<boolean>;
@@ -94,7 +91,7 @@ export class DatabaseStorage implements IStorage {
    * Get all items - if userId is provided, only returns items associated with that user
    * Admin users can see all items
    */
-  async getItems(userId?: number, userRole?: string): Promise<PortfolioItem[]> {
+  async getItems(userId?: string, userRole?: string): Promise<PortfolioItem[]> {
     // If admin user or no user ID specified, return all items
     if (userRole === 'admin' || !userId) {
       return await db.select()
@@ -113,7 +110,7 @@ export class DatabaseStorage implements IStorage {
    * Get items with pagination - if userId is provided, only returns items associated with that user
    * Admin users can see all items
    */
-  async getItemsPaginated(page: number, pageSize: number, userId?: number, userRole?: string): Promise<PaginatedResult<PortfolioItem>> {
+  async getItemsPaginated(page: number, pageSize: number, userId?: string, userRole?: string): Promise<PaginatedResult<PortfolioItem>> {
     // Ensure valid page and pageSize
     const validPage = Math.max(1, page);
     const validPageSize = Math.max(1, Math.min(100, pageSize)); // Limit max page size to 100
@@ -310,7 +307,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(portfolioItems.displayOrder); // Order by display order
   }
 
-  async createItem(item: InsertPortfolioItem, userId?: number): Promise<PortfolioItem> {
+  async createItem(item: InsertPortfolioItem, userId?: string): Promise<PortfolioItem> {
     // Include the userId in the item data if provided
     const itemData = userId ? { ...item, userId } : item;
     
@@ -345,9 +342,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   // User methods
-  async getUser(id: number): Promise<User | undefined> {
-    // Ensure id is a valid number
-    if (isNaN(id) || id <= 0) {
+  async getUser(id: string): Promise<User | undefined> {
+    if (!id) {
       return undefined;
     }
     
@@ -356,21 +352,52 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
+    if (!username) return undefined;
     const [user] = await db.select().from(users).where(eq(users.username, username));
     return user;
   }
   
   async getUserByEmail(email: string): Promise<User | undefined> {
+    if (!email) return undefined;
     const [user] = await db.select().from(users).where(eq(users.email, email));
     return user;
   }
   
-  async getUserByVerificationToken(token: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.verificationToken, token));
-    return user;
+  async upsertUser(userData: Partial<User>): Promise<User> {
+    const { id, username, ...otherData } = userData;
+    
+    if (!id || !username) {
+      throw new Error("User ID and username are required for upsert");
+    }
+    
+    // Check if user exists
+    const existingUser = await this.getUser(id);
+    
+    if (existingUser) {
+      // Update existing user
+      const [updatedUser] = await db.update(users)
+        .set({
+          ...otherData,
+          updatedAt: new Date()
+        })
+        .where(eq(users.id, id))
+        .returning();
+      return updatedUser;
+    } else {
+      // Create new user
+      const [newUser] = await db.insert(users)
+        .values({
+          id,
+          username,
+          ...otherData,
+          role: 'visitor', // Default role for new users
+        })
+        .returning();
+      return newUser;
+    }
   }
   
-  async updateUser(id: number, userData: Partial<User>): Promise<User> {
+  async updateUser(id: string, userData: Partial<User>): Promise<User> {
     // Clean up any unwanted properties that shouldn't be updated (like id)
     const { id: _, ...dataToUpdate } = userData as any;
     
@@ -558,7 +585,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Favorites methods
-  async toggleFavorite(userId: number, itemId: number): Promise<boolean> {
+  async toggleFavorite(userId: string, itemId: number): Promise<boolean> {
     try {
       // Check if already favorited
       const isFavorite = await this.isFavorited(userId, itemId);
@@ -586,7 +613,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
-  async isFavorited(userId: number, itemId: number): Promise<boolean> {
+  async isFavorited(userId: string, itemId: number): Promise<boolean> {
     const [favorite] = await db.select()
       .from(favorites)
       .where(and(
@@ -597,7 +624,7 @@ export class DatabaseStorage implements IStorage {
     return !!favorite;
   }
   
-  async getUserFavorites(userId: number): Promise<PortfolioItem[]> {
+  async getUserFavorites(userId: string): Promise<PortfolioItem[]> {
     // Join favorites and portfolio items to get all favorited items
     const items = await db.select()
       .from(portfolioItems)

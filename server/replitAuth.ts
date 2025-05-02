@@ -80,10 +80,21 @@ export async function setupAuth(app: Express) {
     tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
     verified: passport.AuthenticateCallback
   ) => {
-    const user = {};
-    updateUserSession(user, tokens);
-    await upsertUser(tokens.claims());
-    verified(null, user);
+    try {
+      // Create initial session user object
+      const user: any = {};
+      updateUserSession(user, tokens);
+      
+      // Store user in database and get the DB user
+      const claims = tokens.claims();
+      await upsertUser(claims);
+      
+      // The session will contain both the token info and user profile
+      verified(null, user);
+    } catch (error) {
+      console.error("Auth verification error:", error);
+      verified(error as Error);
+    }
   };
 
   for (const domain of process.env

@@ -1,5 +1,5 @@
 import type { Express, Request, Response, NextFunction } from "express";
-import { createServer } from "http";
+import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { PORTFOLIO_CATEGORIES, insertPortfolioItemSchema, insertUserSchema, insertShareLinkSchema, insertCategorySchema } from "@shared/schema";
 import { UploadedFile, FileArray } from "express-fileupload";
@@ -10,8 +10,8 @@ import { generateTagsFromImage, generateTagsFromText } from "./openai-service";
 import * as sendgridService from "./sendgrid-service";
 import * as nodemailerService from "./nodemailer-service";
 import { extractObjktProfileImage } from "./objkt-service";
-import session from "express-session";
 import { z } from "zod";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 
 // Extend express-session with our custom properties
 declare module 'express-session' {
@@ -31,9 +31,19 @@ interface FileRequest extends Request {
 declare global {
   namespace Express {
     interface User {
-      id: number;
-      username: string;
-      role: string;
+      claims: {
+        sub: string;
+        username: string;
+        email?: string;
+        first_name?: string;
+        last_name?: string;
+        bio?: string;
+        profile_image_url?: string;
+        exp: number;
+      };
+      access_token: string;
+      refresh_token: string;
+      expires_at: number;
     }
   }
 }
@@ -54,20 +64,27 @@ function requireAdmin(req: Request, res: Response, next: NextFunction) {
   return res.status(403).json({ message: "Admin access required" });
 }
 
-export function registerRoutes(app: Express) {
-  // Set up session
-  app.use(session({
-    secret: process.env.SESSION_SECRET || 'portfolio-secret-key',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 1000 * 60 * 60 * 24 // 1 day
-    }
-  }));
+export async function registerRoutes(app: Express): Promise<Server> {
+  // Create the HTTP server first
+  const httpServer = createServer(app);
+  
+  // Set up Replit Auth (this must happen before all other routes)
+  await setupAuth(app);
   
   // Authentication routes
-  // Authentication routes - need to support both /api/auth/* and /api/* endpoints
+  // Add Replit Auth user endpoint
+  app.get("/api/auth/user", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+  
+  // Legacy authentication routes - need to support both /api/auth/* and /api/* endpoints
   
   // Login endpoint
   const loginHandler = async (req: Request, res: Response) => {
@@ -1425,5 +1442,5 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  return createServer(app);
+  return httpServer;
 }
