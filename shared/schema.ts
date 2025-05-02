@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, primaryKey, varchar, jsonb, index } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, primaryKey } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -20,7 +20,7 @@ export const portfolioItems = pgTable("portfolio_items", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
   // Add user ID to track who added this item
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'set null' }),
+  userId: integer("user_id").references(() => users.id, { onDelete: 'set null' }),
 });
 
 export const insertPortfolioItemSchema = createInsertSchema(portfolioItems).omit({
@@ -49,23 +49,25 @@ export const USER_TYPES = ["creator_collector", "visitor"] as const;
 export const userTypeSchema = z.enum(USER_TYPES);
 export type UserType = z.infer<typeof userTypeSchema>;
 
-// User storage table.
-// (IMPORTANT) This table is mandatory for Replit Auth, don't drop it.
+// User table
 export const users = pgTable("users", {
-  id: varchar("id").primaryKey().notNull(),
-  username: varchar("username").unique().notNull(),
-  email: varchar("email").unique(),
-  firstName: varchar("first_name"),
-  lastName: varchar("last_name"),
-  bio: text("bio"),
-  profileImageUrl: varchar("profile_image_url"),
+  id: serial("id").primaryKey(),
+  username: text("username").notNull().unique(),
+  password: text("password").notNull(),
   role: text("role").notNull().default("visitor"),
+  email: text("email").notNull().unique(),
   displayName: text("display_name"),
+  bio: text("bio"),
+  profileImage: text("profile_image"),
   tezosWalletAddress: text("tezos_wallet_address"),
   ethereumWalletAddress: text("ethereum_wallet_address"),
   website: text("website"),
   twitter: text("twitter"),
   instagram: text("instagram"),
+  isEmailVerified: boolean("is_email_verified").notNull().default(false),
+  verificationToken: text("verification_token"),
+  resetPasswordToken: text("reset_password_token"),
+  resetPasswordExpires: timestamp("reset_password_expires"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
   isActive: boolean("is_active").notNull().default(true),
@@ -111,7 +113,7 @@ export const categories = pgTable("categories", {
   description: text("description"),
   imageUrl: text("image_url"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
-  createdById: varchar("created_by_id").notNull(),
+  createdById: integer("created_by_id").notNull(),
 });
 
 export const insertCategorySchema = createInsertSchema(categories).omit({
@@ -144,7 +146,7 @@ export type SiteSetting = typeof siteSettings.$inferSelect;
 
 // Favorites table - junction table between users and portfolio items
 export const favorites = pgTable("favorites", {
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   itemId: integer("item_id").notNull().references(() => portfolioItems.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 }, (table) => {
@@ -159,15 +161,3 @@ export const insertFavoriteSchema = createInsertSchema(favorites).omit({
 
 export type InsertFavorite = z.infer<typeof insertFavoriteSchema>;
 export type Favorite = typeof favorites.$inferSelect;
-
-// Session storage table for Replit Auth
-// (IMPORTANT) This table is mandatory for Replit Auth, don't drop it.
-export const sessions = pgTable(
-  "sessions",
-  {
-    sid: varchar("sid").primaryKey(),
-    sess: jsonb("sess").notNull(),
-    expire: timestamp("expire").notNull(),
-  },
-  (table) => [index("IDX_session_expire").on(table.expire)],
-);

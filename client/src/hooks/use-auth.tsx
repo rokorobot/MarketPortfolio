@@ -8,12 +8,12 @@ import { getQueryFn, apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 type UserProfile = {
-  id: string;
+  id: number;
   username: string;
-  email: string | null;
+  email: string;
   role: string;
-  displayName?: string | null;
-  profileImageUrl?: string | null;
+  displayName?: string;
+  profileImage?: string | null;
   bio?: string | null;
   website?: string | null;
   twitter?: string | null;
@@ -26,7 +26,22 @@ type AuthContextType = {
   user: UserProfile | null;
   isLoading: boolean;
   error: Error | null;
+  loginMutation: UseMutationResult<UserProfile, Error, LoginData>;
   logoutMutation: UseMutationResult<void, Error, void>;
+  registerMutation: UseMutationResult<UserProfile, Error, RegisterData>;
+};
+
+type LoginData = {
+  username: string;
+  password: string;
+};
+
+type RegisterData = {
+  username: string;
+  email: string;
+  password: string;
+  userType: "creator_collector" | "visitor";
+  displayName?: string;
 };
 
 export const AuthContext = createContext<AuthContextType | null>(null);
@@ -39,18 +54,62 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     error,
     isLoading,
   } = useQuery<UserProfile | undefined, Error>({
-    queryKey: ["/api/auth/user"],
+    queryKey: ["/api/user"],
     queryFn: getQueryFn({ on401: "returnNull" }),
+  });
+
+  const loginMutation = useMutation({
+    mutationFn: async (credentials: LoginData) => {
+      const res = await apiRequest("POST", "/api/login", credentials);
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Login failed");
+      }
+      return await res.json();
+    },
+    onSuccess: (user: UserProfile) => {
+      queryClient.setQueryData(["/api/user"], user);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Login failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const registerMutation = useMutation({
+    mutationFn: async (credentials: RegisterData) => {
+      const res = await apiRequest("POST", "/api/register", credentials);
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Registration failed");
+      }
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Registration successful",
+        description: "Please check your email to verify your account.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Registration failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
   });
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      // Redirect to Replit Auth logout
-      window.location.href = "/api/logout";
+      await apiRequest("POST", "/api/logout");
     },
     onSuccess: () => {
-      queryClient.setQueryData(["/api/auth/user"], null);
-      queryClient.invalidateQueries({queryKey: ["/api/auth/user"]});
+      queryClient.setQueryData(["/api/user"], null);
+      queryClient.invalidateQueries({queryKey: ["/api/user"]});
     },
     onError: (error: Error) => {
       toast({
@@ -67,7 +126,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user: user ?? null,
         isLoading,
         error,
+        loginMutation,
         logoutMutation,
+        registerMutation,
       }}
     >
       {children}
@@ -84,15 +145,14 @@ export function useAuth() {
   // Add convenience methods and derived properties
   return {
     ...context,
-    isAuthenticated: !!context.user,
     isAdmin: context.user?.role === 'admin',
-    login: () => {
-      // Redirect to Replit Auth login
-      window.location.href = "/api/login";
-    },
-    logout: () => {
-      // Redirect to Replit Auth logout
-      window.location.href = "/api/logout";
+    logout: async () => {
+      try {
+        await context.logoutMutation.mutateAsync();
+        window.location.href = '/'; // Force navigation to home page after logout
+      } catch (error) {
+        console.error('Logout error:', error);
+      }
     }
   };
 }
