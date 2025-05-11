@@ -975,9 +975,11 @@ export function registerRoutes(app: Express) {
     }
   });
   // Update the display order of multiple items
-  app.post("/api/items/update-order", requireAuth, requireAdmin, async (req, res) => {
+  app.post("/api/items/update-order", requireAuth, async (req, res) => {
     try {
       const { items } = req.body;
+      const userId = req.session.userId!;
+      const userRole = req.session.userRole!;
       
       if (!Array.isArray(items)) {
         return res.status(400).json({ message: "Items must be an array" });
@@ -993,7 +995,34 @@ export function registerRoutes(app: Express) {
         }
       }
       
-      const success = await storage.updateItemsOrder(items);
+      // Check the request source (using referrer or similar)
+      const referer = req.headers.referer || '';
+      const isFavoritesRequest = referer.includes('/favorites');
+      
+      let success = false;
+      
+      // If the request is coming from favorites page, verify and use special logic
+      if (isFavoritesRequest) {
+        // For each item, verify it's in the user's favorites before updating
+        const itemIdsToUpdate = [];
+        for (const item of items) {
+          const isFavorited = await storage.isFavorited(userId, item.id);
+          if (isFavorited) {
+            itemIdsToUpdate.push(item);
+          }
+        }
+        
+        if (itemIdsToUpdate.length > 0) {
+          success = await storage.updateItemsOrder(itemIdsToUpdate);
+        }
+      } else {
+        // For non-favorites, only admins can reorder items
+        if (userRole === 'admin') {
+          success = await storage.updateItemsOrder(items);
+        } else {
+          return res.status(403).json({ message: "Only admins can reorder the main portfolio items" });
+        }
+      }
       
       if (success) {
         res.json({ success, message: "Items order updated successfully" });

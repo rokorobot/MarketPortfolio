@@ -120,7 +120,7 @@ export default function Favorites() {
           // Use draggable grid for normal display
           <DraggableGrid 
             items={filteredItems} 
-            queryKey={["/api/favorites/update-order"]}
+            queryKey={["/api/favorites"]} 
             canEdit={true}
             showShowcaseButton={true}
           />

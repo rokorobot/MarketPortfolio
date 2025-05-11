@@ -688,6 +688,10 @@ export class DatabaseStorage implements IStorage {
   
   /**
    * Update the display order of portfolio items that are in a user's favorites
+   * 
+   * Note: This is currently unused as we're using the regular updateItemsOrder method
+   * for both regular items and favorites
+   * 
    * @param userId - The ID of the user whose favorites are being reordered
    * @param items - Array of item IDs and their new display order values
    * @returns Promise with boolean success status
