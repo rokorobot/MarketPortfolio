@@ -88,6 +88,7 @@ export interface IStorage {
   
   // Author profile management
   updateAuthorProfileImage(authorName: string, profileImage: string | null): Promise<boolean>;
+  updateAuthorName(oldName: string, newName: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
