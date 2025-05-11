@@ -6,7 +6,7 @@ import { Layout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { type PortfolioItem, type CategoryModel } from "@shared/schema";
 import { useAuth } from "@/hooks/use-auth";
-import { DndGrid } from "@/components/dnd-grid";
+import { DraggableGrid } from "@/components/dnd-grid";
 import { useToast } from "@/hooks/use-toast";
 
 export default function ManageItems() {
@@ -99,10 +99,10 @@ export default function ManageItems() {
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
         </div>
       ) : items && items.length > 0 ? (
-        <DndGrid 
+        <DraggableGrid 
           items={items} 
           queryKey={["/api/items/category", categorySlug]}
-          showEditControls={true}
+          canEdit={true}
           showShowcaseButton={false}
         />
       ) : (
