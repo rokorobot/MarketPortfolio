@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { portfolioItems, InsertPortfolioItem } from '@shared/schema';
+import { portfolioItems, InsertPortfolioItem, InsertCategory } from '@shared/schema';
 import { storage } from './storage';
 
 export interface TezosNFT {
@@ -21,11 +21,6 @@ export interface TezosNFT {
   marketplaceUrl?: string;
 }
 
-/**
- * Fetch NFTs owned by a Tezos wallet address
- * @param walletAddress - The Tezos wallet address
- * @returns Promise with an array of NFTs owned by the wallet
- */
 /**
  * Process IPFS URL to get a usable HTTP URL
  * @param ipfsUrl - IPFS URL to process
@@ -61,7 +56,8 @@ function extractCreatorInfo(metadata: any): {
   if (Array.isArray(metadata?.creators) && metadata.creators.length > 0) {
     if (typeof metadata.creators[0] === 'object') {
       creatorName = metadata.creators[0].name || metadata.creators[0].alias || '';
-      creatorImage = processIpfsUrl(metadata.creators[0].profile_image || metadata.creators[0].profileImage || '');
+      const imageUrl = processIpfsUrl(metadata.creators[0].profile_image || metadata.creators[0].profileImage || '');
+      creatorImage = imageUrl || '';
     }
   }
   
@@ -114,12 +110,13 @@ function extractCollectionInfo(token: any): {
     
     // Common collection image fields
     const collectionImageUrl = metadata?.collection_image || 
-                              metadata?.collectionImage ||
-                              metadata?.collection?.image ||
-                              metadata?.collection?.thumbnail ||
-                              '';
+                             metadata?.collectionImage ||
+                             metadata?.collection?.image ||
+                             metadata?.collection?.thumbnail ||
+                             '';
     
-    collectionImage = processIpfsUrl(collectionImageUrl);
+    const imageUrl = processIpfsUrl(collectionImageUrl);
+    collectionImage = imageUrl || '';
     
     // If we have a name, use it as the collection identifier
     if (collectionName) {
@@ -147,6 +144,11 @@ function extractCollectionInfo(token: any): {
   };
 }
 
+/**
+ * Fetch NFTs owned by a Tezos wallet address
+ * @param walletAddress - The Tezos wallet address
+ * @returns Promise with an array of NFTs owned by the wallet
+ */
 export async function fetchTezosNFTs(walletAddress: string): Promise<TezosNFT[]> {
   try {
     // Validate Tezos wallet address format
@@ -199,31 +201,31 @@ export async function fetchTezosNFTs(walletAddress: string): Promise<TezosNFT[]>
     });
     
     // Group NFTs by collection for additional processing
-    const collectionGroups = new Map<string, TezosNFT[]>();
-    for (const nft of nfts) {
+    const collections = new Map<string, TezosNFT[]>();
+    nfts.forEach(nft => {
       if (nft.collection) {
-        if (!collectionGroups.has(nft.collection)) {
-          collectionGroups.set(nft.collection, []);
+        if (!collections.has(nft.collection)) {
+          collections.set(nft.collection, []);
         }
-        collectionGroups.get(nft.collection)?.push(nft);
+        collections.get(nft.collection)?.push(nft);
       }
-    }
+    });
     
     // For collections with no image, try to use an image from one of the NFTs
-    for (const [collection, collectionNfts] of collectionGroups.entries()) {
+    collections.forEach((collectionNfts, collectionKey) => {
       // Skip collections that already have images
-      if (collectionNfts[0].collectionImage) continue;
+      if (collectionNfts[0].collectionImage) return;
       
       // Find the first NFT with an image
       const nftWithImage = collectionNfts.find(nft => nft.image);
       if (nftWithImage && nftWithImage.image) {
         // Use this image for all NFTs in this collection
         const collectionImage = nftWithImage.image;
-        for (const nft of collectionNfts) {
+        collectionNfts.forEach(nft => {
           nft.collectionImage = collectionImage;
-        }
+        });
       }
-    }
+    });
     
     return nfts;
   } catch (error: any) {
@@ -237,7 +239,7 @@ export async function fetchTezosNFTs(walletAddress: string): Promise<TezosNFT[]>
  * @param walletAddress - The Tezos wallet address
  * @param userId - The user ID to associate the NFTs with
  * @param selectedNftIds - Optional array of NFT IDs to import (if not provided, imports all)
- * @returns Promise with an array of imported portfolio items
+ * @returns Promise with number of imported items
  */
 export async function importTezosNFTsToPortfolio(
   walletAddress: string, 
@@ -254,20 +256,84 @@ export async function importTezosNFTsToPortfolio(
     
     let importedCount = 0;
     
+    // Get existing categories to match with collections
+    const existingCategories = await storage.getCategories();
+    const categoryNames = new Set(existingCategories.map(c => c.name.toLowerCase()));
+    
+    // Track collections to create for any new collections found
+    const newCollectionsMap = new Map<string, InsertCategory>();
+    
+    // Process collections first (so they can be assigned as categories)
+    nftsToImport.forEach(nft => {
+      if (nft.collectionName && 
+          !categoryNames.has(nft.collectionName.toLowerCase()) && 
+          !newCollectionsMap.has(nft.collectionName.toLowerCase())) {
+        
+        newCollectionsMap.set(nft.collectionName.toLowerCase(), {
+          name: nft.collectionName,
+          description: `Collection imported from Tezos blockchain`,
+          imageUrl: nft.collectionImage || null,
+          createdById: userId
+        });
+      }
+    });
+    
+    // Create any new collections as categories
+    const newCollections = Array.from(newCollectionsMap.values());
+    for (const collection of newCollections) {
+      try {
+        await storage.createCategory(collection);
+        console.log(`Created new category for collection: ${collection.name}`);
+      } catch (error) {
+        console.error(`Failed to create category for collection ${collection.name}:`, error);
+      }
+    }
+    
+    // Refresh categories after adding new ones
+    const updatedCategories = await storage.getCategories();
+    
     // Import each NFT as a portfolio item
     for (const nft of nftsToImport) {
       // Check if this NFT is already imported for this user
       const existingItems = await storage.getItemsByExternalId(nft.id, userId);
       
       if (existingItems.length === 0) {
+        // Determine category - use collection name if available, otherwise "NFT"
+        let category = 'NFT';
+        if (nft.collectionName) {
+          // Find the matching category (case-insensitive)
+          const matchedCategory = updatedCategories.find(
+            c => c.name.toLowerCase() === nft.collectionName?.toLowerCase()
+          );
+          if (matchedCategory) {
+            category = matchedCategory.name;
+          }
+        }
+        
+        // Build tags
+        const tags = ['tezos', 'nft'];
+        
+        // Add marketplace to tags if available
+        if (nft.marketplace?.toLowerCase()) {
+          tags.push(nft.marketplace.toLowerCase());
+        }
+        
+        // Add collection to tags if available and different from category
+        if (nft.collectionName && nft.collectionName.toLowerCase() !== category.toLowerCase()) {
+          tags.push(nft.collectionName);
+        }
+        
+        // Use better creator name if available
+        const author = nft.creatorName || nft.creator || 'Unknown Creator';
+        
         // Create a new portfolio item
         const portfolioItem: InsertPortfolioItem = {
           title: nft.name || 'Untitled NFT',
           description: nft.description || '',
           imageUrl: nft.image || '',
-          category: 'NFT',
-          tags: ['tezos', 'nft', nft.marketplace?.toLowerCase() || 'objkt'].filter(Boolean),
-          author: nft.creator || 'Unknown Creator',
+          category,
+          tags: tags.filter(Boolean),
+          author,
           dateCreated: new Date(),
           status: 'published',
           marketplaceUrl: nft.marketplaceUrl || '',
@@ -280,9 +346,19 @@ export async function importTezosNFTsToPortfolio(
           externalSource: 'tezos',
           externalMetadata: JSON.stringify({
             contract: nft.contract,
-            tokenId: nft.tokenId
+            tokenId: nft.tokenId,
+            creator: {
+              name: nft.creatorName,
+              address: nft.creatorAddress,
+              image: nft.creatorImage
+            },
+            collection: {
+              name: nft.collectionName,
+              address: nft.collectionAddress,
+              image: nft.collectionImage
+            }
           }),
-          userId: userId
+          userId
         };
         
         await storage.createItem(portfolioItem, userId);
