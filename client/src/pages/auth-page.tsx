@@ -107,10 +107,11 @@ export default function AuthPage() {
   
   // Redirect to home if already logged in
   // This must come after all hook calls
-  if (user) {
-    navigate("/");
-    return null;
-  }
+  useEffect(() => {
+    if (user) {
+      navigate("/");
+    }
+  }, [user, navigate]);
 
   const onLogin = (values: LoginFormValues) => {
     loginMutation.mutate(values);
