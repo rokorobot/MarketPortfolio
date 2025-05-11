@@ -10,6 +10,7 @@ import { generateTagsFromImage, generateTagsFromText } from "./openai-service";
 import * as sendgridService from "./sendgrid-service";
 import * as nodemailerService from "./nodemailer-service";
 import { extractObjktProfileImage } from "./objkt-service";
+import { fetchTezosNFTs, importTezosNFTsToPortfolio } from "./tezos-service";
 import session from "express-session";
 import { z } from "zod";
 
@@ -529,6 +530,62 @@ export function registerRoutes(app: Express) {
       return;
     }
     res.json(item);
+  });
+
+  // NFT Import endpoints
+  // Fetch NFTs from Tezos blockchain
+  app.get("/api/nfts/tezos", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const { address } = req.query;
+      
+      if (!address || typeof address !== 'string') {
+        return res.status(400).json({ message: "Wallet address is required" });
+      }
+      
+      const nfts = await fetchTezosNFTs(address);
+      return res.json({ nfts });
+    } catch (error: any) {
+      console.error("Error fetching Tezos NFTs:", error);
+      return res.status(400).json({ 
+        message: "Failed to fetch NFTs", 
+        error: error.message 
+      });
+    }
+  });
+  
+  // Import NFTs from Tezos to portfolio
+  app.post("/api/nfts/tezos/import", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const { address, selectedNftIds } = req.body;
+      const userId = req.session.userId;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      
+      if (!address || typeof address !== 'string') {
+        return res.status(400).json({ message: "Wallet address is required" });
+      }
+      
+      // Import selected NFTs or all if none selected
+      const importedCount = await importTezosNFTsToPortfolio(
+        address, 
+        userId, 
+        selectedNftIds
+      );
+      
+      return res.json({ 
+        success: true, 
+        message: `Successfully imported ${importedCount} NFTs`, 
+        count: importedCount 
+      });
+    } catch (error: any) {
+      console.error("Error importing Tezos NFTs:", error);
+      return res.status(400).json({ 
+        message: "Failed to import NFTs", 
+        error: error.message 
+      });
+    }
   });
 
   // Upload image endpoint - admin only
