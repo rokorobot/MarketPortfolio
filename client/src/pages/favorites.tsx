@@ -69,7 +69,7 @@ export default function Favorites() {
           <p className="text-muted-foreground mb-6">
             Please sign in to view and manage your favorite items.
           </p>
-          <Button onClick={() => window.location.href = '/login'}>
+          <Button onClick={() => window.location.href = '/auth'}>
             Sign In
           </Button>
         </div>
