@@ -68,6 +68,7 @@ function Router() {
           <ManageAuthors />
         </ProtectedRoute>
       </Route>
+
       <Route path="/import-nfts">
         <ProtectedRoute>
           <ImportNFTs />

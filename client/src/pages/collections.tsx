@@ -25,6 +25,7 @@ export default function Collections() {
   const [selectedCategoryName, setSelectedCategoryName] = useState<string | null>(null);
   const [selectedCategoryData, setSelectedCategoryData] = useState<CategoryModel | null>(null);
   const { user, isLoading: authLoading } = useAuth();
+  const isAdmin = user && user.role === "admin";
 
   // Get all categories
   const { data: categories, isLoading: categoriesLoading } = useQuery<CategoryModel[]>({
@@ -120,7 +121,7 @@ export default function Collections() {
   if (selectedCategory) {
     return (
       <Layout>
-        <div className="mb-2">
+        <div className="flex justify-between items-center mb-2">
           <Button 
             variant="ghost" 
             size="sm" 
@@ -129,6 +130,18 @@ export default function Collections() {
             <ChevronLeft className="h-4 w-4 mr-1" />
             Back to Collections
           </Button>
+          
+          {isAdmin && selectedCategory && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => navigate(`/manage-items?category=${selectedCategory}`)}
+              className="flex items-center"
+            >
+              <Settings className="mr-2 h-4 w-4" />
+              Manage Items Order
+            </Button>
+          )}
         </div>
         
         <div className="mb-6">
@@ -187,8 +200,7 @@ export default function Collections() {
     );
   }
   
-  // Check if user is admin or authorized to manage collections
-  const isAdmin = user && user.role === "admin";
+
 
   // If no category parameter, show list of all collections
   return (
