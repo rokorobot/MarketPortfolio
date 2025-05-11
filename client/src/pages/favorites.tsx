@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { PortfolioGrid, PortfolioGridSkeleton } from "@/components/portfolio-grid";
+import { DraggableGrid } from "@/components/dnd-grid";
 import { Layout } from "@/components/layout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -112,7 +113,18 @@ export default function Favorites() {
       {isLoading ? (
         <PortfolioGridSkeleton showShowcaseButton={false} />
       ) : filteredItems.length > 0 ? (
-        <PortfolioGrid items={filteredItems} showShowcaseButton={false} />
+        debouncedSearchQuery ? (
+          // Use regular grid for search results
+          <PortfolioGrid items={filteredItems} showShowcaseButton={false} />
+        ) : (
+          // Use draggable grid for normal display
+          <DraggableGrid 
+            items={filteredItems} 
+            queryKey={["/api/favorites/update-order"]}
+            canEdit={true}
+            showShowcaseButton={true}
+          />
+        )
       ) : (
         <Card className="p-12 text-center">
           <div className="flex flex-col items-center justify-center">

@@ -1571,6 +1571,25 @@ export function registerRoutes(app: Express) {
     }
   });
   
+  // Update favorites order
+  app.post("/api/favorites/update-order", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId!;
+      const { items } = req.body;
+      
+      if (!Array.isArray(items)) {
+        return res.status(400).json({ message: "Invalid format. Expected an array of items." });
+      }
+      
+      // Update the favorites order
+      await storage.updateFavoritesOrder(userId, items);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error updating favorites order:", error);
+      res.status(500).json({ message: "Failed to update favorites order" });
+    }
+  });
+  
   // Get all unique authors from portfolio items
   app.get("/api/authors", async (req, res) => {
     try {
