@@ -129,9 +129,9 @@ export default function Collections() {
           </Button>
         </div>
         
-        <div className="flex items-center gap-4 mb-6">
-          {selectedCategoryData && selectedCategoryData.imageUrl ? (
-            <div className="w-20 h-20 overflow-hidden rounded-md flex-shrink-0">
+        <div className="mb-6">
+          <div className="relative h-48 rounded-lg overflow-hidden mb-4">
+            {selectedCategoryData && selectedCategoryData.imageUrl ? (
               <img 
                 src={getProxiedImageUrl(selectedCategoryData.imageUrl)} 
                 alt={selectedCategoryName || selectedCategory}
@@ -142,19 +142,25 @@ export default function Collections() {
                 }}
                 crossOrigin="anonymous"
               />
-            </div>
-          ) : (
-            <div className="w-20 h-20 rounded-md bg-muted flex items-center justify-center">
-              <Grid3X3 className="h-8 w-8 text-muted-foreground" />
-            </div>
-          )}
-          
-          <div>
-            <h1 className="text-4xl font-bold">{selectedCategoryName || selectedCategory}</h1>
-            {selectedCategoryData && selectedCategoryData.description && (
-              <p className="text-muted-foreground mt-2">{selectedCategoryData.description}</p>
+            ) : (
+              <div className="w-full h-full bg-muted flex items-center justify-center">
+                <Grid3X3 className="h-12 w-12 text-primary opacity-50" />
+              </div>
             )}
+            
+            {/* Gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+            
+            {/* Title overlay */}
+            <div className="absolute bottom-0 left-0 p-6 w-full">
+              <h1 className="text-3xl font-bold text-white">{selectedCategoryName || selectedCategory}</h1>
+            </div>
           </div>
+          
+          {/* Description below the banner */}
+          {selectedCategoryData && selectedCategoryData.description && (
+            <p className="text-muted-foreground text-sm mb-6">{selectedCategoryData.description}</p>
+          )}
         </div>
         
         {itemsLoading ? (
