@@ -84,12 +84,6 @@ export default function AuthPage() {
     }
   }, [toast]);
 
-  // Redirect to home if already logged in
-  if (user) {
-    navigate("/");
-    return null;
-  }
-
   // Setup forms
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -110,6 +104,13 @@ export default function AuthPage() {
       userType: "visitor",
     },
   });
+  
+  // Redirect to home if already logged in
+  // This must come after all hook calls
+  if (user) {
+    navigate("/");
+    return null;
+  }
 
   const onLogin = (values: LoginFormValues) => {
     loginMutation.mutate(values);
