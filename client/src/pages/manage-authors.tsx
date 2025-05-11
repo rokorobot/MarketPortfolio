@@ -32,9 +32,10 @@ interface Author {
   profileImage: string | null;
 }
 
-// Form schema for updating author profile image
+// Form schema for updating author profile image and name
 const authorProfileSchema = z.object({
   authorProfileImage: z.string().url("Please enter a valid URL").or(z.literal("")).optional(),
+  authorName: z.string().min(2, "Name must be at least 2 characters").optional(),
 });
 
 type AuthorProfileFormValues = z.infer<typeof authorProfileSchema>;
@@ -58,6 +59,7 @@ function AuthorEditor({ author, onCancel, onSave, isSaving }: AuthorEditorProps)
     resolver: zodResolver(authorProfileSchema),
     defaultValues: {
       authorProfileImage: author.profileImage || "",
+      authorName: author.name || "",
     },
   });
 
@@ -142,18 +144,45 @@ function AuthorEditor({ author, onCancel, onSave, isSaving }: AuthorEditorProps)
   };
 
   function onSubmit(data: AuthorProfileFormValues) {
-    // If using the upload tab and we have an uploaded path, use that instead
-    if (activeTab === "upload" && uploadedImagePath) {
-      onSave(author.name, uploadedImagePath);
-    } else {
-      onSave(author.name, data.authorProfileImage || null);
-    }
+    // Determine the name to use (original or new)
+    const newName = data.authorName && data.authorName !== author.name 
+      ? data.authorName 
+      : author.name;
+    
+    // Determine the profile image to use
+    const newProfileImage = activeTab === "upload" && uploadedImagePath
+      ? uploadedImagePath
+      : data.authorProfileImage || null;
+    
+    // Save the changes
+    onSave(newName, newProfileImage);
   }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="pb-4">
+        <div className="space-y-4 pb-4">
+          {/* Author Name Field */}
+          <FormField
+            control={form.control}
+            name="authorName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Author Name</FormLabel>
+                <FormControl>
+                  <Input 
+                    {...field} 
+                    placeholder="Author Name" 
+                  />
+                </FormControl>
+                <FormDescription>
+                  Edit the author name, especially useful for converting Tezos addresses to readable names.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
           <Tabs defaultValue="url" className="w-full" onValueChange={setActiveTab}>
             <TabsList className="mb-2">
               <TabsTrigger value="url">
@@ -295,19 +324,47 @@ export default function ManageAuthorsPage() {
   });
 
   const updateAuthorProfileMutation = useMutation({
-    mutationFn: async ({ name, profileImage }: { name: string; profileImage: string | null }) => {
-      const response = await apiRequest("PATCH", `/api/authors/${encodeURIComponent(name)}`, { profileImage });
+    mutationFn: async ({ 
+      originalName, 
+      newName, 
+      profileImage 
+    }: { 
+      originalName: string;
+      newName: string; 
+      profileImage: string | null 
+    }) => {
+      // Determine if we're changing the name
+      const isNameChanged = originalName !== newName;
+      
+      // Send the update with appropriate parameters
+      const response = await apiRequest(
+        "PATCH", 
+        `/api/authors/${encodeURIComponent(originalName)}`, 
+        { 
+          profileImage,
+          // Only include newName if it's actually changed
+          ...(isNameChanged ? { newName } : {})
+        }
+      );
+      
       if (!response.ok) {
         throw new Error("Failed to update author profile");
       }
+      
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({
         title: "Profile updated",
-        description: "The author profile has been updated successfully.",
+        description: data.newName 
+          ? "The author name and profile have been updated successfully." 
+          : "The author profile has been updated successfully.",
       });
+      
+      // Invalidate both authors list and items by this author
       queryClient.invalidateQueries({ queryKey: ["/api/authors"] });
+      
+      // Close the editor
       setEditingAuthor(null);
     },
     onError: (error: Error) => {
@@ -319,8 +376,13 @@ export default function ManageAuthorsPage() {
     },
   });
 
-  const handleSaveProfileImage = (name: string, profileImage: string | null) => {
-    updateAuthorProfileMutation.mutate({ name, profileImage });
+  const handleSaveProfileImage = (newName: string, profileImage: string | null) => {
+    const originalName = author.name;
+    updateAuthorProfileMutation.mutate({ 
+      originalName,
+      newName, 
+      profileImage 
+    });
   };
 
   if (isLoading) {

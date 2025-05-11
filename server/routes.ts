@@ -1639,22 +1639,59 @@ export function registerRoutes(app: Express) {
   app.patch("/api/authors/:authorName", requireAuth, requireAdmin, async (req, res) => {
     try {
       const { authorName } = req.params;
-      const { profileImage } = req.body;
+      const { profileImage, newName } = req.body;
       
       if (!authorName) {
         return res.status(400).json({ message: "Author name is required" });
       }
       
-      const success = await storage.updateAuthorProfileImage(authorName, profileImage);
-      
-      if (success) {
-        res.json({ success: true, message: "Author profile image updated successfully" });
-      } else {
-        res.status(500).json({ message: "Failed to update author profile image" });
+      // If newName is provided, update the author name
+      if (newName && newName !== authorName) {
+        const nameUpdateSuccess = await storage.updateAuthorName(authorName, newName);
+        
+        if (!nameUpdateSuccess) {
+          return res.status(500).json({ message: "Failed to update author name" });
+        }
+        
+        // If we're also updating the profile image, use the new name
+        if (profileImage !== undefined) {
+          const imageUpdateSuccess = await storage.updateAuthorProfileImage(newName, profileImage);
+          
+          if (imageUpdateSuccess) {
+            return res.json({ 
+              success: true, 
+              message: "Author name and profile image updated successfully",
+              newName
+            });
+          } else {
+            return res.status(500).json({ message: "Updated author name but failed to update profile image" });
+          }
+        }
+        
+        // If only name was updated (no profile image)
+        return res.json({ 
+          success: true, 
+          message: "Author name updated successfully",
+          newName
+        });
       }
+      
+      // If only updating the profile image
+      if (profileImage !== undefined) {
+        const success = await storage.updateAuthorProfileImage(authorName, profileImage);
+        
+        if (success) {
+          return res.json({ success: true, message: "Author profile image updated successfully" });
+        } else {
+          return res.status(500).json({ message: "Failed to update author profile image" });
+        }
+      }
+      
+      // If neither name nor profile image was provided
+      return res.status(400).json({ message: "No updates provided" });
     } catch (error) {
-      console.error("Error updating author profile image:", error);
-      res.status(500).json({ message: "Failed to update author profile image" });
+      console.error("Error updating author:", error);
+      res.status(500).json({ message: "Failed to update author" });
     }
   });
 

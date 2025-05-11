@@ -675,6 +675,43 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
+  /**
+   * Update an author's name across all portfolio items
+   * @param oldName - The current name of the author
+   * @param newName - The new name to give the author
+   * @returns Promise with boolean success status
+   */
+  async updateAuthorName(oldName: string, newName: string): Promise<boolean> {
+    try {
+      if (!oldName || !newName) {
+        throw new Error('Both old and new author names are required');
+      }
+      
+      // Get the existing author profile image to maintain it during the name change
+      const items = await db.select({ authorProfileImage: portfolioItems.authorProfileImage })
+        .from(portfolioItems)
+        .where(eq(portfolioItems.author, oldName))
+        .limit(1);
+      
+      const profileImage = items.length > 0 ? items[0].authorProfileImage : null;
+      
+      // Update all items with this author name
+      await db.update(portfolioItems)
+        .set({ 
+          author: newName, 
+          // Keep the same profile image
+          authorProfileImage: profileImage 
+        })
+        .where(eq(portfolioItems.author, oldName));
+      
+      console.log(`Updated author name from "${oldName}" to "${newName}" with profile image: ${profileImage}`);
+      return true;
+    } catch (error) {
+      console.error('Error updating author name:', error);
+      return false;
+    }
+  }
+  
   async updateItemsOrder(items: {id: number, displayOrder: number}[]): Promise<boolean> {
     try {
       // Use a transaction to ensure all updates succeed or fail together
