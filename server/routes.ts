@@ -905,7 +905,17 @@ export function registerRoutes(app: Express) {
           (!existingItem.authorProfileImage || newAuthorUrl !== existingItem.authorUrl)) {
         console.log('Extracting updated profile image from OBJKT URL:', newAuthorUrl);
         try {
-          const newProfileImage = await extractObjktProfileImage(newAuthorUrl);
+          // This function is async and might be causing session issues
+          // Limit execution time to prevent session problems
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Profile image extraction timed out')), 5000)
+          );
+          
+          const newProfileImage = await Promise.race([
+            extractObjktProfileImage(newAuthorUrl),
+            timeoutPromise
+          ]);
+          
           if (newProfileImage) {
             // Use the new profile image
             profileImage = newProfileImage;
@@ -914,10 +924,11 @@ export function registerRoutes(app: Express) {
         } catch (profileError) {
           console.error('Error extracting profile image:', profileError);
           // Continue with existing or no profile image if extraction fails
+          // Don't let this error affect the session or update process
         }
       }
       
-      // Only allow updating specific fields
+      // Only allow updating specific fields - ensure consistency between manual and imported items
       const updateData = {
         title: req.body.title || existingItem.title,
         description: req.body.description || existingItem.description,
@@ -930,6 +941,12 @@ export function registerRoutes(app: Express) {
         marketplaceUrl2: req.body.marketplaceUrl2 || existingItem.marketplaceUrl2,
         marketplaceName1: req.body.marketplaceName1 || existingItem.marketplaceName1,
         marketplaceName2: req.body.marketplaceName2 || existingItem.marketplaceName2,
+        // Add NFT-specific fields for consistency between imported NFTs and manual items
+        marketplaceUrl: req.body.marketplaceUrl || existingItem.marketplaceUrl,
+        marketplaceName: req.body.marketplaceName || existingItem.marketplaceName,
+        price: req.body.price || existingItem.price,
+        currency: req.body.currency || existingItem.currency,
+        status: req.body.status || existingItem.status,
       };
       
       // Update the item
