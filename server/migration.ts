@@ -1,6 +1,7 @@
 import { db, pool } from "./db";
 import { users } from "@shared/schema";
 import { sql } from "drizzle-orm";
+import { migrateNFTFields } from "./nft-migration";
 
 /**
  * Migration script to update database tables
@@ -117,13 +118,16 @@ async function migrateDatabase() {
       console.log('Items migration not needed - user_id column already exists');
     }
     
-    if (migrationPerformed) {
+    // Migrate NFT-related columns
+    const nftMigrationPerformed = await migrateNFTFields();
+    
+    if (migrationPerformed || nftMigrationPerformed) {
       console.log('All migrations completed successfully!');
     } else {
       console.log('No migrations needed.');
     }
     
-    return migrationPerformed;
+    return migrationPerformed || nftMigrationPerformed;
   } catch (error) {
     console.error('Error during migration:', error);
     throw error;

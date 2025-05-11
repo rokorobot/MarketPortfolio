@@ -55,7 +55,7 @@ export async function fetchTezosNFTs(walletAddress: string): Promise<TezosNFT[]>
     });
     
     return nfts;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching Tezos NFTs:', error);
     throw new Error(`Failed to fetch Tezos NFTs: ${error.message}`);
   }
@@ -93,25 +93,25 @@ export async function importTezosNFTsToPortfolio(
         const portfolioItem: InsertPortfolioItem = {
           title: nft.name || 'Untitled NFT',
           description: nft.description || '',
-          image_url: nft.image || '',
+          imageUrl: nft.image || '',
           category: 'NFT',
           tags: ['tezos', 'nft', nft.marketplace?.toLowerCase() || 'objkt'].filter(Boolean),
-          author_name: nft.creator || 'Unknown Creator',
-          date_created: new Date(),
+          author: nft.creator || 'Unknown Creator',
+          dateCreated: new Date(),
           status: 'published',
-          marketplace_url: nft.marketplaceUrl || '',
-          marketplace_name: nft.marketplace || 'OBJKT',
+          marketplaceUrl: nft.marketplaceUrl || '',
+          marketplaceName: nft.marketplace || 'OBJKT',
           price: null,
           currency: 'XTZ',
-          is_sold: false,
-          display_order: 0,
-          external_id: nft.id,
-          external_source: 'tezos',
-          external_metadata: JSON.stringify({
+          isSold: false,
+          displayOrder: 0,
+          externalId: nft.id,
+          externalSource: 'tezos',
+          externalMetadata: JSON.stringify({
             contract: nft.contract,
             tokenId: nft.tokenId
           }),
-          user_id: userId
+          userId: userId
         };
         
         await storage.createItem(portfolioItem, userId);
@@ -120,7 +120,7 @@ export async function importTezosNFTsToPortfolio(
     }
     
     return importedCount;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error importing Tezos NFTs to portfolio:', error);
     throw new Error(`Failed to import NFTs: ${error.message}`);
   }

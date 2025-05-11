@@ -92,6 +92,37 @@ export interface IStorage {
 
 export class DatabaseStorage implements IStorage {
   /**
+   * Get items by external ID (used for NFT imports)
+   * @param externalId - The external ID of the item
+   * @param userId - Optional user ID to filter by
+   * @returns Promise with portfolio items
+   */
+  async getItemsByExternalId(externalId: string, userId?: number): Promise<PortfolioItem[]> {
+    try {
+      if (userId) {
+        // If userId is provided, filter by both externalId and userId
+        const items = await db.select()
+          .from(portfolioItems)
+          .where(
+            and(
+              eq(portfolioItems.externalId, externalId),
+              eq(portfolioItems.userId, userId)
+            )
+          );
+        return items;
+      } else {
+        // Otherwise just filter by externalId
+        const items = await db.select()
+          .from(portfolioItems)
+          .where(eq(portfolioItems.externalId, externalId));
+        return items;
+      }
+    } catch (error) {
+      console.error("Error fetching items by external ID:", error);
+      return [];
+    }
+  }
+  /**
    * Get all items - if userId is provided, only returns items associated with that user
    * Admin users can see all items
    */
