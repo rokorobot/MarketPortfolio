@@ -218,6 +218,19 @@ export function Layout({ children }: { children: React.ReactNode }) {
               </>
             )}
             
+            {/* Import NFTs button - available to all users */}
+            {user && !location.startsWith("/import-nfts") && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => navigate("/import-nfts")}
+                className="gap-2"
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Import NFTs
+              </Button>
+            )}
+            
             <ShowcaseButton />
             
             {/* Standalone dropdown for showcase settings - available to all users */}

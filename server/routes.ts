@@ -11,6 +11,13 @@ import * as sendgridService from "./sendgrid-service";
 import * as nodemailerService from "./nodemailer-service";
 import { extractObjktProfileImage } from "./objkt-service";
 import { fetchTezosNFTs, importTezosNFTsToPortfolio } from "./tezos-service";
+import { 
+  generateObjktAuthUrl, 
+  exchangeCodeForToken, 
+  fetchUserNfts, 
+  storeUserTokens, 
+  getUserAccessToken 
+} from "./objkt-auth-service";
 import session from "express-session";
 import { z } from "zod";
 
@@ -582,6 +589,156 @@ export function registerRoutes(app: Express) {
     } catch (error: any) {
       console.error("Error importing Tezos NFTs:", error);
       return res.status(400).json({ 
+        message: "Failed to import NFTs", 
+        error: error.message 
+      });
+    }
+  });
+  
+  // OBJKT OAuth integration
+  // Get OBJKT authorization URL
+  app.get("/api/nfts/objkt/auth-url", requireAuth, (req: Request, res: Response) => {
+    try {
+      const authUrl = generateObjktAuthUrl();
+      res.json({ authUrl });
+    } catch (error: any) {
+      console.error("Error generating OBJKT auth URL:", error);
+      res.status(500).json({ 
+        message: "Failed to generate authorization URL", 
+        error: error.message 
+      });
+    }
+  });
+  
+  // Handle OBJKT OAuth callback
+  app.post("/api/nfts/objkt/auth", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const { code } = req.body;
+      const userId = req.session.userId;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      
+      if (!code || typeof code !== 'string') {
+        return res.status(400).json({ message: "Authorization code is required" });
+      }
+      
+      // Exchange the code for access token and user profile
+      const { accessToken, refreshToken, profile } = await exchangeCodeForToken(code);
+      
+      // Store the tokens for later use
+      storeUserTokens(userId, { accessToken, refreshToken });
+      
+      res.json({ 
+        success: true, 
+        profile: profile.username || profile.address || 'OBJKT User'
+      });
+    } catch (error: any) {
+      console.error("Error processing OBJKT authentication:", error);
+      res.status(400).json({ 
+        message: "Failed to authenticate with OBJKT", 
+        error: error.message 
+      });
+    }
+  });
+  
+  // Fetch user's NFTs from OBJKT
+  app.get("/api/nfts/objkt", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      
+      const accessToken = getUserAccessToken(userId);
+      
+      if (!accessToken) {
+        return res.status(401).json({ message: "Not connected to OBJKT" });
+      }
+      
+      const nfts = await fetchUserNfts(accessToken);
+      res.json({ nfts });
+    } catch (error: any) {
+      console.error("Error fetching NFTs from OBJKT:", error);
+      res.status(400).json({ 
+        message: "Failed to fetch NFTs", 
+        error: error.message 
+      });
+    }
+  });
+  
+  // Import NFTs from OBJKT to portfolio
+  app.post("/api/nfts/objkt/import", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const { selectedNftIds } = req.body;
+      const userId = req.session.userId;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      
+      const accessToken = getUserAccessToken(userId);
+      
+      if (!accessToken) {
+        return res.status(401).json({ message: "Not connected to OBJKT" });
+      }
+      
+      // Fetch all NFTs from OBJKT
+      const allNfts = await fetchUserNfts(accessToken);
+      
+      // Filter NFTs if specific ones were selected
+      const nftsToImport = selectedNftIds && selectedNftIds.length > 0
+        ? allNfts.filter(nft => selectedNftIds.includes(nft.id))
+        : allNfts;
+      
+      let importedCount = 0;
+      
+      // Import each NFT as a portfolio item
+      for (const nft of nftsToImport) {
+        // Check if this NFT is already imported for this user
+        const existingItems = await storage.getItemsByExternalId(nft.id, userId);
+        
+        if (existingItems.length === 0) {
+          // Create a new portfolio item
+          const portfolioItem = {
+            title: nft.name || 'Untitled NFT',
+            description: nft.description || '',
+            imageUrl: nft.image || '',
+            category: 'NFT',
+            tags: ['objkt', 'nft', 'tezos'].filter(Boolean),
+            author: nft.creator || 'Unknown Creator',
+            dateCreated: new Date(),
+            status: 'published',
+            marketplaceUrl: nft.marketplaceUrl || '',
+            marketplaceName: nft.marketplace || 'OBJKT',
+            price: null,
+            currency: 'XTZ',
+            isSold: false,
+            displayOrder: 0,
+            externalId: nft.id,
+            externalSource: 'objkt',
+            externalMetadata: JSON.stringify({
+              contract: nft.contract,
+              tokenId: nft.tokenId
+            }),
+            userId
+          };
+          
+          await storage.createItem(portfolioItem, userId);
+          importedCount++;
+        }
+      }
+      
+      res.json({ 
+        success: true, 
+        message: `Successfully imported ${importedCount} NFTs`, 
+        count: importedCount 
+      });
+    } catch (error: any) {
+      console.error("Error importing NFTs from OBJKT:", error);
+      res.status(400).json({ 
         message: "Failed to import NFTs", 
         error: error.message 
       });

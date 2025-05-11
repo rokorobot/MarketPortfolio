@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { Layout } from '@/components/layout';
 import { apiRequest, queryClient } from '@/lib/queryClient';
-import { Loader2, ChevronRight, ExternalLink, Check } from 'lucide-react';
+import { Loader2, ChevronRight } from 'lucide-react';
 import { useLocation } from 'wouter';
+import axios from 'axios';
 
 import {
   Card,
@@ -15,16 +16,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 
 interface NFT {
@@ -43,111 +36,56 @@ const ImportNFTsPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [, navigate] = useLocation();
-  const [authUrl, setAuthUrl] = useState<string>('');
-  const [isConnecting, setIsConnecting] = useState<boolean>(false);
-  const [isConnected, setIsConnected] = useState<boolean>(false);
-  const [objktProfile, setObjktProfile] = useState<string>('');
+  
+  // Tezos wallet import states
+  const [walletAddress, setWalletAddress] = useState<string>('');
+  const [isLoadingNfts, setIsLoadingNfts] = useState<boolean>(false);
+  const [nfts, setNfts] = useState<NFT[]>([]);
   const [selectedNfts, setSelectedNfts] = useState<Record<string, boolean>>({});
   const [selectAll, setSelectAll] = useState(false);
 
   const isAuthenticated = !!user;
-
+  
   // If not authenticated, redirect to auth page
   if (!isAuthenticated) {
     navigate('/auth');
     return null;
   }
 
-  // Check for callback from OBJKT authentication
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const objktCode = params.get('objkt_code');
+  // Fetch NFTs from Tezos wallet
+  const fetchTezosNfts = useCallback(async () => {
+    if (!walletAddress || walletAddress.trim() === '') {
+      toast({
+        title: 'Error',
+        description: 'Please enter a valid Tezos wallet address',
+        variant: 'destructive',
+      });
+      return;
+    }
     
-    if (objktCode) {
-      // Clear the URL parameter without refreshing the page
-      const newUrl = window.location.pathname;
-      window.history.replaceState({}, document.title, newUrl);
-      
-      // Process the auth code
-      processObjktAuth(objktCode);
-    }
-  }, []);
-
-  const processObjktAuth = async (code: string) => {
-    setIsConnecting(true);
+    setIsLoadingNfts(true);
     try {
-      // Exchange code for user data
-      const response = await apiRequest('POST', '/api/nfts/objkt/auth', { code });
-      const data = await response.json();
-      
-      if (data.success) {
-        setIsConnected(true);
-        setObjktProfile(data.profile);
-        toast({
-          title: 'Success',
-          description: 'Successfully connected to your OBJKT account!',
-        });
-      } else {
-        throw new Error(data.message || 'Failed to authenticate with OBJKT');
-      }
+      const response = await axios.get(`/api/nfts/tezos?address=${encodeURIComponent(walletAddress)}`);
+      setNfts(response.data.nfts || []);
+      // Reset selected NFTs when new ones are loaded
+      setSelectedNfts({});
+      setSelectAll(false);
     } catch (error: any) {
+      console.error('Failed to fetch Tezos NFTs:', error);
       toast({
         title: 'Error',
-        description: `Authentication failed: ${error.message}`,
+        description: 'Failed to fetch NFTs from this wallet. Please check the address and try again.',
         variant: 'destructive',
       });
     } finally {
-      setIsConnecting(false);
+      setIsLoadingNfts(false);
     }
-  };
-
-  const { 
-    data: nftsData,
-    isLoading: isLoadingNfts,
-    error: nftsError, 
-    refetch: refetchNfts 
-  } = useQuery({
-    queryKey: ['/api/nfts/objkt', objktProfile],
-    queryFn: async () => {
-      if (!isConnected) return { nfts: [] };
-      const response = await apiRequest('GET', '/api/nfts/objkt');
-      return await response.json();
-    },
-    enabled: isConnected, // Only enabled when connected to OBJKT
-  });
-
-  const requestObjktAuth = async () => {
-    try {
-      setIsConnecting(true);
-      // Get auth URL from our backend
-      const response = await apiRequest('GET', '/api/nfts/objkt/auth-url');
-      const data = await response.json();
-      
-      if (data.authUrl) {
-        // Store the auth URL and open it in a new window
-        setAuthUrl(data.authUrl);
-        window.open(data.authUrl, '_blank', 'width=600,height=700');
-        toast({
-          title: 'OBJKT Authentication',
-          description: 'Please sign in with your OBJKT account in the new window and authorize access.',
-        });
-      } else {
-        throw new Error('Failed to generate authorization URL');
-      }
-    } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: `Failed to start authentication: ${error.message}`,
-        variant: 'destructive',
-      });
-    } finally {
-      setIsConnecting(false);
-    }
-  };
+  }, [walletAddress, toast]);
 
   const importMutation = useMutation({
     mutationFn: async ({ selectedNftIds }: { selectedNftIds?: string[] }) => {
-      const response = await apiRequest('POST', '/api/nfts/objkt/import', {
+      const response = await apiRequest('POST', '/api/nfts/tezos/import', {
+        address: walletAddress,
         selectedNftIds
       });
       return await response.json();
@@ -183,13 +121,11 @@ const ImportNFTsPage = () => {
     const newSelectAll = !selectAll;
     setSelectAll(newSelectAll);
     
-    if (nftsData?.nfts) {
-      const newSelectedNfts = { ...selectedNfts };
-      nftsData.nfts.forEach((nft: NFT) => {
-        newSelectedNfts[nft.id] = newSelectAll;
-      });
-      setSelectedNfts(newSelectedNfts);
-    }
+    const newSelectedNfts = { ...selectedNfts };
+    nfts.forEach((nft) => {
+      newSelectedNfts[nft.id] = newSelectAll;
+    });
+    setSelectedNfts(newSelectedNfts);
   };
 
   const handleToggleNft = (id: string) => {
@@ -199,72 +135,51 @@ const ImportNFTsPage = () => {
     }));
   };
 
-  const nfts: NFT[] = nftsData?.nfts || [];
   const selectedCount = Object.values(selectedNfts).filter(Boolean).length;
 
   return (
     <Layout>
       <div className="container py-6">
-        <h1 className="text-3xl font-bold mb-6">Import NFTs from OBJKT</h1>
+        <h1 className="text-3xl font-bold mb-6">Import NFTs from Tezos</h1>
         
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle>Connect with OBJKT</CardTitle>
+            <CardTitle>Import from Tezos Wallet</CardTitle>
             <CardDescription>
-              Securely connect to your OBJKT account to import your NFTs with OAuth authentication.
+              Enter a Tezos wallet address to find and import NFTs.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {!isConnected ? (
-              <div className="space-y-4">
-                <p>
-                  To import your NFTs, you'll need to connect to OBJKT using their secure
-                  authentication system. This ensures that you're only importing NFTs that you own.
-                </p>
-                <div className="flex flex-col items-center justify-center p-6 border rounded-lg bg-muted/30">
-                  <img 
-                    src="https://objkt.com/assets/logo3.svg" 
-                    alt="OBJKT Logo" 
-                    className="mb-4 h-16" 
+            <div className="space-y-4">
+              <p>
+                Enter a Tezos wallet address to fetch all NFTs associated with that wallet.
+                You can then select which ones to import into your portfolio.
+              </p>
+              <div className="flex space-x-2">
+                <div className="flex-1">
+                  <Input
+                    placeholder="Tezos wallet address (tz...)"
+                    value={walletAddress}
+                    onChange={(e) => setWalletAddress(e.target.value)}
                   />
-                  <Button 
-                    onClick={requestObjktAuth} 
-                    disabled={isConnecting}
-                    className="gap-2"
-                  >
-                    {isConnecting ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Connecting...
-                      </>
-                    ) : (
-                      <>
-                        Connect to OBJKT
-                        <ExternalLink className="h-4 w-4" />
-                      </>
-                    )}
-                  </Button>
                 </div>
+                <Button 
+                  onClick={fetchTezosNfts} 
+                  disabled={isLoadingNfts}
+                >
+                  {isLoadingNfts ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Fetching...
+                    </>
+                  ) : (
+                    'Fetch NFTs'
+                  )}
+                </Button>
               </div>
-            ) : (
-              <div className="flex items-center space-x-4 p-4 border rounded-lg bg-green-50 text-green-800 dark:bg-green-950 dark:text-green-300">
-                <div className="flex-shrink-0">
-                  <Check className="h-6 w-6" />
-                </div>
-                <div>
-                  <p className="font-semibold">Successfully connected to OBJKT</p>
-                  <p className="text-sm opacity-80">Ready to import your NFTs</p>
-                </div>
-              </div>
-            )}
+            </div>
           </CardContent>
         </Card>
-
-        {nftsError && (
-          <div className="text-red-500 mb-4">
-            Error: {(nftsError as Error).message}
-          </div>
-        )}
 
         {isLoadingNfts && (
           <div className="flex justify-center items-center h-40">
@@ -335,7 +250,7 @@ const ImportNFTsPage = () => {
                   <CardContent className="p-4">
                     <h3 className="font-bold truncate">{nft.name || 'Untitled NFT'}</h3>
                     <p className="text-xs text-muted-foreground truncate">
-                      Contract: {nft.contract?.substring(0, 8)}...{nft.contract?.substring(nft.contract.length - 4)}
+                      Contract: {nft.contract?.substring(0, 8)}...{nft.contract?.substring(nft.contract?.length - 4)}
                     </p>
                     <p className="text-xs text-muted-foreground">Token ID: {nft.tokenId}</p>
                     {nft.creator && (
@@ -360,12 +275,12 @@ const ImportNFTsPage = () => {
           </>
         )}
 
-        {!isLoadingNfts && nfts.length === 0 && address && (
+        {!isLoadingNfts && nfts.length === 0 && walletAddress && (
           <Card>
             <CardContent className="p-8 text-center">
               <p>No NFTs found for this wallet address.</p>
               <p className="text-muted-foreground mt-2">
-                Please check the address and make sure it's correct for the selected blockchain.
+                Please check the address and make sure it's correct.
               </p>
             </CardContent>
           </Card>
