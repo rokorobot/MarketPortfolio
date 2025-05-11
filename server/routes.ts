@@ -593,17 +593,25 @@ export function registerRoutes(app: Express) {
       console.log(`Importing NFTs for wallet ${address} with limit ${parsedLimit}...`);
       
       // Import selected NFTs or all if none selected
-      const importedCount = await importTezosNFTsToPortfolio(
+      const importResult = await importTezosNFTsToPortfolio(
         address, 
         userId, 
         selectedNftIds,
         parsedLimit
       );
       
+      // Generate a more informative message
+      let message = `Successfully imported ${importResult.imported} NFTs`;
+      if (importResult.skipped > 0) {
+        message += `, skipped ${importResult.skipped} already imported NFTs`;
+      }
+      
       return res.json({ 
         success: true, 
-        message: `Successfully imported ${importedCount} NFTs`, 
-        count: importedCount 
+        message,
+        imported: importResult.imported,
+        skipped: importResult.skipped,
+        details: importResult.details
       });
     } catch (error: any) {
       console.error("Error importing Tezos NFTs:", error);
@@ -713,47 +721,89 @@ export function registerRoutes(app: Express) {
         : allNfts;
       
       let importedCount = 0;
+      let skippedCount = 0;
+      const importDetails = [];
+      
+      // Pre-check all NFTs to identify existing ones
+      const existingNftMap = new Map<string, boolean>();
+      
+      // Get all existing NFT IDs for this user in a single efficient query
+      const allExistingNftIds = await Promise.all(
+        nftsToImport.map(nft => storage.getItemsByExternalId(nft.id, userId))
+      );
+      
+      // Build a map of existing NFT IDs
+      nftsToImport.forEach((nft, index) => {
+        if (allExistingNftIds[index].length > 0) {
+          existingNftMap.set(nft.id, true);
+        }
+      });
+      
+      console.log(`Found ${existingNftMap.size} already imported OBJKT NFTs out of ${nftsToImport.length} selected`);
       
       // Import each NFT as a portfolio item
       for (const nft of nftsToImport) {
-        // Check if this NFT is already imported for this user
-        const existingItems = await storage.getItemsByExternalId(nft.id, userId);
+        const nftTitle = nft.name || 'Untitled NFT';
         
-        if (existingItems.length === 0) {
-          // Create a new portfolio item
-          const portfolioItem = {
-            title: nft.name || 'Untitled NFT',
-            description: nft.description || '',
-            imageUrl: nft.image || '',
-            category: 'NFT',
-            tags: ['objkt', 'nft', 'tezos'].filter(Boolean),
-            author: nft.creator || 'Unknown Creator',
-            dateCreated: new Date(),
-            status: 'published',
-            marketplaceUrl: nft.marketplaceUrl || '',
-            marketplaceName: nft.marketplace || 'OBJKT',
-            price: null,
-            currency: 'XTZ',
-            isSold: false,
-            displayOrder: 0,
-            externalId: nft.id,
-            externalSource: 'objkt',
-            externalMetadata: JSON.stringify({
-              contract: nft.contract,
-              tokenId: nft.tokenId
-            }),
-            userId
-          };
-          
-          await storage.createItem(portfolioItem, userId);
-          importedCount++;
+        // Check if this NFT is already imported for this user
+        if (existingNftMap.has(nft.id)) {
+          console.log(`Skipping already imported NFT: ${nftTitle} (ID: ${nft.id})`);
+          skippedCount++;
+          importDetails.push({
+            id: nft.id,
+            title: nftTitle,
+            skipped: true
+          });
+          continue;
         }
+        
+        // Create a new portfolio item
+        const portfolioItem = {
+          title: nftTitle,
+          description: nft.description || '',
+          imageUrl: nft.image || '',
+          category: 'NFT',
+          tags: ['objkt', 'nft', 'tezos'].filter(Boolean),
+          author: nft.creator || 'Unknown Creator',
+          dateCreated: new Date(),
+          status: 'published',
+          marketplaceUrl: nft.marketplaceUrl || '',
+          marketplaceName: nft.marketplace || 'OBJKT',
+          price: null,
+          currency: 'XTZ',
+          isSold: false,
+          displayOrder: 0,
+          externalId: nft.id,
+          externalSource: 'objkt',
+          externalMetadata: JSON.stringify({
+            contract: nft.contract,
+            tokenId: nft.tokenId
+          }),
+          userId
+        };
+        
+        await storage.createItem(portfolioItem, userId);
+        importedCount++;
+        
+        importDetails.push({
+          id: nft.id,
+          title: nftTitle,
+          skipped: false
+        });
+      }
+      
+      // Generate a more informative message
+      let message = `Successfully imported ${importedCount} NFTs`;
+      if (skippedCount > 0) {
+        message += `, skipped ${skippedCount} already imported NFTs`;
       }
       
       res.json({ 
         success: true, 
-        message: `Successfully imported ${importedCount} NFTs`, 
-        count: importedCount 
+        message,
+        imported: importedCount,
+        skipped: skippedCount,
+        details: importDetails
       });
     } catch (error: any) {
       console.error("Error importing NFTs from OBJKT:", error);

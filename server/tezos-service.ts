@@ -277,7 +277,7 @@ export async function importTezosNFTsToPortfolio(
   userId: number,
   selectedNftIds?: string[],
   limit = 500
-): Promise<number> {
+): Promise<{imported: number, skipped: number, details: Array<{id: string, title: string, skipped: boolean}>}> {
   try {
     const nfts = await fetchTezosNFTs(walletAddress, limit);
     
@@ -287,6 +287,8 @@ export async function importTezosNFTsToPortfolio(
       : nfts;
     
     let importedCount = 0;
+    let skippedCount = 0;
+    const importDetails: Array<{id: string, title: string, skipped: boolean}> = [];
     
     // Get existing categories to match with collections
     const existingCategories = await storage.getCategories();
@@ -324,81 +326,117 @@ export async function importTezosNFTsToPortfolio(
     // Refresh categories after adding new ones
     const updatedCategories = await storage.getCategories();
     
+    // Pre-check all NFTs to identify existing ones
+    const existingNftMap = new Map<string, boolean>();
+    
+    // Get all existing NFT IDs for this user in a single efficient query
+    const allExistingNftIds = await Promise.all(
+      nftsToImport.map(nft => storage.getItemsByExternalId(nft.id, userId))
+    );
+    
+    // Build a map of existing NFT IDs
+    nftsToImport.forEach((nft, index) => {
+      if (allExistingNftIds[index].length > 0) {
+        existingNftMap.set(nft.id, true);
+      }
+    });
+    
+    console.log(`Found ${existingNftMap.size} already imported NFTs out of ${nftsToImport.length} selected`);
+    
     // Import each NFT as a portfolio item
     for (const nft of nftsToImport) {
-      // Check if this NFT is already imported for this user
-      const existingItems = await storage.getItemsByExternalId(nft.id, userId);
+      const nftTitle = nft.name || 'Untitled NFT';
       
-      if (existingItems.length === 0) {
-        // Determine category - use collection name if available, otherwise "NFT"
-        let category = 'NFT';
-        if (nft.collectionName) {
-          // Find the matching category (case-insensitive)
-          const matchedCategory = updatedCategories.find(
-            c => c.name.toLowerCase() === nft.collectionName?.toLowerCase()
-          );
-          if (matchedCategory) {
-            category = matchedCategory.name;
-          }
-        }
-        
-        // Build tags
-        const tags = ['tezos', 'nft'];
-        
-        // Add marketplace to tags if available
-        if (nft.marketplace?.toLowerCase()) {
-          tags.push(nft.marketplace.toLowerCase());
-        }
-        
-        // Add collection to tags if available and different from category
-        if (nft.collectionName && nft.collectionName.toLowerCase() !== category.toLowerCase()) {
-          tags.push(nft.collectionName);
-        }
-        
-        // Use better creator name if available
-        const author = nft.creatorName || nft.creator || 'Unknown Creator';
-        
-        // Create a new portfolio item
-        const portfolioItem: InsertPortfolioItem = {
-          title: nft.name || 'Untitled NFT',
-          description: nft.description || '',
-          imageUrl: nft.image || '',
-          category,
-          tags: tags.filter(Boolean),
-          author,
-          dateCreated: new Date(),
-          status: 'published',
-          marketplaceUrl: nft.marketplaceUrl || '',
-          marketplaceName: nft.marketplace || 'OBJKT',
-          price: null,
-          currency: 'XTZ',
-          isSold: false,
-          displayOrder: 0,
-          externalId: nft.id,
-          externalSource: 'tezos',
-          externalMetadata: JSON.stringify({
-            contract: nft.contract,
-            tokenId: nft.tokenId,
-            creator: {
-              name: nft.creatorName,
-              address: nft.creatorAddress,
-              image: nft.creatorImage
-            },
-            collection: {
-              name: nft.collectionName,
-              address: nft.collectionAddress,
-              image: nft.collectionImage
-            }
-          }),
-          userId
-        };
-        
-        await storage.createItem(portfolioItem, userId);
-        importedCount++;
+      // Check if this NFT is already imported for this user
+      if (existingNftMap.has(nft.id)) {
+        console.log(`Skipping already imported NFT: ${nftTitle} (ID: ${nft.id})`);
+        skippedCount++;
+        importDetails.push({
+          id: nft.id,
+          title: nftTitle,
+          skipped: true
+        });
+        continue;
       }
+      
+      // Determine category - use collection name if available, otherwise "NFT"
+      let category = 'NFT';
+      if (nft.collectionName) {
+        // Find the matching category (case-insensitive)
+        const matchedCategory = updatedCategories.find(
+          c => c.name.toLowerCase() === nft.collectionName?.toLowerCase()
+        );
+        if (matchedCategory) {
+          category = matchedCategory.name;
+        }
+      }
+      
+      // Build tags
+      const tags = ['tezos', 'nft'];
+      
+      // Add marketplace to tags if available
+      if (nft.marketplace?.toLowerCase()) {
+        tags.push(nft.marketplace.toLowerCase());
+      }
+      
+      // Add collection to tags if available and different from category
+      if (nft.collectionName && nft.collectionName.toLowerCase() !== category.toLowerCase()) {
+        tags.push(nft.collectionName);
+      }
+      
+      // Use better creator name if available
+      const author = nft.creatorName || nft.creator || 'Unknown Creator';
+      
+      // Create a new portfolio item
+      const portfolioItem: InsertPortfolioItem = {
+        title: nftTitle,
+        description: nft.description || '',
+        imageUrl: nft.image || '',
+        category,
+        tags: tags.filter(Boolean),
+        author,
+        dateCreated: new Date(),
+        status: 'published',
+        marketplaceUrl: nft.marketplaceUrl || '',
+        marketplaceName: nft.marketplace || 'OBJKT',
+        price: null,
+        currency: 'XTZ',
+        isSold: false,
+        displayOrder: 0,
+        externalId: nft.id,
+        externalSource: 'tezos',
+        externalMetadata: JSON.stringify({
+          contract: nft.contract,
+          tokenId: nft.tokenId,
+          creator: {
+            name: nft.creatorName,
+            address: nft.creatorAddress,
+            image: nft.creatorImage
+          },
+          collection: {
+            name: nft.collectionName,
+            address: nft.collectionAddress,
+            image: nft.collectionImage
+          }
+        }),
+        userId
+      };
+      
+      await storage.createItem(portfolioItem, userId);
+      importedCount++;
+      
+      importDetails.push({
+        id: nft.id,
+        title: nftTitle,
+        skipped: false
+      });
     }
     
-    return importedCount;
+    return {
+      imported: importedCount,
+      skipped: skippedCount,
+      details: importDetails
+    };
   } catch (error: any) {
     console.error('Error importing Tezos NFTs to portfolio:', error);
     throw new Error(`Failed to import NFTs: ${error.message}`);
