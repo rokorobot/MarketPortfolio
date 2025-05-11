@@ -904,27 +904,38 @@ export function registerRoutes(app: Express) {
           newAuthorUrl.includes('objkt.com') && 
           (!existingItem.authorProfileImage || newAuthorUrl !== existingItem.authorUrl)) {
         console.log('Extracting updated profile image from OBJKT URL:', newAuthorUrl);
+        
+        // Simple approach with a timeout to avoid session issues
         try {
-          // This function is async and might be causing session issues
-          // Limit execution time to prevent session problems
-          const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Profile image extraction timed out')), 5000)
-          );
+          // Set up a timeout to avoid long-running operations that might affect the session
+          const timeoutPromise = new Promise<null>((resolve) => {
+            setTimeout(() => {
+              console.log('Profile image extraction timed out');
+              resolve(null);
+            }, 5000);
+          });
           
-          const newProfileImage = await Promise.race([
-            extractObjktProfileImage(newAuthorUrl),
-            timeoutPromise
-          ]);
+          // Try to extract the profile image with a timeout
+          const imagePromise = new Promise<string | null>(async (resolve) => {
+            try {
+              const result = await extractObjktProfileImage(newAuthorUrl);
+              resolve(result);
+            } catch (e) {
+              console.error('Error in profile extraction:', e);
+              resolve(null);
+            }
+          });
+          
+          // Race between the extraction and the timeout
+          const newProfileImage = await Promise.race([imagePromise, timeoutPromise]);
           
           if (newProfileImage) {
-            // Use the new profile image
             profileImage = newProfileImage;
             console.log('Found updated author profile image:', newProfileImage);
           }
         } catch (profileError) {
-          console.error('Error extracting profile image:', profileError);
+          console.error('Error in profile image extraction process:', profileError);
           // Continue with existing or no profile image if extraction fails
-          // Don't let this error affect the session or update process
         }
       }
       
@@ -947,6 +958,12 @@ export function registerRoutes(app: Express) {
         price: req.body.price || existingItem.price,
         currency: req.body.currency || existingItem.currency,
         status: req.body.status || existingItem.status,
+        isSold: req.body.isSold !== undefined ? req.body.isSold : existingItem.isSold,
+        dateCreated: req.body.dateCreated || existingItem.dateCreated,
+        // Keep external fields intact for imported NFTs
+        externalId: existingItem.externalId,
+        externalSource: existingItem.externalSource,
+        externalMetadata: existingItem.externalMetadata,
       };
       
       // Update the item
