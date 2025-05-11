@@ -9,6 +9,14 @@ import { PortfolioGrid, PortfolioGridSkeleton } from "@/components/portfolio-gri
 import { type PortfolioItem, type CategoryModel } from "@shared/schema";
 import { getProxiedImageUrl } from "@/lib/utils";
 
+// Function to truncate text to a specified number of words
+function truncateToWords(text: string, maxWords: number): string {
+  if (!text) return "";
+  const words = text.split(/\s+/);
+  if (words.length <= maxWords) return text;
+  return words.slice(0, maxWords).join(" ") + "...";
+}
+
 export default function Collections() {
   const { category } = useParams<{ category?: string }>();
   const [_, navigate] = useLocation();
@@ -177,40 +185,48 @@ export default function Collections() {
       <h1 className="text-4xl font-bold mb-8">Collections</h1>
       
       {categoriesLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {Array.from({ length: 8 }).map((_, index) => (
-            <Card key={index} className="p-6 h-48 animate-pulse" />
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {Array.from({ length: 10 }).map((_, index) => (
+            <Card key={index} className="aspect-square animate-pulse" />
           ))}
         </div>
       ) : categories && categories.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {categories.map((category) => (
             <Card 
               key={category.id} 
-              className="p-6 hover:border-primary cursor-pointer transition-colors"
+              className="aspect-square hover:border-primary cursor-pointer transition-colors overflow-hidden relative"
               onClick={() => handleCategorySelect(category)}
             >
-              <div className="flex flex-col items-center text-center h-full justify-center">
-                {category.imageUrl ? (
-                  <div className="w-24 h-24 mb-4 overflow-hidden rounded-md">
-                    <img 
-                      src={getProxiedImageUrl(category.imageUrl)} 
-                      alt={category.name} 
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.src = "https://placehold.co/200x200/gray/white?text=Collection";
-                        console.log('Collection image failed to load:', category.imageUrl);
-                      }}
-                      crossOrigin="anonymous"
-                    />
-                  </div>
-                ) : (
-                  <Grid3X3 className="h-12 w-12 mb-4 text-primary" />
-                )}
-                <h3 className="text-xl font-medium mb-2">{category.name}</h3>
+              {/* Image filling the entire card as background */}
+              {category.imageUrl ? (
+                <div className="absolute inset-0 w-full h-full">
+                  <img 
+                    src={getProxiedImageUrl(category.imageUrl)} 
+                    alt={category.name} 
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src = "https://placehold.co/200x200/gray/white?text=Collection";
+                      console.log('Collection image failed to load:', category.imageUrl);
+                    }}
+                    crossOrigin="anonymous"
+                  />
+                </div>
+              ) : (
+                <div className="absolute inset-0 w-full h-full bg-muted flex items-center justify-center">
+                  <Grid3X3 className="h-12 w-12 text-primary opacity-50" />
+                </div>
+              )}
+              
+              {/* Gradient overlay for better text readability */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+              
+              {/* Content positioned at the bottom */}
+              <div className="absolute bottom-0 left-0 right-0 p-3 text-start">
+                <h3 className="text-lg font-medium text-white mb-1">{category.name}</h3>
                 {category.description && (
-                  <p className="text-muted-foreground text-sm">
-                    {category.description}
+                  <p className="text-white/80 text-xs leading-tight">
+                    {truncateToWords(category.description, 20)}
                   </p>
                 )}
               </div>
