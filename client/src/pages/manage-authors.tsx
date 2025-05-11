@@ -376,7 +376,8 @@ export default function ManageAuthorsPage() {
     },
   });
 
-  const handleSaveProfileImage = (originalName: string, newName: string, profileImage: string | null) => {
+  // Handle author profile updates - called from the AuthorEditor component
+  const handleSaveAuthorProfile = (originalName: string, newName: string, profileImage: string | null) => {
     updateAuthorProfileMutation.mutate({ 
       originalName,
       newName, 
@@ -458,7 +459,7 @@ export default function ManageAuthorsPage() {
                     <AuthorEditor 
                       author={author}
                       onCancel={() => setEditingAuthor(null)}
-                      onSave={handleSaveProfileImage}
+                      onSave={handleSaveAuthorProfile}
                       isSaving={updateAuthorProfileMutation.isPending}
                     />
                   ) : (
