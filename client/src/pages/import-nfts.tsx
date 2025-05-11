@@ -43,6 +43,8 @@ const ImportNFTsPage = () => {
   const [nfts, setNfts] = useState<NFT[]>([]);
   const [selectedNfts, setSelectedNfts] = useState<Record<string, boolean>>({});
   const [selectAll, setSelectAll] = useState(false);
+  const [nftLimit, setNftLimit] = useState<number>(500); // Default to 500 NFTs
+  const [totalNfts, setTotalNfts] = useState<number>(0);
 
   const isAuthenticated = !!user;
   
@@ -65,11 +67,21 @@ const ImportNFTsPage = () => {
     
     setIsLoadingNfts(true);
     try {
-      const response = await axios.get(`/api/nfts/tezos?address=${encodeURIComponent(walletAddress)}`);
+      const response = await axios.get(
+        `/api/nfts/tezos?address=${encodeURIComponent(walletAddress)}&limit=${nftLimit}`
+      );
       setNfts(response.data.nfts || []);
+      setTotalNfts(response.data.total || 0);
+      
       // Reset selected NFTs when new ones are loaded
       setSelectedNfts({});
       setSelectAll(false);
+      
+      // Show toast with the number of NFTs fetched
+      toast({
+        title: 'NFTs Loaded',
+        description: `Found ${response.data.total} NFTs for this wallet.`,
+      });
     } catch (error: any) {
       console.error('Failed to fetch Tezos NFTs:', error);
       toast({
@@ -80,13 +92,14 @@ const ImportNFTsPage = () => {
     } finally {
       setIsLoadingNfts(false);
     }
-  }, [walletAddress, toast]);
+  }, [walletAddress, nftLimit, toast]);
 
   const importMutation = useMutation({
     mutationFn: async ({ selectedNftIds }: { selectedNftIds?: string[] }) => {
       const response = await apiRequest('POST', '/api/nfts/tezos/import', {
         address: walletAddress,
-        selectedNftIds
+        selectedNftIds,
+        limit: nftLimit
       });
       return await response.json();
     },
@@ -152,45 +165,73 @@ const ImportNFTsPage = () => {
           <CardContent className="space-y-4">
             <div className="space-y-4">
               <p>
-                Enter a Tezos wallet address to fetch all NFTs associated with that wallet.
+                Enter a Tezos wallet address to fetch NFTs associated with that wallet.
                 You can then select which ones to import into your portfolio.
               </p>
-              <div className="flex space-x-2">
-                <div className="flex-1">
-                  <Input
-                    placeholder="Tezos wallet address (tz...)"
-                    value={walletAddress}
-                    onChange={(e) => setWalletAddress(e.target.value)}
-                  />
+              <div className="flex flex-col space-y-4">
+                <div className="flex space-x-2">
+                  <div className="flex-1">
+                    <Input
+                      placeholder="Tezos wallet address (tz...)"
+                      value={walletAddress}
+                      onChange={(e) => setWalletAddress(e.target.value)}
+                    />
+                  </div>
                 </div>
-                <Button 
-                  onClick={fetchTezosNfts} 
-                  disabled={isLoadingNfts}
-                >
-                  {isLoadingNfts ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Fetching...
-                    </>
-                  ) : (
-                    'Fetch NFTs'
-                  )}
-                </Button>
+                
+                <div className="flex justify-between items-center">
+                  <div className="w-1/3">
+                    <label htmlFor="nft-limit" className="text-sm font-medium mb-1 block">
+                      Maximum NFTs to fetch
+                    </label>
+                    <select 
+                      id="nft-limit"
+                      className="w-full h-10 px-3 py-2 border rounded-md"
+                      value={nftLimit}
+                      onChange={(e) => setNftLimit(parseInt(e.target.value, 10))}
+                    >
+                      <option value="100">100</option>
+                      <option value="250">250</option>
+                      <option value="500">500</option>
+                      <option value="1000">1000</option>
+                      <option value="2000">2000</option>
+                    </select>
+                  </div>
+                  <Button 
+                    onClick={fetchTezosNfts} 
+                    disabled={isLoadingNfts}
+                    className="mt-2"
+                  >
+                    {isLoadingNfts ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Fetching...
+                      </>
+                    ) : (
+                      'Fetch NFTs'
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
           </CardContent>
         </Card>
 
         {isLoadingNfts && (
-          <div className="flex justify-center items-center h-40">
+          <div className="flex flex-col justify-center items-center h-40 space-y-4">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <span className="ml-2">Loading NFTs...</span>
+            <span className="text-center">
+              Loading NFTs from the Tezos blockchain...<br />
+              <span className="text-sm text-muted-foreground">
+                This may take a while for large collections (up to {nftLimit} NFTs).
+              </span>
+            </span>
           </div>
         )}
 
         {!isLoadingNfts && nfts.length > 0 && (
           <>
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-col md:flex-row md:justify-between items-start md:items-center mb-4 gap-4">
               <div className="flex items-center space-x-2">
                 <Checkbox 
                   id="select-all" 
@@ -203,9 +244,14 @@ const ImportNFTsPage = () => {
                 >
                   Select All NFTs
                 </label>
+                <span className="text-sm text-muted-foreground ml-2">
+                  (Found {totalNfts} NFTs in total)
+                </span>
               </div>
-              <div>
-                <span className="mr-4">{selectedCount} of {nfts.length} selected</span>
+              <div className="flex items-center">
+                <span className="mr-4 text-sm font-medium">
+                  {selectedCount} of {nfts.length} selected
+                </span>
                 <Button 
                   onClick={handleImportNFTs} 
                   disabled={importMutation.isPending}
