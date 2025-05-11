@@ -80,34 +80,37 @@ export default function Favorites() {
 
   return (
     <Layout>
-      <div className="flex items-center mb-8">
-        <Heart className="h-8 w-8 mr-3 text-primary" />
-        <h1 className="text-4xl font-bold">My Favorites</h1>
-      </div>
-      
-      {/* Search input */}
-      <div className="relative w-full md:w-72 mb-6">
-        <Input
-          type="text"
-          placeholder="Search in your favorites..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pr-10"
-        />
-        {searchQuery ? (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute right-0 top-0 h-full"
-            onClick={() => setSearchQuery("")}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        ) : (
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-            <Search className="h-4 w-4 text-muted-foreground" />
-          </div>
-        )}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        {/* Title */}
+        <div className="flex items-center">
+          <Heart className="h-8 w-8 mr-3 text-primary" />
+          <h1 className="text-4xl font-bold">My Favorites</h1>
+        </div>
+        
+        {/* Search input */}
+        <div className="relative w-full md:w-72">
+          <Input
+            type="text"
+            placeholder="Search in your favorites..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pr-10"
+          />
+          {searchQuery ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-0 top-0 h-full"
+              onClick={() => setSearchQuery("")}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          ) : (
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+              <Search className="h-4 w-4 text-muted-foreground" />
+            </div>
+          )}
+        </div>
       </div>
       
       {isLoading ? (
