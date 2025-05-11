@@ -31,7 +31,6 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/item/:id" component={Item} />
       <Route path="/share/:shareCode" component={SharePage} />
-      <Route path="/login" component={LoginPage} />
       <Route path="/auth" component={AuthPage} />
       <Route path="/about" component={AboutPage} />
       <Route path="/contact" component={ContactPage} />
@@ -82,7 +81,7 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="light" storageKey="portfolio-theme">
+      <ThemeProvider defaultTheme="dark-green" storageKey="portfolio-theme">
         <AuthProvider>
           <ShowcaseProvider>
             <Router />

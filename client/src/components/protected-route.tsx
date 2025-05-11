@@ -23,7 +23,7 @@ export function ProtectedRoute({
   }
 
   if (!user) {
-    return <Redirect to="/login" />;
+    return <Redirect to="/auth" />;
   }
 
   // If admin access is required and user is not admin
