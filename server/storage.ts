@@ -609,6 +609,29 @@ export class DatabaseStorage implements IStorage {
       return false;
     }
   }
+  
+  /**
+   * Update the display order of multiple categories
+   * @param categories - Array of category IDs and their new display order
+   * @returns Promise with boolean success status
+   */
+  async updateCategoriesOrder(categoriesOrder: {id: number, displayOrder: number}[]): Promise<boolean> {
+    try {
+      // Use a transaction to ensure all updates succeed or fail together
+      await db.transaction(async (tx) => {
+        for (const cat of categoriesOrder) {
+          await tx.update(categories)
+            .set({ displayOrder: cat.displayOrder })
+            .where(eq(categories.id, cat.id));
+        }
+      });
+      
+      return true;
+    } catch (error) {
+      console.error("Error updating categories order:", error);
+      return false;
+    }
+  }
 
   // Favorites methods
   async toggleFavorite(userId: number, itemId: number): Promise<boolean> {
