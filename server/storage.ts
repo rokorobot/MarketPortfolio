@@ -73,6 +73,7 @@ export interface IStorage {
   createCategory(category: InsertCategory): Promise<CategoryModel>;
   updateCategory(id: number, category: Partial<CategoryModel>): Promise<CategoryModel>;
   deleteCategory(id: number): Promise<boolean>;
+  updateCategoriesOrder(categories: {id: number, displayOrder: number}[]): Promise<boolean>;
   
   // Site Settings
   getSiteSettings(): Promise<SiteSetting[]>;
