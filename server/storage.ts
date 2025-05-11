@@ -86,6 +86,7 @@ export interface IStorage {
   toggleFavorite(userId: number, itemId: number): Promise<boolean>;
   isFavorited(userId: number, itemId: number): Promise<boolean>;
   getUserFavorites(userId: number): Promise<PortfolioItem[]>;
+  updateFavoritesOrder(userId: number, items: {id: number, displayOrder: number}[]): Promise<boolean>;
   
   // Author profile management
   updateAuthorProfileImage(authorName: string, profileImage: string | null): Promise<boolean>;
@@ -683,6 +684,39 @@ export class DatabaseStorage implements IStorage {
     
     // Map to PortfolioItem format
     return items.map(item => item.portfolio_items);
+  }
+  
+  /**
+   * Update the display order of portfolio items that are in a user's favorites
+   * @param userId - The ID of the user whose favorites are being reordered
+   * @param items - Array of item IDs and their new display order values
+   * @returns Promise with boolean success status
+   */
+  async updateFavoritesOrder(userId: number, items: { id: number, displayOrder: number }[]): Promise<boolean> {
+    if (!items || items.length === 0) {
+      return false;
+    }
+
+    try {
+      // First, check that all items are actually favorited by this user
+      for (const item of items) {
+        const isFavorited = await this.isFavorited(userId, item.id);
+        if (!isFavorited) {
+          console.warn(`Item ${item.id} is not in user ${userId}'s favorites, skipping`);
+          continue;
+        }
+        
+        // Update the display order for this item
+        await db.update(portfolioItems)
+          .set({ displayOrder: item.displayOrder })
+          .where(eq(portfolioItems.id, item.id));
+      }
+      
+      return true;
+    } catch (error) {
+      console.error("Error updating favorites order:", error);
+      throw error;
+    }
   }
   
   async updateAuthorProfileImage(authorName: string, profileImage: string | null): Promise<boolean> {
