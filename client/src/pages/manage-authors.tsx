@@ -43,7 +43,7 @@ type AuthorProfileFormValues = z.infer<typeof authorProfileSchema>;
 interface AuthorEditorProps {
   author: Author;
   onCancel: () => void;
-  onSave: (name: string, profileImage: string | null) => void;
+  onSave: (originalName: string, newName: string, profileImage: string | null) => void;
   isSaving: boolean;
 }
 
@@ -154,8 +154,8 @@ function AuthorEditor({ author, onCancel, onSave, isSaving }: AuthorEditorProps)
       ? uploadedImagePath
       : data.authorProfileImage || null;
     
-    // Save the changes
-    onSave(newName, newProfileImage);
+    // Save the changes - pass the original author name too
+    onSave(author.name, newName, newProfileImage);
   }
 
   return (
@@ -376,8 +376,7 @@ export default function ManageAuthorsPage() {
     },
   });
 
-  const handleSaveProfileImage = (newName: string, profileImage: string | null) => {
-    const originalName = author.name;
+  const handleSaveProfileImage = (originalName: string, newName: string, profileImage: string | null) => {
     updateAuthorProfileMutation.mutate({ 
       originalName,
       newName, 
