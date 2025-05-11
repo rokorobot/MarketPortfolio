@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
-import { ChevronLeft, Grid3X3, Settings } from "lucide-react";
+import { ChevronLeft, Grid3X3, Settings, ArrowUpDown } from "lucide-react";
 import { Layout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -9,6 +9,7 @@ import { PortfolioGrid, PortfolioGridSkeleton } from "@/components/portfolio-gri
 import { type PortfolioItem, type CategoryModel } from "@shared/schema";
 import { getProxiedImageUrl } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
+import { DraggableGrid } from "@/components/dnd-grid";
 
 // Function to truncate text to a specified number of words
 function truncateToWords(text: string, maxWords: number): string {
@@ -25,7 +26,7 @@ export default function Collections() {
   const [selectedCategoryName, setSelectedCategoryName] = useState<string | null>(null);
   const [selectedCategoryData, setSelectedCategoryData] = useState<CategoryModel | null>(null);
   const { user, isLoading: authLoading } = useAuth();
-  const isAdmin = user && user.role === "admin";
+  const isAdmin = Boolean(user && user.role === "admin");
 
   // Get all categories
   const { data: categories, isLoading: categoriesLoading } = useQuery<CategoryModel[]>({
@@ -121,7 +122,7 @@ export default function Collections() {
   if (selectedCategory) {
     return (
       <Layout>
-        <div className="flex justify-between items-center mb-2">
+        <div className="mb-2">
           <Button 
             variant="ghost" 
             size="sm" 
@@ -130,18 +131,6 @@ export default function Collections() {
             <ChevronLeft className="h-4 w-4 mr-1" />
             Back to Collections
           </Button>
-          
-          {isAdmin && selectedCategory && (
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => navigate(`/manage-items?category=${selectedCategory}`)}
-              className="flex items-center"
-            >
-              <Settings className="mr-2 h-4 w-4" />
-              Manage Items Order
-            </Button>
-          )}
         </div>
         
         <div className="mb-6">
@@ -181,7 +170,12 @@ export default function Collections() {
         {itemsLoading ? (
           <PortfolioGridSkeleton showShowcaseButton={false} />
         ) : items && items.length > 0 ? (
-          <PortfolioGrid items={items} showShowcaseButton={false} />
+          <DraggableGrid 
+            items={items} 
+            queryKey={["/api/items/category", selectedCategory]}
+            canEdit={isAdmin}
+            showShowcaseButton={true}
+          />
         ) : (
           <Card className="p-12 text-center">
             <div className="flex flex-col items-center justify-center">
