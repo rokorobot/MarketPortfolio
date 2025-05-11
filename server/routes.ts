@@ -543,14 +543,22 @@ export function registerRoutes(app: Express) {
   // Fetch NFTs from Tezos blockchain
   app.get("/api/nfts/tezos", requireAuth, async (req: Request, res: Response) => {
     try {
-      const { address } = req.query;
+      const { address, limit } = req.query;
       
       if (!address || typeof address !== 'string') {
         return res.status(400).json({ message: "Wallet address is required" });
       }
       
-      const nfts = await fetchTezosNFTs(address);
-      return res.json({ nfts });
+      // Parse limit if provided, default to 500
+      const parsedLimit = limit ? parseInt(limit as string, 10) : 500;
+      
+      // Validate limit
+      if (isNaN(parsedLimit) || parsedLimit < 1) {
+        return res.status(400).json({ message: "Invalid limit value" });
+      }
+      
+      const nfts = await fetchTezosNFTs(address, parsedLimit);
+      return res.json({ nfts, total: nfts.length });
     } catch (error: any) {
       console.error("Error fetching Tezos NFTs:", error);
       return res.status(400).json({ 
@@ -563,7 +571,7 @@ export function registerRoutes(app: Express) {
   // Import NFTs from Tezos to portfolio
   app.post("/api/nfts/tezos/import", requireAuth, async (req: Request, res: Response) => {
     try {
-      const { address, selectedNftIds } = req.body;
+      const { address, selectedNftIds, limit } = req.body;
       const userId = req.session.userId;
       
       if (!userId) {
@@ -574,11 +582,22 @@ export function registerRoutes(app: Express) {
         return res.status(400).json({ message: "Wallet address is required" });
       }
       
+      // Parse limit if provided, default to 500
+      const parsedLimit = limit ? parseInt(limit, 10) : 500;
+      
+      // Validate limit
+      if (isNaN(parsedLimit) || parsedLimit < 1) {
+        return res.status(400).json({ message: "Invalid limit value" });
+      }
+      
+      console.log(`Importing NFTs for wallet ${address} with limit ${parsedLimit}...`);
+      
       // Import selected NFTs or all if none selected
       const importedCount = await importTezosNFTsToPortfolio(
         address, 
         userId, 
-        selectedNftIds
+        selectedNftIds,
+        parsedLimit
       );
       
       return res.json({ 
