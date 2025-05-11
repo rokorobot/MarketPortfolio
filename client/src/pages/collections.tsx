@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
-import { ChevronLeft, Grid3X3 } from "lucide-react";
+import { ChevronLeft, Grid3X3, Settings } from "lucide-react";
 import { Layout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PortfolioGrid, PortfolioGridSkeleton } from "@/components/portfolio-grid";
 import { type PortfolioItem, type CategoryModel } from "@shared/schema";
 import { getProxiedImageUrl } from "@/lib/utils";
+import { useAuth } from "@/hooks/use-auth";
 
 // Function to truncate text to a specified number of words
 function truncateToWords(text: string, maxWords: number): string {
@@ -23,6 +24,7 @@ export default function Collections() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(category || null);
   const [selectedCategoryName, setSelectedCategoryName] = useState<string | null>(null);
   const [selectedCategoryData, setSelectedCategoryData] = useState<CategoryModel | null>(null);
+  const { user, isLoading: authLoading } = useAuth();
 
   // Get all categories
   const { data: categories, isLoading: categoriesLoading } = useQuery<CategoryModel[]>({
@@ -185,10 +187,25 @@ export default function Collections() {
     );
   }
   
+  // Check if user is admin or authorized to manage collections
+  const isAdmin = user && user.role === "admin";
+
   // If no category parameter, show list of all collections
   return (
     <Layout>
-      <h1 className="text-4xl font-bold mb-8">Collections</h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-4xl font-bold">Collections</h1>
+        {isAdmin && (
+          <Button 
+            variant="outline" 
+            onClick={() => navigate("/manage-categories")}
+            className="flex items-center"
+          >
+            <Settings className="mr-2 h-4 w-4" />
+            Manage Collections
+          </Button>
+        )}
+      </div>
       
       {categoriesLoading ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
