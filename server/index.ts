@@ -12,8 +12,40 @@ app.use(fileUpload({
   createParentPath: true
 }));
 
-// Serve uploaded files
-app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+// Serve uploaded files with caching
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads'), {
+  maxAge: '1d', // Cache assets for 1 day
+  setHeaders: (res, path) => {
+    // Images can be cached more aggressively
+    if (path.endsWith('.jpg') || path.endsWith('.jpeg') || path.endsWith('.png') || 
+        path.endsWith('.gif') || path.endsWith('.webp')) {
+      res.setHeader('Cache-Control', 'public, max-age=86400'); // 1 day
+    }
+  }
+}));
+
+// Cache middleware for static assets
+app.use((req, res, next) => {
+  const path = req.path;
+  // Check if request is for a static asset (exclude API routes and HTML routes)
+  if (!path.startsWith('/api/') && !path.endsWith('/')) {
+    const fileExt = path.split('.').pop()?.toLowerCase();
+    if (fileExt) {
+      // Set varying cache headers based on file type
+      if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'ico'].includes(fileExt)) {
+        // Images
+        res.setHeader('Cache-Control', 'public, max-age=604800'); // 7 days
+      } else if (['css', 'js'].includes(fileExt)) {
+        // CSS and JS assets
+        res.setHeader('Cache-Control', 'public, max-age=86400'); // 1 day
+      } else if (['woff', 'woff2', 'ttf', 'eot', 'otf'].includes(fileExt)) {
+        // Fonts
+        res.setHeader('Cache-Control', 'public, max-age=2592000'); // 30 days
+      }
+    }
+  }
+  next();
+});
 
 app.use((req, res, next) => {
   const start = Date.now();
