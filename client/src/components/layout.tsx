@@ -174,7 +174,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   ? "text-primary" 
                   : "text-muted-foreground hover:text-foreground"
               }`}
-              onClick={() => navigate("/favorites")}
+              onClick={() => navigate(user ? "/favorites" : "/auth")}
             >
               Favorites
             </div>
