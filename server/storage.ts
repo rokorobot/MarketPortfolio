@@ -43,6 +43,7 @@ export interface IStorage {
   getItemsByCategoryPaginated(category: string, page: number, pageSize: number): Promise<PaginatedResult<PortfolioItem>>;
   getUniqueAuthors(): Promise<{name: string, count: number, profileImage: string | null}[]>;
   getItemsByAuthor(authorName: string): Promise<PortfolioItem[]>;
+  getItemsByExternalId(externalId: string, userId?: number): Promise<PortfolioItem[]>;
   createItem(item: InsertPortfolioItem, userId?: number): Promise<PortfolioItem>;
   updateItem(id: number, item: Partial<PortfolioItem>): Promise<PortfolioItem>;
   deleteItem(id: number): Promise<boolean>;

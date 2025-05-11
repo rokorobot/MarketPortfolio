@@ -19,6 +19,18 @@ export const portfolioItems = pgTable("portfolio_items", {
   displayOrder: integer("display_order").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+  // NFT-specific fields
+  externalId: text("external_id"),  // For tracking external NFT IDs (contract+tokenId)
+  externalSource: text("external_source"), // Source of the NFT (tezos, ethereum, etc)
+  externalMetadata: text("external_metadata"), // JSON string with raw metadata
+  // Marketplace-specific fields
+  marketplaceUrl: text("marketplace_url"), // Simplified single marketplace URL
+  marketplaceName: text("marketplace_name"), // Simplified single marketplace name
+  price: text("price"), // Price as string to handle various formats
+  currency: text("currency"), // Currency code (XTZ, ETH, etc)
+  isSold: boolean("is_sold").default(false), // Whether the NFT has been sold
+  dateCreated: timestamp("date_created"), // Date the NFT was created
+  status: text("status").default("draft"), // Status (draft, published, archived)
   // Add user ID to track who added this item
   userId: integer("user_id").references(() => users.id, { onDelete: 'set null' }),
 });
