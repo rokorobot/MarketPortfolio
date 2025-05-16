@@ -580,28 +580,22 @@ export default function Item() {
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                {/* Hard-coded categories first for testing */}
-                                <SelectItem value="Test Category">Test Category</SelectItem>
-                                <SelectItem value="Robot Face">Robot Face</SelectItem>
-                                <SelectItem value="Digital Art">Digital Art</SelectItem>
-                                <SelectItem value="Photography">Photography</SelectItem>
-                                <SelectItem value="3D Models">3D Models</SelectItem>
-                                <SelectItem value="Music">Music</SelectItem>
-                                <SelectItem value="Collectibles">Collectibles</SelectItem>
-                                <SelectItem value="Gaming Assets">Gaming Assets</SelectItem>
-                                
-                                {/* Map dynamic categories if the above doesn't work */}
-                                {categoryOptions && categoryOptions.length > 0 && (
-                                  <SelectItem value="__DIVIDER__" disabled>
-                                    ───────────────
-                                  </SelectItem>
+                                {/* Display all available categories */}
+                                {categoryOptions?.length > 0 ? (
+                                  categoryOptions.map((category) => (
+                                    <SelectItem key={category} value={category}>
+                                      {category}
+                                    </SelectItem>
+                                  ))
+                                ) : (
+                                  /* Fallback categories if API fails to load */
+                                  <>
+                                    <SelectItem value="Digital Art">Digital Art</SelectItem>
+                                    <SelectItem value="Photography">Photography</SelectItem>
+                                    <SelectItem value="3D Models">3D Models</SelectItem>
+                                    <SelectItem value="Collectibles">Collectibles</SelectItem>
+                                  </>
                                 )}
-                                
-                                {categoryOptions?.map((category) => (
-                                  <SelectItem key={`dynamic-${category}`} value={category}>
-                                    {category} (Dynamic)
-                                  </SelectItem>
-                                ))}
                               </SelectContent>
                             </Select>
                             <FormMessage />
