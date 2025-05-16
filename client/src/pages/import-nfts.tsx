@@ -208,7 +208,7 @@ const ImportNFTsPage = () => {
                 </div>
                 
                 <div className="flex justify-between items-end gap-4">
-                  <div className="flex-1">
+                  <div className="w-1/3">
                     <label htmlFor="nft-limit" className="text-sm font-medium mb-1 block">
                       Maximum NFTs to fetch
                     </label>
