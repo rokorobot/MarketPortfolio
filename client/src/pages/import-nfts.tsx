@@ -155,8 +155,12 @@ const ImportNFTsPage = () => {
       .filter(([_, isSelected]) => isSelected)
       .map(([id]) => id);
 
+    // Add logging to debug selected NFTs
+    console.log(`Importing ${selectedNftIds.length} selected NFTs:`, selectedNftIds);
+    
+    // Always pass the selected NFT IDs explicitly
     importMutation.mutate({
-      selectedNftIds: selectedNftIds.length > 0 ? selectedNftIds : undefined // If none selected, import all
+      selectedNftIds: selectedNftIds
     });
   };
 
