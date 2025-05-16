@@ -207,14 +207,14 @@ const ImportNFTsPage = () => {
                   </div>
                 </div>
                 
-                <div className="flex justify-between items-center">
-                  <div className="w-1/3">
+                <div className="flex justify-between items-end gap-4">
+                  <div className="flex-1">
                     <label htmlFor="nft-limit" className="text-sm font-medium mb-1 block">
                       Maximum NFTs to fetch
                     </label>
                     <select 
                       id="nft-limit"
-                      className="w-full h-10 px-3 py-2 border rounded-md bg-background text-foreground font-medium"
+                      className="w-full h-10 px-3 py-2 bg-background text-foreground rounded-md border border-input"
                       value={nftLimit}
                       onChange={(e) => setNftLimit(parseInt(e.target.value, 10))}
                     >
@@ -228,7 +228,6 @@ const ImportNFTsPage = () => {
                   <Button 
                     onClick={fetchTezosNfts} 
                     disabled={isLoadingNfts}
-                    className="mt-2"
                   >
                     {isLoadingNfts ? (
                       <>
