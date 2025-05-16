@@ -144,9 +144,15 @@ function extractCollectionInfo(token: any): {
     }
   }
   
-  // If we don't have a collection identifier yet, use the address
+  // If we don't have a collection identifier yet, use the address as an internal identifier
+  // but maintain a better display name if available
   if (!collection && collectionAddress) {
     collection = collectionAddress;
+    
+    // If we have no name yet, try to use the contract address in a clean format
+    if (!collectionName) {
+      collectionName = token?.token?.contract?.alias || "";
+    }
   }
   
   return {
