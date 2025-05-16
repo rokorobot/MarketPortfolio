@@ -106,11 +106,9 @@ const ImportNFTsPage = () => {
 
   const importMutation = useMutation({
     mutationFn: async ({ selectedNftIds }: { selectedNftIds?: string[] }) => {
-      // Skip filtering by selected NFTs - this will import all NFTs from the wallet
-      // This resolves the ID mismatch between client and server
       const response = await apiRequest('POST', '/api/nfts/tezos/import', {
         address: walletAddress,
-        // Don't send selectedNftIds to bypass the filtering
+        selectedNftIds,
         limit: nftLimit
       });
       return await response.json();
