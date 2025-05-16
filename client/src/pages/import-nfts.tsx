@@ -214,15 +214,15 @@ const ImportNFTsPage = () => {
                     </label>
                     <select 
                       id="nft-limit"
-                      className="w-full h-10 px-3 py-2 border rounded-md"
+                      className="w-full h-10 px-3 py-2 border rounded-md bg-background text-foreground font-medium"
                       value={nftLimit}
                       onChange={(e) => setNftLimit(parseInt(e.target.value, 10))}
                     >
-                      <option value="100">100</option>
-                      <option value="250">250</option>
-                      <option value="500">500</option>
-                      <option value="1000">1000</option>
-                      <option value="2000">2000</option>
+                      <option value="100">100 NFTs</option>
+                      <option value="250">250 NFTs</option>
+                      <option value="500">500 NFTs</option>
+                      <option value="1000">1000 NFTs</option>
+                      <option value="2000">2000 NFTs</option>
                     </select>
                   </div>
                   <Button 
