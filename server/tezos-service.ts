@@ -316,40 +316,12 @@ export async function importTezosNFTsToPortfolio(
   limit = 500
 ): Promise<{imported: number, skipped: number, details: Array<{id: string, title: string, skipped: boolean}>}> {
   try {
-    console.log(`Starting NFT import for user ${userId} with ${selectedNftIds?.length || 0} selectedNftIds`);
-    
-    // Fetch all NFTs from the wallet
     const nfts = await fetchTezosNFTs(walletAddress, limit);
-    console.log(`Fetched ${nfts.length} NFTs from wallet ${walletAddress}`);
     
-    // Filter NFTs based on selection
-    let nftsToImport = nfts;
-    
-    if (selectedNftIds && selectedNftIds.length > 0) {
-      console.log(`Filtering NFTs by ${selectedNftIds.length} selected IDs`);
-      // Print a few NFT IDs for debugging
-      console.log(`Sample NFT IDs in the selection:`, selectedNftIds.slice(0, 3));
-      
-      // Track which NFTs are matched and not matched
-      const matchedIds = new Set();
-      
-      nftsToImport = nfts.filter(nft => {
-        const isMatch = selectedNftIds.includes(nft.id);
-        if (isMatch) {
-          matchedIds.add(nft.id);
-        }
-        return isMatch;
-      });
-      
-      console.log(`Found ${nftsToImport.length} NFTs matching the selected IDs`);
-      
-      // Check for any selections that weren't found in the fetched NFTs
-      const notFoundIds = selectedNftIds.filter(id => !matchedIds.has(id));
-      if (notFoundIds.length > 0) {
-        console.log(`Warning: ${notFoundIds.length} selected NFTs were not found in the fetched NFTs`);
-        console.log(`First few not found:`, notFoundIds.slice(0, 3));
-      }
-    }
+    // Filter NFTs if specific ones were selected
+    const nftsToImport = selectedNftIds 
+      ? nfts.filter(nft => selectedNftIds.includes(nft.id))
+      : nfts;
     
     let importedCount = 0;
     let skippedCount = 0;
