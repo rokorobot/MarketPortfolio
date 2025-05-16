@@ -81,32 +81,15 @@ export default function Item() {
   }, [favoriteStatus]);
 
   // Get category options from API (combines built-in and custom categories)
-  const { data: categoryOptions = [], isLoading: isLoadingCategories } = useQuery<string[]>({
+  const { data: categoryOptions, isLoading: isLoadingCategories } = useQuery<string[]>({
     queryKey: ['/api/category-options'],
-    staleTime: 0, // Don't use cached data
-    refetchOnMount: true, // Always refetch when component mounts
+    initialData: [], // Initialize with empty array to avoid undefined errors
   });
   
-  // Fetch and debug log category options
+  // Debug log category options
   React.useEffect(() => {
-    // Direct fetch to ensure we always get fresh data
-    async function fetchCategories() {
-      try {
-        const response = await fetch('/api/category-options');
-        if (response.ok) {
-          const categories = await response.json();
-          console.log("Category options fetched directly:", categories);
-          
-          // Update the query cache with fresh data
-          queryClient.setQueryData(['/api/category-options'], categories);
-        }
-      } catch (error) {
-        console.error("Failed to fetch categories:", error);
-      }
-    }
-    
-    fetchCategories();
-  }, [isEditing]); // Refetch when edit mode is activated
+    console.log("Category options loaded:", categoryOptions);
+  }, [categoryOptions]);
   
   // Define form schema for editing
   const formSchema = z.object({
@@ -586,21 +569,37 @@ export default function Item() {
                         name="category"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Category/Collection</FormLabel>
+                            <FormLabel>Category</FormLabel>
                             <Select
                               value={field.value}
                               onValueChange={field.onChange}
                             >
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder="Select a collection" />
+                                  <SelectValue placeholder="Select a category" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                {/* Display all collection names without any labels */}
-                                {Array.isArray(categoryOptions) && categoryOptions.map((category) => (
-                                  <SelectItem key={category} value={category}>
-                                    {category}
+                                {/* Hard-coded categories first for testing */}
+                                <SelectItem value="Test Category">Test Category</SelectItem>
+                                <SelectItem value="Robot Face">Robot Face</SelectItem>
+                                <SelectItem value="Digital Art">Digital Art</SelectItem>
+                                <SelectItem value="Photography">Photography</SelectItem>
+                                <SelectItem value="3D Models">3D Models</SelectItem>
+                                <SelectItem value="Music">Music</SelectItem>
+                                <SelectItem value="Collectibles">Collectibles</SelectItem>
+                                <SelectItem value="Gaming Assets">Gaming Assets</SelectItem>
+                                
+                                {/* Map dynamic categories if the above doesn't work */}
+                                {categoryOptions && categoryOptions.length > 0 && (
+                                  <SelectItem value="__DIVIDER__" disabled>
+                                    ───────────────
+                                  </SelectItem>
+                                )}
+                                
+                                {categoryOptions?.map((category) => (
+                                  <SelectItem key={`dynamic-${category}`} value={category}>
+                                    {category} (Dynamic)
                                   </SelectItem>
                                 ))}
                               </SelectContent>

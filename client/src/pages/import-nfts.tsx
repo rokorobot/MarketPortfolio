@@ -30,7 +30,6 @@ interface NFT {
   creator?: string;
   marketplace?: string;
   marketplaceUrl?: string;
-  hasValidImage?: boolean; // Track if the image is valid
 }
 
 const ImportNFTsPage = () => {
@@ -166,28 +165,12 @@ const ImportNFTsPage = () => {
     
     const newSelectedNfts = { ...selectedNfts };
     nfts.forEach((nft) => {
-      // Only select NFTs with valid images or those that don't have the hasValidImage property set yet
-      if (nft.hasValidImage !== false) {
-        newSelectedNfts[nft.id] = newSelectAll;
-      }
+      newSelectedNfts[nft.id] = newSelectAll;
     });
     setSelectedNfts(newSelectedNfts);
   };
 
   const handleToggleNft = (id: string) => {
-    // Find the NFT to check if it has a valid image
-    const nft = nfts.find(n => n.id === id);
-    
-    // Don't allow selecting NFTs with invalid images
-    if (nft && nft.hasValidImage === false) {
-      toast({
-        title: 'Cannot select',
-        description: 'NFTs with missing or unavailable images cannot be imported',
-        variant: 'destructive'
-      });
-      return;
-    }
-    
     setSelectedNfts(prev => ({
       ...prev,
       [id]: !prev[id]
@@ -238,7 +221,6 @@ const ImportNFTsPage = () => {
                         className="h-10 w-10 rounded-r-none"
                         onClick={() => setNftOffset(Math.max(0, nftOffset - 100))}
                         disabled={nftOffset === 0}
-                        title="Decrease by 100"
                       >
                         <MinusCircle className="h-4 w-4" />
                       </Button>
@@ -262,7 +244,6 @@ const ImportNFTsPage = () => {
                         size="icon"
                         className="h-10 w-10 rounded-l-none"
                         onClick={() => setNftOffset(nftOffset + 100)}
-                        title="Increase by 100"
                       >
                         <PlusCircle className="h-4 w-4" />
                       </Button>
@@ -367,50 +348,17 @@ const ImportNFTsPage = () => {
                       <Checkbox 
                         checked={selectedNfts[nft.id] || false} 
                         onCheckedChange={() => handleToggleNft(nft.id)}
-                        disabled={nft.hasValidImage === false}
                       />
                     </div>
                     {nft.image ? (
-                      <div className="relative w-full h-48">
-                        <img 
-                          src={nft.image} 
-                          alt={nft.name || 'NFT'} 
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            // Mark the NFT as having an invalid image
-                            nft.hasValidImage = false;
-                            
-                            // If this NFT is selected, deselect it
-                            if (selectedNfts[nft.id]) {
-                              handleToggleNft(nft.id);
-                            }
-                            
-                            // Replace broken image with a fallback
-                            e.currentTarget.onerror = null;
-                            e.currentTarget.style.display = 'none';
-                            
-                            const parent = e.currentTarget.parentElement;
-                            if (parent) {
-                              parent.classList.add('bg-muted');
-                              parent.innerHTML += `
-                                <div class="absolute inset-0 flex flex-col items-center justify-center p-2 text-center">
-                                  <p class="text-xs text-muted-foreground mb-1">Image unavailable</p>
-                                  <p class="font-medium text-sm">${nft.name || 'Untitled NFT'}</p>
-                                  <p class="text-xs text-red-500 mt-1">Cannot be imported</p>
-                                </div>
-                              `;
-                            }
-                          }}
-                          onLoad={() => {
-                            // Mark the NFT as having a valid image
-                            nft.hasValidImage = true;
-                          }}
-                        />
-                      </div>
+                      <img 
+                        src={nft.image} 
+                        alt={nft.name || 'NFT'} 
+                        className="w-full h-48 object-cover"
+                      />
                     ) : (
-                      <div className="w-full h-48 bg-muted flex flex-col items-center justify-center p-4">
-                        <p className="text-xs text-muted-foreground mb-1">No image available</p>
-                        <p className="font-medium text-sm">{nft.name || 'Untitled NFT'}</p>
+                      <div className="w-full h-48 bg-muted flex items-center justify-center">
+                        No Image
                       </div>
                     )}
                   </div>
