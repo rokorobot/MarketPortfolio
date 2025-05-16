@@ -221,6 +221,7 @@ const ImportNFTsPage = () => {
                         className="h-10 w-10 rounded-r-none"
                         onClick={() => setNftOffset(Math.max(0, nftOffset - 100))}
                         disabled={nftOffset === 0}
+                        title="Decrease by 100"
                       >
                         <MinusCircle className="h-4 w-4" />
                       </Button>
@@ -244,6 +245,7 @@ const ImportNFTsPage = () => {
                         size="icon"
                         className="h-10 w-10 rounded-l-none"
                         onClick={() => setNftOffset(nftOffset + 100)}
+                        title="Increase by 100"
                       >
                         <PlusCircle className="h-4 w-4" />
                       </Button>
