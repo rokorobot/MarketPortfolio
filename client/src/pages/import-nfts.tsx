@@ -353,14 +353,29 @@ const ImportNFTsPage = () => {
                       />
                     </div>
                     {nft.image ? (
-                      <img 
-                        src={nft.image} 
-                        alt={nft.name || 'NFT'} 
-                        className="w-full h-48 object-cover"
-                      />
+                      <div className="relative w-full h-48">
+                        <img 
+                          src={nft.image} 
+                          alt={nft.name || 'NFT'} 
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            // Replace broken image with a fallback
+                            e.currentTarget.onerror = null;
+                            e.currentTarget.style.display = 'none';
+                            e.currentTarget.parentElement.classList.add('bg-muted');
+                            e.currentTarget.parentElement.innerHTML += `
+                              <div class="absolute inset-0 flex flex-col items-center justify-center p-2 text-center">
+                                <p class="text-xs text-muted-foreground mb-1">Image unavailable</p>
+                                <p class="font-medium text-sm">${nft.name || 'Untitled NFT'}</p>
+                              </div>
+                            `;
+                          }}
+                        />
+                      </div>
                     ) : (
-                      <div className="w-full h-48 bg-muted flex items-center justify-center">
-                        No Image
+                      <div className="w-full h-48 bg-muted flex flex-col items-center justify-center p-4">
+                        <p className="text-xs text-muted-foreground mb-1">No image available</p>
+                        <p className="font-medium text-sm">{nft.name || 'Untitled NFT'}</p>
                       </div>
                     )}
                   </div>
