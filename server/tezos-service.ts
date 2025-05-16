@@ -425,8 +425,21 @@ export async function importTezosNFTsToPortfolio(
         tags.push(nft.collectionName);
       }
       
-      // Use better creator name if available
-      const author = nft.creatorName || nft.creator || 'Unknown Creator';
+      // Always assign the user's username as the author
+      // We'll store original creator info in externalMetadata
+      let username = 'Unknown Creator';
+      
+      try {
+        // Get the user's username
+        const user = await storage.getUser(userId);
+        if (user && user.username) {
+          username = user.username;
+        }
+      } catch (error) {
+        console.error('Error fetching username:', error);
+      }
+      
+      const author = username; // Set importing user as author
       
       // Create a new portfolio item
       const portfolioItem: InsertPortfolioItem = {
