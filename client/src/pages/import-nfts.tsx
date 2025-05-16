@@ -151,12 +151,22 @@ const ImportNFTsPage = () => {
   });
 
   const handleImportNFTs = () => {
-    const selectedNftIds = Object.entries(selectedNfts)
-      .filter(([_, isSelected]) => isSelected)
-      .map(([id]) => id);
-
+    // Get the list of selected NFT IDs
+    const selectedNftIds = Object.keys(selectedNfts);
+    
+    // Make sure we have something to import
+    if (selectedNftIds.length === 0) {
+      toast({
+        title: 'No NFTs Selected',
+        description: 'Please select at least one NFT to import',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    // Start the import process with the explicitly selected NFTs
     importMutation.mutate({
-      selectedNftIds: selectedNftIds.length > 0 ? selectedNftIds : undefined // If none selected, import all
+      selectedNftIds: selectedNftIds
     });
   };
 
@@ -188,10 +198,19 @@ const ImportNFTsPage = () => {
       return;
     }
     
-    setSelectedNfts(prev => ({
-      ...prev,
-      [id]: !prev[id]
-    }));
+    // Toggle selection state
+    setSelectedNfts(prev => {
+      const newState = { ...prev };
+      
+      // If it was previously selected, unselect it; otherwise select it
+      if (prev[id]) {
+        delete newState[id]; // Remove it to keep the object small
+      } else {
+        newState[id] = true;
+      }
+      
+      return newState;
+    });
   };
 
   const selectedCount = Object.values(selectedNfts).filter(Boolean).length;
