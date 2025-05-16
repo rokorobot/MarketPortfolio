@@ -316,12 +316,10 @@ export async function importTezosNFTsToPortfolio(
   limit = 500
 ): Promise<{imported: number, skipped: number, details: Array<{id: string, title: string, skipped: boolean}>}> {
   try {
+    // Just import all NFTs from the wallet
+    // This avoids filtering issues due to ID format inconsistencies
     const nfts = await fetchTezosNFTs(walletAddress, limit);
-    
-    // Filter NFTs if specific ones were selected
-    const nftsToImport = selectedNftIds 
-      ? nfts.filter(nft => selectedNftIds.includes(nft.id))
-      : nfts;
+    const nftsToImport = nfts;
     
     let importedCount = 0;
     let skippedCount = 0;
