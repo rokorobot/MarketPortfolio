@@ -372,9 +372,13 @@ export async function importTezosNFTsToPortfolio(
     // Refresh categories after adding new ones
     const updatedCategories = await storage.getCategories();
     
-    // Pre-check all NFTs to identify existing ones
+    // For testing, allow reimporting NFTs by setting this to an empty map
     const existingNftMap = new Map<string, boolean>();
     
+    console.log(`Will attempt to import all ${nftsToImport.length} NFTs (bypassing duplicate check for testing)`);
+    
+    // The original duplicate check code is commented out below:
+    /* 
     // Get all existing NFT IDs for this user in a single efficient query
     const allExistingNftIds = await Promise.all(
       nftsToImport.map(nft => storage.getItemsByExternalId(nft.id, userId))
@@ -388,12 +392,14 @@ export async function importTezosNFTsToPortfolio(
     });
     
     console.log(`Found ${existingNftMap.size} already imported NFTs out of ${nftsToImport.length} selected`);
+    */
     
     // Import each NFT as a portfolio item
     for (const nft of nftsToImport) {
       const nftTitle = nft.name || 'Untitled NFT';
       
-      // Check if this NFT is already imported for this user
+      // Temporarily disabled the duplicate check for testing
+      /* 
       if (existingNftMap.has(nft.id)) {
         console.log(`Skipping already imported NFT: ${nftTitle} (ID: ${nft.id})`);
         skippedCount++;
@@ -404,6 +410,7 @@ export async function importTezosNFTsToPortfolio(
         });
         continue;
       }
+      */
       
       // Determine category - use collection name if available, otherwise "NFT"
       let category = 'NFT';
