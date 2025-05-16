@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useMutation } from '@tanstack/react-query';
 import { Layout } from '@/components/layout';
 import { apiRequest, queryClient } from '@/lib/queryClient';
-import { Loader2, ChevronRight } from 'lucide-react';
+import { Loader2, ChevronRight, MinusCircle, PlusCircle } from 'lucide-react';
 import { useLocation } from 'wouter';
 import axios from 'axios';
 
@@ -213,23 +213,41 @@ const ImportNFTsPage = () => {
                     <label htmlFor="nft-offset" className="text-sm font-medium mb-1 block">
                       Start from NFT #
                     </label>
-                    <select 
-                      id="nft-offset"
-                      className="w-full h-10 px-3 py-2 bg-background text-foreground rounded-md border border-input"
-                      value={nftOffset}
-                      onChange={(e) => setNftOffset(parseInt(e.target.value, 10))}
-                    >
-                      <option value="0">0 (Start)</option>
-                      <option value="100">100</option>
-                      <option value="200">200</option>
-                      <option value="300">300</option>
-                      <option value="400">400</option>
-                      <option value="500">500</option>
-                      <option value="600">600</option>
-                      <option value="700">700</option>
-                      <option value="800">800</option>
-                      <option value="900">900</option>
-                    </select>
+                    <div className="flex items-center w-full">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="h-10 w-10 rounded-r-none"
+                        onClick={() => setNftOffset(Math.max(0, nftOffset - 100))}
+                        disabled={nftOffset === 0}
+                      >
+                        <MinusCircle className="h-4 w-4" />
+                      </Button>
+                      <Input
+                        id="nft-offset"
+                        type="number"
+                        min="0"
+                        step="100"
+                        className="h-10 rounded-none text-center"
+                        value={nftOffset}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value, 10);
+                          if (!isNaN(val) && val >= 0) {
+                            setNftOffset(val);
+                          }
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="h-10 w-10 rounded-l-none"
+                        onClick={() => setNftOffset(nftOffset + 100)}
+                      >
+                        <PlusCircle className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                   
                   <div className="w-1/3">
