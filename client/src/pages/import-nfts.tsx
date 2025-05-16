@@ -44,6 +44,7 @@ const ImportNFTsPage = () => {
   const [selectedNfts, setSelectedNfts] = useState<Record<string, boolean>>({});
   const [selectAll, setSelectAll] = useState(false);
   const [nftLimit, setNftLimit] = useState<number>(500); // Default to 500 NFTs
+  const [nftOffset, setNftOffset] = useState<number>(0); // Start from the beginning by default
   const [totalNfts, setTotalNfts] = useState<number>(0);
   
   // Import result states
@@ -76,7 +77,7 @@ const ImportNFTsPage = () => {
     setIsLoadingNfts(true);
     try {
       const response = await axios.get(
-        `/api/nfts/tezos?address=${encodeURIComponent(walletAddress)}&limit=${nftLimit}`
+        `/api/nfts/tezos?address=${encodeURIComponent(walletAddress)}&limit=${nftLimit}&offset=${nftOffset}`
       );
       setNfts(response.data.nfts || []);
       setTotalNfts(response.data.total || 0);
@@ -88,7 +89,7 @@ const ImportNFTsPage = () => {
       // Show toast with the number of NFTs fetched
       toast({
         title: 'NFTs Loaded',
-        description: `Found ${response.data.total} NFTs for this wallet.`,
+        description: `Found ${response.data.nfts?.length || 0} NFTs starting from #${nftOffset} (total: ${response.data.total}).`,
       });
     } catch (error: any) {
       console.error('Failed to fetch Tezos NFTs:', error);
@@ -100,7 +101,7 @@ const ImportNFTsPage = () => {
     } finally {
       setIsLoadingNfts(false);
     }
-  }, [walletAddress, nftLimit, toast]);
+  }, [walletAddress, nftLimit, nftOffset, toast]);
 
   const importMutation = useMutation({
     mutationFn: async ({ selectedNftIds }: { selectedNftIds?: string[] }) => {
@@ -208,6 +209,29 @@ const ImportNFTsPage = () => {
                 </div>
                 
                 <div className="flex justify-between items-end gap-4">
+                  <div className="w-1/3">
+                    <label htmlFor="nft-offset" className="text-sm font-medium mb-1 block">
+                      Start from NFT #
+                    </label>
+                    <select 
+                      id="nft-offset"
+                      className="w-full h-10 px-3 py-2 bg-background text-foreground rounded-md border border-input"
+                      value={nftOffset}
+                      onChange={(e) => setNftOffset(parseInt(e.target.value, 10))}
+                    >
+                      <option value="0">0 (Start)</option>
+                      <option value="100">100</option>
+                      <option value="200">200</option>
+                      <option value="300">300</option>
+                      <option value="400">400</option>
+                      <option value="500">500</option>
+                      <option value="600">600</option>
+                      <option value="700">700</option>
+                      <option value="800">800</option>
+                      <option value="900">900</option>
+                    </select>
+                  </div>
+                  
                   <div className="w-1/3">
                     <label htmlFor="nft-limit" className="text-sm font-medium mb-1 block">
                       Maximum NFTs to fetch
