@@ -578,16 +578,12 @@ export function registerRoutes(app: Express) {
   // Import NFTs from Tezos to portfolio
   app.post("/api/nfts/tezos/import", requireAuth, async (req: Request, res: Response) => {
     try {
+      const { address, selectedNftIds, limit } = req.body;
       const userId = req.session.userId;
       
       if (!userId) {
         return res.status(401).json({ message: "Not authenticated" });
       }
-      
-      // Log the raw request body for debugging
-      console.log('NFT Import request body:', req.body);
-      
-      const { address, selectedNftIds, limit } = req.body;
       
       if (!address || typeof address !== 'string') {
         return res.status(400).json({ message: "Wallet address is required" });
@@ -601,16 +597,13 @@ export function registerRoutes(app: Express) {
         return res.status(400).json({ message: "Invalid limit value" });
       }
       
-      // Log full details for debugging
       console.log(`Importing NFTs for wallet ${address} with limit ${parsedLimit}...`);
-      console.log(`Selected NFT IDs (${selectedNftIds ? selectedNftIds.length : 0}):`, selectedNftIds);
-      console.log(`User ID:`, userId);
       
       // Import selected NFTs or all if none selected
       const importResult = await importTezosNFTsToPortfolio(
         address, 
         userId, 
-        selectedNftIds || [],
+        selectedNftIds,
         parsedLimit
       );
       

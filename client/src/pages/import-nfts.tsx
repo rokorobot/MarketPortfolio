@@ -154,13 +154,10 @@ const ImportNFTsPage = () => {
     const selectedNftIds = Object.entries(selectedNfts)
       .filter(([_, isSelected]) => isSelected)
       .map(([id]) => id);
-    
-    // Add debugging to see exactly what we're sending
-    console.log('Selected NFTs for import:', selectedNfts);
-    console.log('Filtered NFT IDs:', selectedNftIds);
-    
-    // Always send the selected NFT IDs, even if empty
-    importMutation.mutate({ selectedNftIds });
+
+    importMutation.mutate({
+      selectedNftIds: selectedNftIds.length > 0 ? selectedNftIds : undefined // If none selected, import all
+    });
   };
 
   const handleToggleSelectAll = () => {

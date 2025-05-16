@@ -2,8 +2,6 @@ import axios from 'axios';
 import { portfolioItems, InsertPortfolioItem, InsertCategory } from '@shared/schema';
 import { storage } from './storage';
 
-
-
 export interface TezosNFT {
   id: string;
   name?: string;
@@ -99,22 +97,15 @@ function extractCollectionInfo(token: any): {
   let collectionImage = '';
   let collection = '';
   
-  // Contract alias is often the most accurate collection name
-  if (token?.token?.contract?.alias) {
-    collectionName = token.token.contract.alias;
-    console.log(`Using contract alias as collection name: ${collectionName}`);
-  }
-  
-  // Check common metadata fields for collection info if we don't have a name yet
-  if (!collectionName && token?.token?.metadata) {
+  // Check common metadata fields for collection info
+  if (token?.token?.metadata) {
     const metadata = token.token.metadata;
     
-    // Common collection name fields in different marketplaces and metadata formats
+    // Common collection name fields
     collectionName = metadata?.collection_name || 
                      metadata?.collectionName ||
                      metadata?.collection?.name || 
-                     metadata?.series ||
-                     metadata?.collection ||
+                     metadata?.series || 
                      '';
     
     // Common collection image fields
@@ -133,27 +124,16 @@ function extractCollectionInfo(token: any): {
     }
   }
   
-  // If we still don't have a collection name but have a contract, use a formatted version of the address
+  // If we still don't have a collection name but have a contract, use it
   if (!collectionName && collectionAddress) {
     // Try to get a friendly name from the contract alias if available
-    collectionName = token?.token?.contract?.alias || "";
-    
-    // If still no name, create a friendly name from the contract address
-    if (!collectionName) {
-      collectionName = `Collection ${collectionAddress.substring(0, 5)}...${collectionAddress.substring(collectionAddress.length - 4)}`;
-      console.log(`Created default name for contract: ${collectionName}`);
-    }
+    collectionName = token?.token?.contract?.alias || 
+                    `Collection ${collectionAddress.substring(0, 6)}...${collectionAddress.substring(collectionAddress.length - 4)}`;
   }
   
-  // If we don't have a collection identifier yet, use the address as an internal identifier
-  // but maintain a better display name if available
+  // If we don't have a collection identifier yet, use the address
   if (!collection && collectionAddress) {
     collection = collectionAddress;
-    
-    // If we have no name yet, try to use the contract address in a clean format
-    if (!collectionName) {
-      collectionName = token?.token?.contract?.alias || "";
-    }
   }
   
   return {
@@ -316,18 +296,12 @@ export async function importTezosNFTsToPortfolio(
   limit = 500
 ): Promise<{imported: number, skipped: number, details: Array<{id: string, title: string, skipped: boolean}>}> {
   try {
-    // Get the user's username for proper attribution
-    const user = await storage.getUser(userId);
-    if (!user) {
-      throw new Error("User not found");
-    }
-    
-    console.log(`Importing NFTs for user ${user.username} (ID: ${userId})`);
-    
-    // Just import all NFTs from the wallet
-    // This avoids filtering issues due to ID format inconsistencies
     const nfts = await fetchTezosNFTs(walletAddress, limit);
-    const nftsToImport = nfts;
+    
+    // Filter NFTs if specific ones were selected
+    const nftsToImport = selectedNftIds 
+      ? nfts.filter(nft => selectedNftIds.includes(nft.id))
+      : nfts;
     
     let importedCount = 0;
     let skippedCount = 0;
@@ -342,13 +316,10 @@ export async function importTezosNFTsToPortfolio(
     
     // Process collections first (so they can be assigned as categories)
     nftsToImport.forEach(nft => {
-      // Only create a category if we have a real collection name (non-empty)
       if (nft.collectionName && 
-          nft.collectionName.trim() !== '' &&
           !categoryNames.has(nft.collectionName.toLowerCase()) && 
           !newCollectionsMap.has(nft.collectionName.toLowerCase())) {
         
-        // Use the actual collection name from OBJKT/metadata
         newCollectionsMap.set(nft.collectionName.toLowerCase(), {
           name: nft.collectionName,
           description: `Collection imported from Tezos blockchain`,
@@ -407,16 +378,13 @@ export async function importTezosNFTsToPortfolio(
       
       // Determine category - use collection name if available, otherwise "NFT"
       let category = 'NFT';
-      if (nft.collectionName && nft.collectionName.trim() !== '') {
-        // Simply find the matching category by name
+      if (nft.collectionName) {
+        // Find the matching category (case-insensitive)
         const matchedCategory = updatedCategories.find(
-          cat => cat.name.toLowerCase() === nft.collectionName?.toLowerCase()
+          c => c.name.toLowerCase() === nft.collectionName?.toLowerCase()
         );
-        
         if (matchedCategory) {
           category = matchedCategory.name;
-        } else {
-          console.log(`Could not find matching category for collection "${nft.collectionName}"`);
         }
       }
       
@@ -433,8 +401,8 @@ export async function importTezosNFTsToPortfolio(
         tags.push(nft.collectionName);
       }
       
-      // Set the logged-in user's username as the author
-      const author = user.username;
+      // Use better creator name if available
+      const author = nft.creatorName || nft.creator || 'Unknown Creator';
       
       // Create a new portfolio item
       const portfolioItem: InsertPortfolioItem = {
