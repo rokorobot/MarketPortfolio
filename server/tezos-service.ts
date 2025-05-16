@@ -319,15 +319,9 @@ export async function importTezosNFTsToPortfolio(
     const nfts = await fetchTezosNFTs(walletAddress, limit);
     
     // Filter NFTs if specific ones were selected
-    let nftsToImport = nfts;
-    
-    if (selectedNftIds && selectedNftIds.length > 0) {
-      console.log(`Filtering ${nfts.length} NFTs to only include ${selectedNftIds.length} selected IDs`);
-      nftsToImport = nfts.filter(nft => selectedNftIds.includes(nft.id));
-      console.log(`After filtering: ${nftsToImport.length} NFTs to import`);
-    } else {
-      console.log(`No specific NFTs selected, importing all ${nfts.length} NFTs`);
-    }
+    const nftsToImport = selectedNftIds 
+      ? nfts.filter(nft => selectedNftIds.includes(nft.id))
+      : nfts;
     
     let importedCount = 0;
     let skippedCount = 0;
