@@ -105,10 +105,17 @@ const ImportNFTsPage = () => {
   }, [walletAddress, nftLimit, nftOffset, toast]);
 
   const importMutation = useMutation({
-    mutationFn: async ({ selectedNftIds }: { selectedNftIds?: string[] }) => {
+    mutationFn: async ({ selectedNftIds }: { selectedNftIds: string[] }) => {
+      // Log the data being sent to better diagnose the issue
+      console.log('Sending import request with data:', {
+        address: walletAddress,
+        selectedNftIds: selectedNftIds,
+        limit: nftLimit
+      });
+      
       const response = await apiRequest('POST', '/api/nfts/tezos/import', {
         address: walletAddress,
-        selectedNftIds,
+        selectedNftIds: selectedNftIds,
         limit: nftLimit
       });
       return await response.json();

@@ -597,7 +597,10 @@ export function registerRoutes(app: Express) {
         return res.status(400).json({ message: "Invalid limit value" });
       }
       
+      // Log full details for debugging
       console.log(`Importing NFTs for wallet ${address} with limit ${parsedLimit}...`);
+      console.log(`Selected NFT IDs:`, selectedNftIds);
+      console.log(`User ID:`, userId);
       
       // Import selected NFTs or all if none selected
       const importResult = await importTezosNFTsToPortfolio(
