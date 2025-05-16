@@ -543,7 +543,7 @@ export function registerRoutes(app: Express) {
   // Fetch NFTs from Tezos blockchain
   app.get("/api/nfts/tezos", requireAuth, async (req: Request, res: Response) => {
     try {
-      const { address, limit } = req.query;
+      const { address, limit, offset } = req.query;
       
       if (!address || typeof address !== 'string') {
         return res.status(400).json({ message: "Wallet address is required" });
@@ -552,12 +552,19 @@ export function registerRoutes(app: Express) {
       // Parse limit if provided, default to 500
       const parsedLimit = limit ? parseInt(limit as string, 10) : 500;
       
-      // Validate limit
+      // Parse offset if provided, default to 0
+      const parsedOffset = offset ? parseInt(offset as string, 10) : 0;
+      
+      // Validate limit and offset
       if (isNaN(parsedLimit) || parsedLimit < 1) {
         return res.status(400).json({ message: "Invalid limit value" });
       }
       
-      const nfts = await fetchTezosNFTs(address, parsedLimit);
+      if (isNaN(parsedOffset) || parsedOffset < 0) {
+        return res.status(400).json({ message: "Invalid offset value" });
+      }
+      
+      const nfts = await fetchTezosNFTs(address, parsedLimit, parsedOffset);
       return res.json({ nfts, total: nfts.length });
     } catch (error: any) {
       console.error("Error fetching Tezos NFTs:", error);

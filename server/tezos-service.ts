@@ -148,9 +148,10 @@ function extractCollectionInfo(token: any): {
  * Fetch NFTs owned by a Tezos wallet address with pagination support
  * @param walletAddress - The Tezos wallet address
  * @param limit - Optional maximum number of NFTs to fetch (default: 500)
+ * @param offset - Optional starting position for fetching NFTs (default: 0)
  * @returns Promise with an array of NFTs owned by the wallet
  */
-export async function fetchTezosNFTs(walletAddress: string, limit = 500): Promise<TezosNFT[]> {
+export async function fetchTezosNFTs(walletAddress: string, limit = 500, offset = 0): Promise<TezosNFT[]> {
   try {
     // Validate Tezos wallet address format
     if (!walletAddress.startsWith('tz1') && !walletAddress.startsWith('tz2') && !walletAddress.startsWith('tz3')) {
@@ -161,17 +162,20 @@ export async function fetchTezosNFTs(walletAddress: string, limit = 500): Promis
     const pageSize = 100; // TzKT API default page size is 100
     const maxPages = Math.ceil(limit / pageSize);
     let allTokens: any[] = [];
-    let currentPage = 0;
+    
+    // Calculate starting page based on offset
+    const startPage = Math.floor(offset / pageSize);
+    let currentPage = startPage;
     let hasMorePages = true;
     
-    console.log(`Fetching up to ${limit} NFTs for wallet ${walletAddress} (max ${maxPages} pages)...`);
+    console.log(`Fetching up to ${limit} NFTs for wallet ${walletAddress} starting from offset ${offset} (max ${maxPages} pages)...`);
     
     // Fetch tokens with pagination
-    while (hasMorePages && currentPage < maxPages) {
-      const offset = currentPage * pageSize;
-      const url = `https://api.tzkt.io/v1/tokens/balances?account=${walletAddress}&token.standard=fa2&balance.ne=0&offset=${offset}&limit=${pageSize}`;
+    while (hasMorePages && currentPage < startPage + maxPages) {
+      const pageOffset = currentPage * pageSize;
+      const url = `https://api.tzkt.io/v1/tokens/balances?account=${walletAddress}&token.standard=fa2&balance.ne=0&offset=${pageOffset}&limit=${pageSize}`;
       
-      console.log(`Fetching page ${currentPage + 1} (offset: ${offset})...`);
+      console.log(`Fetching page ${currentPage + 1} (offset: ${pageOffset})...`);
       const response = await axios.get(url);
       
       if (response.data.length === 0) {
@@ -182,12 +186,25 @@ export async function fetchTezosNFTs(walletAddress: string, limit = 500): Promis
       }
       
       // Short delay to avoid rate limiting
-      if (hasMorePages && currentPage < maxPages) {
+      if (hasMorePages && currentPage < startPage + maxPages) {
         await new Promise(resolve => setTimeout(resolve, 300));
       }
     }
     
-    console.log(`Successfully fetched ${allTokens.length} NFTs from ${currentPage} pages`);
+    console.log(`Successfully fetched ${allTokens.length} NFTs starting from offset ${offset}`);
+    
+    // Apply the real offset within the first page if needed
+    if (offset > 0 && offset % pageSize !== 0) {
+      const inPageOffset = offset % pageSize;
+      allTokens = allTokens.slice(inPageOffset);
+      console.log(`Applied in-page offset of ${inPageOffset}, resulting in ${allTokens.length} NFTs`);
+    }
+    
+    // Limit the number of tokens according to requested limit
+    if (allTokens.length > limit) {
+      allTokens = allTokens.slice(0, limit);
+      console.log(`Limited result to ${limit} NFTs as requested`);
+    }
     
     const nfts: TezosNFT[] = allTokens.map((token: any) => {
       // Process IPFS URLs
