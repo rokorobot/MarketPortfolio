@@ -30,6 +30,7 @@ interface NFT {
   creator?: string;
   marketplace?: string;
   marketplaceUrl?: string;
+  hasValidImage?: boolean; // Track if the image is valid
 }
 
 const ImportNFTsPage = () => {
@@ -165,12 +166,28 @@ const ImportNFTsPage = () => {
     
     const newSelectedNfts = { ...selectedNfts };
     nfts.forEach((nft) => {
-      newSelectedNfts[nft.id] = newSelectAll;
+      // Only select NFTs with valid images or those that don't have the hasValidImage property set yet
+      if (nft.hasValidImage !== false) {
+        newSelectedNfts[nft.id] = newSelectAll;
+      }
     });
     setSelectedNfts(newSelectedNfts);
   };
 
   const handleToggleNft = (id: string) => {
+    // Find the NFT to check if it has a valid image
+    const nft = nfts.find(n => n.id === id);
+    
+    // Don't allow selecting NFTs with invalid images
+    if (nft && nft.hasValidImage === false) {
+      toast({
+        title: 'Cannot select',
+        description: 'NFTs with missing or unavailable images cannot be imported',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
     setSelectedNfts(prev => ({
       ...prev,
       [id]: !prev[id]
@@ -350,6 +367,7 @@ const ImportNFTsPage = () => {
                       <Checkbox 
                         checked={selectedNfts[nft.id] || false} 
                         onCheckedChange={() => handleToggleNft(nft.id)}
+                        disabled={nft.hasValidImage === false}
                       />
                     </div>
                     {nft.image ? (
@@ -359,16 +377,33 @@ const ImportNFTsPage = () => {
                           alt={nft.name || 'NFT'} 
                           className="w-full h-full object-cover"
                           onError={(e) => {
+                            // Mark the NFT as having an invalid image
+                            nft.hasValidImage = false;
+                            
+                            // If this NFT is selected, deselect it
+                            if (selectedNfts[nft.id]) {
+                              handleToggleNft(nft.id);
+                            }
+                            
                             // Replace broken image with a fallback
                             e.currentTarget.onerror = null;
                             e.currentTarget.style.display = 'none';
-                            e.currentTarget.parentElement.classList.add('bg-muted');
-                            e.currentTarget.parentElement.innerHTML += `
-                              <div class="absolute inset-0 flex flex-col items-center justify-center p-2 text-center">
-                                <p class="text-xs text-muted-foreground mb-1">Image unavailable</p>
-                                <p class="font-medium text-sm">${nft.name || 'Untitled NFT'}</p>
-                              </div>
-                            `;
+                            
+                            const parent = e.currentTarget.parentElement;
+                            if (parent) {
+                              parent.classList.add('bg-muted');
+                              parent.innerHTML += `
+                                <div class="absolute inset-0 flex flex-col items-center justify-center p-2 text-center">
+                                  <p class="text-xs text-muted-foreground mb-1">Image unavailable</p>
+                                  <p class="font-medium text-sm">${nft.name || 'Untitled NFT'}</p>
+                                  <p class="text-xs text-red-500 mt-1">Cannot be imported</p>
+                                </div>
+                              `;
+                            }
+                          }}
+                          onLoad={() => {
+                            // Mark the NFT as having a valid image
+                            nft.hasValidImage = true;
                           }}
                         />
                       </div>
