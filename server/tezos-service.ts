@@ -316,6 +316,14 @@ export async function importTezosNFTsToPortfolio(
   limit = 500
 ): Promise<{imported: number, skipped: number, details: Array<{id: string, title: string, skipped: boolean}>}> {
   try {
+    // Get the user's username for proper attribution
+    const user = await storage.getUser(userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+    
+    console.log(`Importing NFTs for user ${user.username} (ID: ${userId})`);
+    
     // Just import all NFTs from the wallet
     // This avoids filtering issues due to ID format inconsistencies
     const nfts = await fetchTezosNFTs(walletAddress, limit);
@@ -425,21 +433,8 @@ export async function importTezosNFTsToPortfolio(
         tags.push(nft.collectionName);
       }
       
-      // Always assign the user's username as the author
-      // We'll store original creator info in externalMetadata
-      let username = 'Unknown Creator';
-      
-      try {
-        // Get the user's username
-        const user = await storage.getUser(userId);
-        if (user && user.username) {
-          username = user.username;
-        }
-      } catch (error) {
-        console.error('Error fetching username:', error);
-      }
-      
-      const author = username; // Set importing user as author
+      // Set the logged-in user's username as the author
+      const author = user.username;
       
       // Create a new portfolio item
       const portfolioItem: InsertPortfolioItem = {
