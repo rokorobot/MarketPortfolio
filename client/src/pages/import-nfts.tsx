@@ -45,6 +45,14 @@ const ImportNFTsPage = () => {
   const [selectAll, setSelectAll] = useState(false);
   const [nftLimit, setNftLimit] = useState<number>(500); // Default to 500 NFTs
   const [totalNfts, setTotalNfts] = useState<number>(0);
+  
+  // Import result states
+  const [importResult, setImportResult] = useState<{
+    message: string;
+    imported: number;
+    skipped: number;
+    isVisible: boolean;
+  } | null>(null);
 
   const isAuthenticated = !!user;
   
@@ -103,13 +111,33 @@ const ImportNFTsPage = () => {
       });
       return await response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Display a more detailed result message
+      const { imported, skipped, message } = data;
+      
+      // Show toast with detailed information
       toast({
-        title: 'Success',
-        description: 'NFTs imported successfully!',
+        title: 'Import Results',
+        description: message || `Imported ${imported || 0} NFTs${skipped ? `, skipped ${skipped} duplicates` : ''}`,
+        duration: 5000, // Show for 5 seconds before redirecting
       });
+      
+      // Update the items list
       queryClient.invalidateQueries({ queryKey: ['/api/items'] });
-      navigate('/');
+      
+      // Set the import result to display on page
+      setImportResult({
+        message: message || `Successfully imported ${imported || 0} NFTs${skipped ? `, skipped ${skipped} duplicates` : ''}`,
+        imported: imported || 0,
+        skipped: skipped || 0,
+        isVisible: true
+      });
+      
+      // Delay navigation to home to give time to see the results
+      setTimeout(() => {
+        setImportResult(null); // Clear the result when navigating
+        navigate('/');
+      }, 4000); // A bit longer to ensure users see the message
     },
     onError: (error: any) => {
       toast({
