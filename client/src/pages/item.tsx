@@ -81,15 +81,18 @@ export default function Item() {
   }, [favoriteStatus]);
 
   // Get category options from API (combines built-in and custom categories)
-  const { data: categoryOptions, isLoading: isLoadingCategories } = useQuery<string[]>({
+  const { data: categoryOptions = [], isLoading: isLoadingCategories } = useQuery<string[]>({
     queryKey: ['/api/category-options'],
-    initialData: [], // Initialize with empty array to avoid undefined errors
+    staleTime: 0, // Don't use cached data
+    refetchOnMount: true, // Always refetch when component mounts
   });
   
   // Debug log category options
   React.useEffect(() => {
+    // Force fetch categories when component mounts
+    queryClient.invalidateQueries({ queryKey: ['/api/category-options'] });
     console.log("Category options loaded:", categoryOptions);
-  }, [categoryOptions]);
+  }, []);
   
   // Define form schema for editing
   const formSchema = z.object({
