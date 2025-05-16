@@ -87,12 +87,26 @@ export default function Item() {
     refetchOnMount: true, // Always refetch when component mounts
   });
   
-  // Debug log category options
+  // Fetch and debug log category options
   React.useEffect(() => {
-    // Force fetch categories when component mounts
-    queryClient.invalidateQueries({ queryKey: ['/api/category-options'] });
-    console.log("Category options loaded:", categoryOptions);
-  }, []);
+    // Direct fetch to ensure we always get fresh data
+    async function fetchCategories() {
+      try {
+        const response = await fetch('/api/category-options');
+        if (response.ok) {
+          const categories = await response.json();
+          console.log("Category options fetched directly:", categories);
+          
+          // Update the query cache with fresh data
+          queryClient.setQueryData(['/api/category-options'], categories);
+        }
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+      }
+    }
+    
+    fetchCategories();
+  }, [isEditing]); // Refetch when edit mode is activated
   
   // Define form schema for editing
   const formSchema = z.object({
@@ -583,22 +597,12 @@ export default function Item() {
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                {/* Display all available categories */}
-                                {categoryOptions?.length > 0 ? (
-                                  categoryOptions.map((category) => (
-                                    <SelectItem key={category} value={category}>
-                                      {category}
-                                    </SelectItem>
-                                  ))
-                                ) : (
-                                  /* Fallback categories if API fails to load */
-                                  <>
-                                    <SelectItem value="Digital Art">Digital Art</SelectItem>
-                                    <SelectItem value="Photography">Photography</SelectItem>
-                                    <SelectItem value="3D Models">3D Models</SelectItem>
-                                    <SelectItem value="Collectibles">Collectibles</SelectItem>
-                                  </>
-                                )}
+                                {/* Display all collection names without any labels */}
+                                {Array.isArray(categoryOptions) && categoryOptions.map((category) => (
+                                  <SelectItem key={category} value={category}>
+                                    {category}
+                                  </SelectItem>
+                                ))}
                               </SelectContent>
                             </Select>
                             <FormMessage />
