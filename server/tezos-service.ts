@@ -148,9 +148,10 @@ function extractCollectionInfo(token: any): {
  * Fetch NFTs owned by a Tezos wallet address with pagination support
  * @param walletAddress - The Tezos wallet address
  * @param limit - Optional maximum number of NFTs to fetch (default: 500)
+ * @param startOffset - Optional starting offset for NFT fetching (default: 0)
  * @returns Promise with an array of NFTs owned by the wallet
  */
-export async function fetchTezosNFTs(walletAddress: string, limit = 500): Promise<TezosNFT[]> {
+export async function fetchTezosNFTs(walletAddress: string, limit = 500, startOffset = 0): Promise<TezosNFT[]> {
   try {
     // Validate Tezos wallet address format
     if (!walletAddress.startsWith('tz1') && !walletAddress.startsWith('tz2') && !walletAddress.startsWith('tz3')) {
@@ -161,14 +162,16 @@ export async function fetchTezosNFTs(walletAddress: string, limit = 500): Promis
     const pageSize = 100; // TzKT API default page size is 100
     const maxPages = Math.ceil(limit / pageSize);
     let allTokens: any[] = [];
+    // Calculate starting offset
+    let initialOffset = startOffset;
     let currentPage = 0;
     let hasMorePages = true;
     
-    console.log(`Fetching up to ${limit} NFTs for wallet ${walletAddress} (max ${maxPages} pages)...`);
+    console.log(`Fetching up to ${limit} NFTs for wallet ${walletAddress} starting from ${startOffset} (max ${maxPages} pages)...`);
     
     // Fetch tokens with pagination
     while (hasMorePages && currentPage < maxPages) {
-      const offset = currentPage * pageSize;
+      const offset = initialOffset + (currentPage * pageSize);
       const url = `https://api.tzkt.io/v1/tokens/balances?account=${walletAddress}&token.standard=fa2&balance.ne=0&offset=${offset}&limit=${pageSize}`;
       
       console.log(`Fetching page ${currentPage + 1} (offset: ${offset})...`);
@@ -270,16 +273,18 @@ export async function fetchTezosNFTs(walletAddress: string, limit = 500): Promis
  * @param userId - The user ID to associate the NFTs with
  * @param selectedNftIds - Optional array of NFT IDs to import (if not provided, imports all)
  * @param limit - Optional maximum number of NFTs to fetch (default: 500)
+ * @param startOffset - Optional starting offset for NFT fetching (default: 0)
  * @returns Promise with number of imported items
  */
 export async function importTezosNFTsToPortfolio(
   walletAddress: string, 
   userId: number,
   selectedNftIds?: string[],
-  limit = 500
+  limit = 500,
+  startOffset = 0
 ): Promise<{imported: number, skipped: number, details: Array<{id: string, title: string, skipped: boolean}>}> {
   try {
-    const nfts = await fetchTezosNFTs(walletAddress, limit);
+    const nfts = await fetchTezosNFTs(walletAddress, limit, startOffset);
     
     // Filter NFTs if specific ones were selected
     const nftsToImport = selectedNftIds 

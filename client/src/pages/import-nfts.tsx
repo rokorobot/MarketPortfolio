@@ -108,7 +108,8 @@ const ImportNFTsPage = () => {
       const response = await apiRequest('POST', '/api/nfts/tezos/import', {
         address: walletAddress,
         selectedNftIds,
-        limit: nftLimit
+        limit: nftLimit,
+        offset: nftOffset
       });
       return await response.json();
     },

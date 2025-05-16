@@ -543,7 +543,7 @@ export function registerRoutes(app: Express) {
   // Fetch NFTs from Tezos blockchain
   app.get("/api/nfts/tezos", requireAuth, async (req: Request, res: Response) => {
     try {
-      const { address, limit } = req.query;
+      const { address, limit, offset } = req.query;
       
       if (!address || typeof address !== 'string') {
         return res.status(400).json({ message: "Wallet address is required" });
@@ -552,12 +552,20 @@ export function registerRoutes(app: Express) {
       // Parse limit if provided, default to 500
       const parsedLimit = limit ? parseInt(limit as string, 10) : 500;
       
+      // Parse offset if provided, default to 0
+      const parsedOffset = offset ? parseInt(offset as string, 10) : 0;
+      
       // Validate limit
       if (isNaN(parsedLimit) || parsedLimit < 1) {
         return res.status(400).json({ message: "Invalid limit value" });
       }
       
-      const nfts = await fetchTezosNFTs(address, parsedLimit);
+      // Validate offset
+      if (isNaN(parsedOffset) || parsedOffset < 0) {
+        return res.status(400).json({ message: "Invalid offset value" });
+      }
+      
+      const nfts = await fetchTezosNFTs(address, parsedLimit, parsedOffset);
       return res.json({ nfts, total: nfts.length });
     } catch (error: any) {
       console.error("Error fetching Tezos NFTs:", error);
@@ -571,7 +579,7 @@ export function registerRoutes(app: Express) {
   // Import NFTs from Tezos to portfolio
   app.post("/api/nfts/tezos/import", requireAuth, async (req: Request, res: Response) => {
     try {
-      const { address, selectedNftIds, limit } = req.body;
+      const { address, selectedNftIds, limit, offset } = req.body;
       const userId = req.session.userId;
       
       if (!userId) {
@@ -585,19 +593,28 @@ export function registerRoutes(app: Express) {
       // Parse limit if provided, default to 500
       const parsedLimit = limit ? parseInt(limit, 10) : 500;
       
+      // Parse offset if provided, default to 0
+      const parsedOffset = offset ? parseInt(offset, 10) : 0;
+      
       // Validate limit
       if (isNaN(parsedLimit) || parsedLimit < 1) {
         return res.status(400).json({ message: "Invalid limit value" });
       }
       
-      console.log(`Importing NFTs for wallet ${address} with limit ${parsedLimit}...`);
+      // Validate offset
+      if (isNaN(parsedOffset) || parsedOffset < 0) {
+        return res.status(400).json({ message: "Invalid offset value" });
+      }
+      
+      console.log(`Importing NFTs for wallet ${address} with limit ${parsedLimit} starting from offset ${parsedOffset}...`);
       
       // Import selected NFTs or all if none selected
       const importResult = await importTezosNFTsToPortfolio(
         address, 
         userId, 
         selectedNftIds,
-        parsedLimit
+        parsedLimit,
+        parsedOffset
       );
       
       // Generate a more informative message
