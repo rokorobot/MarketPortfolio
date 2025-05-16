@@ -99,15 +99,22 @@ function extractCollectionInfo(token: any): {
   let collectionImage = '';
   let collection = '';
   
-  // Check common metadata fields for collection info
-  if (token?.token?.metadata) {
+  // Contract alias is often the most accurate collection name
+  if (token?.token?.contract?.alias) {
+    collectionName = token.token.contract.alias;
+    console.log(`Using contract alias as collection name: ${collectionName}`);
+  }
+  
+  // Check common metadata fields for collection info if we don't have a name yet
+  if (!collectionName && token?.token?.metadata) {
     const metadata = token.token.metadata;
     
-    // Common collection name fields
+    // Common collection name fields in different marketplaces and metadata formats
     collectionName = metadata?.collection_name || 
                      metadata?.collectionName ||
                      metadata?.collection?.name || 
-                     metadata?.series || 
+                     metadata?.series ||
+                     metadata?.collection ||
                      '';
     
     // Common collection image fields
@@ -129,8 +136,12 @@ function extractCollectionInfo(token: any): {
   // If we still don't have a collection name but have a contract, use it
   if (!collectionName && collectionAddress) {
     // Try to get a friendly name from the contract alias if available
-    collectionName = token?.token?.contract?.alias || 
-                    `Collection ${collectionAddress.substring(0, 6)}...${collectionAddress.substring(collectionAddress.length - 4)}`;
+    collectionName = token?.token?.contract?.alias || "";
+    
+    // If we can't get a name, let's make a note of it
+    if (!collectionName) {
+      console.log(`Warning: No collection name found for contract ${collectionAddress}`);
+    }
   }
   
   // If we don't have a collection identifier yet, use the address
@@ -318,18 +329,15 @@ export async function importTezosNFTsToPortfolio(
     
     // Process collections first (so they can be assigned as categories)
     nftsToImport.forEach(nft => {
+      // Only create a category if we have a real collection name (non-empty)
       if (nft.collectionName && 
+          nft.collectionName.trim() !== '' &&
           !categoryNames.has(nft.collectionName.toLowerCase()) && 
           !newCollectionsMap.has(nft.collectionName.toLowerCase())) {
         
-        // Clean up the collection name if it's a contract address to make it more user-friendly
-        let cleanName = nft.collectionName;
-        if (cleanName.startsWith('KT1') || cleanName.startsWith('tz1') || cleanName.startsWith('tz2') || cleanName.startsWith('tz3')) {
-          cleanName = `Collection ${cleanName.substring(0, 5)}...${cleanName.substring(cleanName.length - 4)}`;
-        }
-        
+        // Use the actual collection name from OBJKT/metadata
         newCollectionsMap.set(nft.collectionName.toLowerCase(), {
-          name: cleanName,
+          name: nft.collectionName,
           description: `Collection imported from Tezos blockchain`,
           imageUrl: nft.collectionImage || null,
           createdById: userId
@@ -386,22 +394,16 @@ export async function importTezosNFTsToPortfolio(
       
       // Determine category - use collection name if available, otherwise "NFT"
       let category = 'NFT';
-      if (nft.collectionName) {
-        // Clean up collection name if it's a wallet/contract address
-        let cleanName = nft.collectionName;
-        if (cleanName.startsWith('KT1') || cleanName.startsWith('tz1') || cleanName.startsWith('tz2') || cleanName.startsWith('tz3')) {
-          cleanName = `Collection ${cleanName.substring(0, 5)}...${cleanName.substring(cleanName.length - 4)}`;
-        }
-        
-        // Find a category match using the cleaned name
-        const matchedCategory = updatedCategories.find(cat => {
-          // Try matching with the clean name or original name
-          return cat.name.toLowerCase() === cleanName.toLowerCase() || 
-                 cat.name.toLowerCase() === nft.collectionName?.toLowerCase();
-        });
+      if (nft.collectionName && nft.collectionName.trim() !== '') {
+        // Simply find the matching category by name
+        const matchedCategory = updatedCategories.find(
+          cat => cat.name.toLowerCase() === nft.collectionName?.toLowerCase()
+        );
         
         if (matchedCategory) {
           category = matchedCategory.name;
+        } else {
+          console.log(`Could not find matching category for collection "${nft.collectionName}"`);
         }
       }
       
