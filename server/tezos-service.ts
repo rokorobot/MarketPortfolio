@@ -133,14 +133,15 @@ function extractCollectionInfo(token: any): {
     }
   }
   
-  // If we still don't have a collection name but have a contract, use it
+  // If we still don't have a collection name but have a contract, use a formatted version of the address
   if (!collectionName && collectionAddress) {
     // Try to get a friendly name from the contract alias if available
     collectionName = token?.token?.contract?.alias || "";
     
-    // If we can't get a name, let's make a note of it
+    // If still no name, create a friendly name from the contract address
     if (!collectionName) {
-      console.log(`Warning: No collection name found for contract ${collectionAddress}`);
+      collectionName = `Collection ${collectionAddress.substring(0, 5)}...${collectionAddress.substring(collectionAddress.length - 4)}`;
+      console.log(`Created default name for contract: ${collectionName}`);
     }
   }
   
