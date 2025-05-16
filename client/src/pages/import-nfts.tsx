@@ -359,6 +359,36 @@ const ImportNFTsPage = () => {
             </CardContent>
           </Card>
         )}
+        
+        {/* Import Results Card */}
+        {importResult && importResult.isVisible && (
+          <Card className="mt-8 border-2 border-primary animate-pulse">
+            <CardHeader>
+              <CardTitle className="text-center">Import Results</CardTitle>
+            </CardHeader>
+            <CardContent className="p-8 text-center">
+              <div className="flex flex-col items-center space-y-4">
+                <div className="text-xl font-medium">{importResult.message}</div>
+                
+                <div className="grid grid-cols-2 gap-4 w-full max-w-md">
+                  <div className="bg-muted rounded-lg p-4 text-center">
+                    <div className="text-3xl font-bold text-primary">{importResult.imported}</div>
+                    <div className="text-sm text-muted-foreground">NFTs Imported</div>
+                  </div>
+                  
+                  <div className="bg-muted rounded-lg p-4 text-center">
+                    <div className="text-3xl font-bold text-amber-500">{importResult.skipped}</div>
+                    <div className="text-sm text-muted-foreground">Duplicates Skipped</div>
+                  </div>
+                </div>
+                
+                <p className="text-sm text-muted-foreground mt-4">
+                  Redirecting to your portfolio in a moment...
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </Layout>
   );
