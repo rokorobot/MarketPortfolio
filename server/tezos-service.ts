@@ -2,6 +2,23 @@ import axios from 'axios';
 import { portfolioItems, InsertPortfolioItem, InsertCategory } from '@shared/schema';
 import { storage } from './storage';
 
+/**
+ * Clean up a collection name, especially for wallet/contract addresses
+ * @param name - The original collection name
+ * @returns A cleaner, more user-friendly name
+ */
+function cleanCollectionName(name: string): string {
+  // Check if it looks like a wallet or contract address
+  if (name.startsWith('KT1') || name.startsWith('tz1') || name.startsWith('tz2') || name.startsWith('tz3')) {
+    // If it's a long address, shorten it for display
+    // Return "Collection" followed by shortened address
+    return `Collection ${name.substring(0, 5)}...${name.substring(name.length - 4)}`;
+  }
+  
+  // Return the original name if it's not an address
+  return name;
+}
+
 export interface TezosNFT {
   id: string;
   name?: string;
@@ -320,8 +337,14 @@ export async function importTezosNFTsToPortfolio(
           !categoryNames.has(nft.collectionName.toLowerCase()) && 
           !newCollectionsMap.has(nft.collectionName.toLowerCase())) {
         
+        // Clean up the collection name if it's a contract address to make it more user-friendly
+        let cleanName = nft.collectionName;
+        if (cleanName.startsWith('KT1') || cleanName.startsWith('tz1') || cleanName.startsWith('tz2') || cleanName.startsWith('tz3')) {
+          cleanName = `Collection ${cleanName.substring(0, 5)}...${cleanName.substring(cleanName.length - 4)}`;
+        }
+        
         newCollectionsMap.set(nft.collectionName.toLowerCase(), {
-          name: nft.collectionName,
+          name: cleanName,
           description: `Collection imported from Tezos blockchain`,
           imageUrl: nft.collectionImage || null,
           createdById: userId
@@ -379,10 +402,21 @@ export async function importTezosNFTsToPortfolio(
       // Determine category - use collection name if available, otherwise "NFT"
       let category = 'NFT';
       if (nft.collectionName) {
-        // Find the matching category (case-insensitive)
-        const matchedCategory = updatedCategories.find(
-          c => c.name.toLowerCase() === nft.collectionName?.toLowerCase()
+        // Clean up the collection name if needed
+        const cleanName = cleanCollectionName(nft.collectionName);
+        
+        // First, try to find an exact match with the cleaned name
+        let matchedCategory = updatedCategories.find(
+          c => c.name.toLowerCase() === cleanName.toLowerCase()
         );
+        
+        // If no match with clean name, try the original collection name
+        if (!matchedCategory) {
+          matchedCategory = updatedCategories.find(
+            c => c.name.toLowerCase() === nft.collectionName?.toLowerCase()
+          );
+        }
+        
         if (matchedCategory) {
           category = matchedCategory.name;
         }
