@@ -61,7 +61,7 @@ export function CategoryFilter({ selectedCategory, onCategorySelect }: CategoryF
         }}
       >
         <SelectTrigger className="w-[220px]">
-          <SelectValue placeholder="Select a category" />
+          <SelectValue placeholder="Select collection" />
         </SelectTrigger>
         <SelectContent>
           {displayCategories.map((category) => (
