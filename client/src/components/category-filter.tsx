@@ -2,6 +2,13 @@ import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import type { CategoryModel } from "@shared/schema";
 import { useEffect, useState } from "react";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
 
 interface CategoryFilterProps {
   selectedCategory: string | null;
@@ -36,7 +43,7 @@ export function CategoryFilter({ selectedCategory, onCategorySelect }: CategoryF
   }
 
   return (
-    <div className="flex gap-2 flex-wrap mb-6">
+    <div className="flex gap-2 items-center mb-6">
       <Button
         variant={selectedCategory === null ? "default" : "outline"}
         onClick={() => onCategorySelect(null)}
@@ -44,15 +51,26 @@ export function CategoryFilter({ selectedCategory, onCategorySelect }: CategoryF
       >
         All
       </Button>
-      {displayCategories.map((category) => (
-        <Button
-          key={category}
-          variant={selectedCategory === category ? "default" : "outline"}
-          onClick={() => onCategorySelect(category)}
-        >
-          {category}
-        </Button>
-      ))}
+      
+      <Select
+        value={selectedCategory || ""}
+        onValueChange={(value) => {
+          if (value) {
+            onCategorySelect(value);
+          }
+        }}
+      >
+        <SelectTrigger className="w-[220px]">
+          <SelectValue placeholder="Select a category" />
+        </SelectTrigger>
+        <SelectContent>
+          {displayCategories.map((category) => (
+            <SelectItem key={category} value={category}>
+              {category}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 }
