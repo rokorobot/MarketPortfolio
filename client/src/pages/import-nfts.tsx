@@ -183,7 +183,7 @@ const ImportNFTsPage = () => {
   return (
     <Layout>
       <div className="container py-6">
-        <h1 className="text-3xl font-bold mb-6">Import NFTs from Tezos</h1>
+        <h1 className="text-3xl font-bold mb-6">Import NFTs from OBJKT</h1>
         
         <Card className="mb-8">
           <CardHeader>
