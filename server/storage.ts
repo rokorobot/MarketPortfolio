@@ -40,9 +40,9 @@ export interface IStorage {
   getItemsPaginated(page: number, pageSize: number, userId?: number, userRole?: string): Promise<PaginatedResult<PortfolioItem>>;
   getItem(id: number): Promise<PortfolioItem | undefined>;
   getItemsByCategory(category: string): Promise<PortfolioItem[]>;
-  getItemsByCategoryPaginated(category: string, page: number, pageSize: number): Promise<PaginatedResult<PortfolioItem>>;
+  getItemsByCategoryPaginated(category: string, page: number, pageSize: number, userId?: number, userRole?: string): Promise<PaginatedResult<PortfolioItem>>;
   getUniqueAuthors(): Promise<{name: string, count: number, profileImage: string | null}[]>;
-  getItemsByAuthor(authorName: string): Promise<PortfolioItem[]>;
+  getItemsByAuthor(authorName: string, userId?: number, userRole?: string): Promise<PortfolioItem[]>;
   getItemsByExternalId(externalId: string, userId?: number): Promise<PortfolioItem[]>;
   createItem(item: InsertPortfolioItem, userId?: number): Promise<PortfolioItem>;
   updateItem(id: number, item: Partial<PortfolioItem>): Promise<PortfolioItem>;
@@ -87,6 +87,12 @@ export interface IStorage {
   isFavorited(userId: number, itemId: number): Promise<boolean>;
   getUserFavorites(userId: number): Promise<PortfolioItem[]>;
   updateFavoritesOrder(userId: number, items: {id: number, displayOrder: number}[]): Promise<boolean>;
+  
+  // Item collectors
+  assignCollectorToItem(itemId: number, collectorId: number): Promise<boolean>;
+  removeCollectorFromItem(itemId: number, collectorId: number): Promise<boolean>;
+  getItemCollectors(itemId: number): Promise<User[]>;
+  getCollectorItems(collectorId: number): Promise<PortfolioItem[]>;
   
   // Author profile management
   updateAuthorProfileImage(authorName: string, profileImage: string | null): Promise<boolean>;

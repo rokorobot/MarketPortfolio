@@ -174,3 +174,21 @@ export const insertFavoriteSchema = createInsertSchema(favorites).omit({
 
 export type InsertFavorite = z.infer<typeof insertFavoriteSchema>;
 export type Favorite = typeof favorites.$inferSelect;
+
+// Item collectors table - to track which collectors are associated with which items
+export const itemCollectors = pgTable("item_collectors", {
+  itemId: integer("item_id").notNull().references(() => portfolioItems.id, { onDelete: 'cascade' }),
+  collectorId: integer("collector_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => {
+  return {
+    pk: primaryKey({ columns: [table.itemId, table.collectorId] })
+  };
+});
+
+export const insertItemCollectorSchema = createInsertSchema(itemCollectors).omit({
+  createdAt: true,
+});
+
+export type InsertItemCollector = z.infer<typeof insertItemCollectorSchema>;
+export type ItemCollector = typeof itemCollectors.$inferSelect;
