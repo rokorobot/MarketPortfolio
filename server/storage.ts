@@ -365,11 +365,25 @@ export class DatabaseStorage implements IStorage {
     return authorsWithImages;
   }
   
-  async getItemsByAuthor(authorName: string): Promise<PortfolioItem[]> {
+  async getItemsByAuthor(authorName: string, userId?: number, userRole?: string): Promise<PortfolioItem[]> {
+    // If admin user or no user ID specified, return all items by this author
+    if (userRole === 'admin' || !userId) {
+      return await db.select()
+        .from(portfolioItems)
+        .where(eq(portfolioItems.author, authorName))
+        .orderBy(portfolioItems.displayOrder);
+    }
+    
+    // Otherwise, return only items by this author that belong to the current user
     return await db.select()
       .from(portfolioItems)
-      .where(eq(portfolioItems.author, authorName))
-      .orderBy(portfolioItems.displayOrder); // Order by display order
+      .where(
+        and(
+          eq(portfolioItems.author, authorName),
+          eq(portfolioItems.userId, userId)
+        )
+      )
+      .orderBy(portfolioItems.displayOrder);
   }
 
   async createItem(item: InsertPortfolioItem, userId?: number): Promise<PortfolioItem> {

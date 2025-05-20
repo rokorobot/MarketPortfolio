@@ -1737,7 +1737,12 @@ export function registerRoutes(app: Express) {
         return res.status(400).json({ message: "Author name is required" });
       }
       
-      const items = await storage.getItemsByAuthor(authorName);
+      // Get the user ID and role from the session if available
+      const userId = req.session?.userId;
+      const userRole = req.session?.userRole;
+      
+      // Pass userId and userRole to filter items by user
+      const items = await storage.getItemsByAuthor(authorName, userId, userRole);
       res.json(items);
     } catch (error) {
       console.error("Error fetching items by author:", error);
