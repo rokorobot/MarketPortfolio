@@ -1,4 +1,5 @@
-import { Mail, Twitter, Instagram } from "lucide-react";
+import { Mail, Instagram } from "lucide-react";
+import { XLogo } from "./x-logo";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 
