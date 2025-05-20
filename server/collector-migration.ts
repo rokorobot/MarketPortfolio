@@ -15,10 +15,21 @@ export async function migrateItemCollectors() {
     
     if (!tableExists) {
       // Create the item_collectors table
+      // First check the data type of the users.id column
+      const userIdTypeResult = await pool.query(`
+        SELECT data_type 
+        FROM information_schema.columns 
+        WHERE table_name = 'users' AND column_name = 'id'
+      `);
+      
+      const userIdType = userIdTypeResult.rows[0]?.data_type || 'integer';
+      console.log(`Detected users.id type: ${userIdType}`);
+      
+      // Create the item_collectors table with matching collector_id type
       await pool.query(`
         CREATE TABLE IF NOT EXISTS "item_collectors" (
           "item_id" integer NOT NULL,
-          "collector_id" integer NOT NULL,
+          "collector_id" ${userIdType} NOT NULL,
           "created_at" timestamp DEFAULT now() NOT NULL,
           CONSTRAINT "item_collectors_pkey" PRIMARY KEY ("item_id", "collector_id"),
           CONSTRAINT "item_collectors_item_id_fkey" FOREIGN KEY ("item_id") REFERENCES "portfolio_items" ("id") ON DELETE CASCADE,
