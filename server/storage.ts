@@ -8,7 +8,7 @@ import {
   itemCollectors, type ItemCollector, type InsertItemCollector
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc, sql, isNotNull, ne } from "drizzle-orm";
+import { eq, and, desc, asc, sql, isNotNull, ne, inArray, or } from "drizzle-orm";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 
@@ -144,48 +144,39 @@ export class DatabaseStorage implements IStorage {
         .orderBy(portfolioItems.displayOrder);
     }
     
-    // Check if the user is a creator or collector
-    if (userRole === 'creator' || userRole === 'collector') {
-      // For creators and collectors, find:
-      // 1. Items where the user is the creator (userId matches)
-      // 2. Items where the user is a collector (via itemCollectors table)
-      
-      // First get items created by this user
-      const createdItems = await db.select()
-        .from(portfolioItems)
-        .where(eq(portfolioItems.userId, userId));
-      
-      // Then get items where the user is a collector
-      const collectedItems = await db.select({
-        item: portfolioItems
-      })
-      .from(itemCollectors)
-      .innerJoin(portfolioItems, eq(itemCollectors.itemId, portfolioItems.id))
-      .where(eq(itemCollectors.collectorId, userId));
-      
-      // Combine both sets, removing duplicates by ID
-      const itemMap = new Map();
-      
-      // Add created items to the map
-      createdItems.forEach(item => {
-        itemMap.set(item.id, item);
-      });
-      
-      // Add collected items to the map (will overwrite any duplicates)
-      collectedItems.forEach(result => {
-        itemMap.set(result.item.id, result.item);
-      });
-      
-      // Convert the map back to an array and sort by display order
-      return Array.from(itemMap.values())
-        .sort((a, b) => a.displayOrder - b.displayOrder);
-    }
+    // For any user (regardless of role), get both created and collected items
+    // 1. Items where the user is the creator (userId matches)
+    // 2. Items where the user is a collector (via itemCollectors table)
     
-    // For other user roles, return only items associated with this user as creator
-    return await db.select()
+    // First get items created by this user
+    const createdItems = await db.select()
       .from(portfolioItems)
-      .where(eq(portfolioItems.userId, userId))
-      .orderBy(portfolioItems.displayOrder);
+      .where(eq(portfolioItems.userId, userId));
+    
+    // Then get items where the user is a collector
+    const collectedItems = await db.select({
+      item: portfolioItems
+    })
+    .from(itemCollectors)
+    .innerJoin(portfolioItems, eq(itemCollectors.itemId, portfolioItems.id))
+    .where(eq(itemCollectors.collectorId, userId));
+    
+    // Combine both sets, removing duplicates by ID
+    const itemMap = new Map();
+    
+    // Add created items to the map
+    createdItems.forEach(item => {
+      itemMap.set(item.id, item);
+    });
+    
+    // Add collected items to the map (will overwrite any duplicates)
+    collectedItems.forEach(result => {
+      itemMap.set(result.item.id, result.item);
+    });
+    
+    // Convert the map back to an array and sort by display order
+    return Array.from(itemMap.values())
+      .sort((a, b) => a.displayOrder - b.displayOrder);
   }
   
   /**
@@ -200,7 +191,7 @@ export class DatabaseStorage implements IStorage {
     // Calculate offset
     const offset = (validPage - 1) * validPageSize;
     
-    // Get total count
+    // Get total count and items
     let countResult;
     let items;
     
@@ -214,17 +205,41 @@ export class DatabaseStorage implements IStorage {
         .offset(offset)
         .orderBy(portfolioItems.displayOrder);
     } else {
-      // Otherwise, query only user's items
-      countResult = await db.select({ count: sql`count(*)` })
+      // For any user, get both created and collected items
+      // First, get all relevant item IDs (both created and collected)
+      
+      // Get IDs of items created by this user
+      const createdItemsQuery = db.select({ id: portfolioItems.id })
         .from(portfolioItems)
         .where(eq(portfolioItems.userId, userId));
       
-      items = await db.select()
-        .from(portfolioItems)
-        .where(eq(portfolioItems.userId, userId))
-        .limit(validPageSize)
-        .offset(offset)
-        .orderBy(portfolioItems.displayOrder);
+      // Get IDs of items where the user is a collector
+      const collectedItemsQuery = db.select({ id: portfolioItems.id })
+        .from(itemCollectors)
+        .innerJoin(portfolioItems, eq(itemCollectors.itemId, portfolioItems.id))
+        .where(eq(itemCollectors.collectorId, userId));
+      
+      // Union the queries to get all relevant IDs
+      const allItemIds = await db.select().from(
+        createdItemsQuery.union(collectedItemsQuery).as('combined_items')
+      );
+      
+      // Count the total number of items
+      countResult = [{ count: allItemIds.length }];
+      
+      // Get the actual items for this page
+      if (allItemIds.length > 0) {
+        const itemIdList = allItemIds.map(item => item.id);
+        
+        items = await db.select()
+          .from(portfolioItems)
+          .where(inArray(portfolioItems.id, itemIdList))
+          .limit(validPageSize)
+          .offset(offset)
+          .orderBy(portfolioItems.displayOrder);
+      } else {
+        items = [];
+      }
     }
     
     const total = Number(countResult[0].count);
@@ -264,8 +279,10 @@ export class DatabaseStorage implements IStorage {
         .offset(offset)
         .orderBy(portfolioItems.displayOrder);
     } else {
-      // Otherwise, query only user's items in the category
-      countResult = await db.select({ count: sql`count(*)` })
+      // For any user, get both created and collected items in this category
+      
+      // Get IDs of created items in this category
+      const createdItemsQuery = db.select({ id: portfolioItems.id })
         .from(portfolioItems)
         .where(
           and(
@@ -274,17 +291,38 @@ export class DatabaseStorage implements IStorage {
           )
         );
       
-      items = await db.select()
-        .from(portfolioItems)
+      // Get IDs of collected items in this category
+      const collectedItemsQuery = db.select({ id: portfolioItems.id })
+        .from(itemCollectors)
+        .innerJoin(portfolioItems, eq(itemCollectors.itemId, portfolioItems.id))
         .where(
           and(
             eq(portfolioItems.category, category),
-            eq(portfolioItems.userId, userId)
+            eq(itemCollectors.collectorId, userId)
           )
-        )
-        .limit(validPageSize)
-        .offset(offset)
-        .orderBy(portfolioItems.displayOrder);
+        );
+      
+      // Union the queries to get all relevant IDs
+      const allItemIds = await db.select().from(
+        createdItemsQuery.union(collectedItemsQuery).as('combined_items')
+      );
+      
+      // Count the total number of items
+      countResult = [{ count: allItemIds.length }];
+      
+      // Get the actual items for this page
+      if (allItemIds.length > 0) {
+        const itemIdList = allItemIds.map(item => item.id);
+        
+        items = await db.select()
+          .from(portfolioItems)
+          .where(inArray(portfolioItems.id, itemIdList))
+          .limit(validPageSize)
+          .offset(offset)
+          .orderBy(portfolioItems.displayOrder);
+      } else {
+        items = [];
+      }
     }
     
     const total = Number(countResult[0].count);
@@ -418,16 +456,47 @@ export class DatabaseStorage implements IStorage {
         .orderBy(portfolioItems.displayOrder);
     }
     
-    // Otherwise, return only items by this author that belong to the current user
-    return await db.select()
+    // For any user, get both created and collected items by this author
+    
+    // Get created items by this author
+    const createdItems = await db.select()
       .from(portfolioItems)
       .where(
         and(
           eq(portfolioItems.author, authorName),
           eq(portfolioItems.userId, userId)
         )
+      );
+    
+    // Get collected items by this author
+    const collectedItems = await db.select({
+      item: portfolioItems
+    })
+    .from(itemCollectors)
+    .innerJoin(portfolioItems, eq(itemCollectors.itemId, portfolioItems.id))
+    .where(
+      and(
+        eq(portfolioItems.author, authorName),
+        eq(itemCollectors.collectorId, userId)
       )
-      .orderBy(portfolioItems.displayOrder);
+    );
+    
+    // Combine both sets, removing duplicates by ID
+    const itemMap = new Map();
+    
+    // Add created items to the map
+    createdItems.forEach(item => {
+      itemMap.set(item.id, item);
+    });
+    
+    // Add collected items to the map (will overwrite any duplicates)
+    collectedItems.forEach(result => {
+      itemMap.set(result.item.id, result.item);
+    });
+    
+    // Convert the map back to an array and sort by display order
+    return Array.from(itemMap.values())
+      .sort((a, b) => a.displayOrder - b.displayOrder);
   }
 
   async createItem(item: InsertPortfolioItem, userId?: number): Promise<PortfolioItem> {

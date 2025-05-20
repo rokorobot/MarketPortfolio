@@ -3,6 +3,9 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import fileUpload from "express-fileupload";
 import path from "path";
+import { migrateDatabase } from "./migration";
+import { migrateNFTFields } from "./nft-migration";
+import { migrateItemCollectors } from "./collector-migration";
 
 const app = express();
 app.use(express.json());
@@ -78,6 +81,12 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  console.log('Starting database migration...');
+  await migrateDatabase();
+  await migrateNFTFields();
+  await migrateItemCollectors();
+  console.log('All migrations completed successfully!');
+  
   const server = registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

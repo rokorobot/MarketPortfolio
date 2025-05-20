@@ -15,7 +15,7 @@ export async function migrateItemCollectors() {
     
     if (!tableExists) {
       // Create the item_collectors table
-      await sql`
+      await pool.query(`
         CREATE TABLE IF NOT EXISTS "item_collectors" (
           "item_id" integer NOT NULL,
           "collector_id" integer NOT NULL,
@@ -24,7 +24,7 @@ export async function migrateItemCollectors() {
           CONSTRAINT "item_collectors_item_id_fkey" FOREIGN KEY ("item_id") REFERENCES "portfolio_items" ("id") ON DELETE CASCADE,
           CONSTRAINT "item_collectors_collector_id_fkey" FOREIGN KEY ("collector_id") REFERENCES "users" ("id") ON DELETE CASCADE
         )
-      `.execute(pool);
+      `);
       
       console.log('Created item_collectors table successfully');
     } else {
@@ -45,13 +45,13 @@ export async function migrateItemCollectors() {
  * @returns A boolean indicating if the table exists
  */
 async function checkTableExists(tableName: string): Promise<boolean> {
-  const result = await sql`
+  const result = await pool.query(`
     SELECT EXISTS (
       SELECT FROM pg_tables
       WHERE schemaname = 'public'
-      AND tablename = ${tableName}
+      AND tablename = $1
     )
-  `.execute(pool);
+  `, [tableName]);
   
-  return result[0]?.exists || false;
+  return result.rows[0]?.exists || false;
 }
