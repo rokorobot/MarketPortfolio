@@ -4,7 +4,8 @@ import {
   shareLinks, type ShareLink, type InsertShareLink, 
   categories, type CategoryModel, type InsertCategory,
   siteSettings, type SiteSetting, type InsertSiteSetting,
-  favorites, type Favorite, type InsertFavorite
+  favorites, type Favorite, type InsertFavorite,
+  itemCollectors, type ItemCollector, type InsertItemCollector
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, sql, isNotNull, ne } from "drizzle-orm";
