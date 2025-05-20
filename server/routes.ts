@@ -799,8 +799,17 @@ export function registerRoutes(app: Express) {
           userId
         };
         
-        await storage.createItem(portfolioItem, userId);
+        // Create the item
+        const newItem = await storage.createItem(portfolioItem, userId);
         importedCount++;
+        
+        // If this user is not the original creator of the item (based on author name),
+        // add them as a collector of this item
+        const user = await storage.getUser(userId);
+        if (user && portfolioItem.author !== user.username) {
+          await storage.assignCollectorToItem(newItem.id, userId);
+          console.log(`Added user ${userId} as collector of item ${newItem.id} created by ${portfolioItem.author}`);
+        }
         
         importDetails.push({
           id: nft.id,
