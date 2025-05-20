@@ -143,7 +143,44 @@ export class DatabaseStorage implements IStorage {
         .orderBy(portfolioItems.displayOrder);
     }
     
-    // Otherwise, return only items associated with this user
+    // Check if the user is a creator or collector
+    if (userRole === 'creator' || userRole === 'collector') {
+      // For creators and collectors, find:
+      // 1. Items where the user is the creator (userId matches)
+      // 2. Items where the user is a collector (via itemCollectors table)
+      
+      // First get items created by this user
+      const createdItems = await db.select()
+        .from(portfolioItems)
+        .where(eq(portfolioItems.userId, userId));
+      
+      // Then get items where the user is a collector
+      const collectedItems = await db.select({
+        item: portfolioItems
+      })
+      .from(itemCollectors)
+      .innerJoin(portfolioItems, eq(itemCollectors.itemId, portfolioItems.id))
+      .where(eq(itemCollectors.collectorId, userId));
+      
+      // Combine both sets, removing duplicates by ID
+      const itemMap = new Map();
+      
+      // Add created items to the map
+      createdItems.forEach(item => {
+        itemMap.set(item.id, item);
+      });
+      
+      // Add collected items to the map (will overwrite any duplicates)
+      collectedItems.forEach(result => {
+        itemMap.set(result.item.id, result.item);
+      });
+      
+      // Convert the map back to an array and sort by display order
+      return Array.from(itemMap.values())
+        .sort((a, b) => a.displayOrder - b.displayOrder);
+    }
+    
+    // For other user roles, return only items associated with this user as creator
     return await db.select()
       .from(portfolioItems)
       .where(eq(portfolioItems.userId, userId))
