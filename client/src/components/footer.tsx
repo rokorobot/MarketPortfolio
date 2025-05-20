@@ -42,7 +42,7 @@ export function Footer() {
                 className="text-muted-foreground hover:text-primary transition-colors"
                 aria-label="Twitter"
               >
-                <Twitter size={20} />
+                <XLogo className="w-5 h-5" />
               </a>
             )}
             {instagramUrl && (
