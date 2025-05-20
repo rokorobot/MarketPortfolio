@@ -876,6 +876,83 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
+  // Item collectors methods
+  async assignCollectorToItem(itemId: number, collectorId: number): Promise<boolean> {
+    try {
+      // Check if the relationship already exists
+      const existing = await db.select()
+        .from(itemCollectors)
+        .where(
+          and(
+            eq(itemCollectors.itemId, itemId),
+            eq(itemCollectors.collectorId, collectorId)
+          )
+        );
+      
+      // If relationship doesn't exist, create it
+      if (existing.length === 0) {
+        await db.insert(itemCollectors)
+          .values({ itemId, collectorId })
+          .returning();
+      }
+      
+      return true;
+    } catch (error) {
+      console.error("Error assigning collector to item:", error);
+      return false;
+    }
+  }
+  
+  async removeCollectorFromItem(itemId: number, collectorId: number): Promise<boolean> {
+    try {
+      await db.delete(itemCollectors)
+        .where(
+          and(
+            eq(itemCollectors.itemId, itemId),
+            eq(itemCollectors.collectorId, collectorId)
+          )
+        );
+      
+      return true;
+    } catch (error) {
+      console.error("Error removing collector from item:", error);
+      return false;
+    }
+  }
+  
+  async getItemCollectors(itemId: number): Promise<User[]> {
+    try {
+      const result = await db.select({
+        user: users
+      })
+      .from(itemCollectors)
+      .innerJoin(users, eq(itemCollectors.collectorId, users.id))
+      .where(eq(itemCollectors.itemId, itemId));
+      
+      return result.map(r => r.user);
+    } catch (error) {
+      console.error("Error getting item collectors:", error);
+      return [];
+    }
+  }
+  
+  async getCollectorItems(collectorId: number): Promise<PortfolioItem[]> {
+    try {
+      const result = await db.select({
+        item: portfolioItems
+      })
+      .from(itemCollectors)
+      .innerJoin(portfolioItems, eq(itemCollectors.itemId, portfolioItems.id))
+      .where(eq(itemCollectors.collectorId, collectorId))
+      .orderBy(portfolioItems.displayOrder);
+      
+      return result.map(r => r.item);
+    } catch (error) {
+      console.error("Error getting collector items:", error);
+      return [];
+    }
+  }
+  
   async initialize() {
     const items = await this.getItems();
     if (items.length === 0) {
