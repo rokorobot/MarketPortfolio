@@ -261,6 +261,7 @@ const ImportNFTsPage = () => {
                       value={nftLimit}
                       onChange={(e) => setNftLimit(parseInt(e.target.value, 10))}
                     >
+                      <option value="50">50 NFTs</option>
                       <option value="100">100 NFTs</option>
                       <option value="250">250 NFTs</option>
                       <option value="500">500 NFTs</option>
