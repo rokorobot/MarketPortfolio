@@ -195,7 +195,7 @@ export class DatabaseStorage implements IStorage {
     };
   }
   
-  async getItemsByCategoryPaginated(category: string, page: number, pageSize: number): Promise<PaginatedResult<PortfolioItem>> {
+  async getItemsByCategoryPaginated(category: string, page: number, pageSize: number, userId?: number, userRole?: string): Promise<PaginatedResult<PortfolioItem>> {
     // Ensure valid page and pageSize
     const validPage = Math.max(1, page);
     const validPageSize = Math.max(1, Math.min(100, pageSize)); // Limit max page size to 100
@@ -204,19 +204,46 @@ export class DatabaseStorage implements IStorage {
     const offset = (validPage - 1) * validPageSize;
     
     // Get total count for this category
-    const countResult = await db.select({ count: sql`count(*)` })
-      .from(portfolioItems)
-      .where(eq(portfolioItems.category, category));
+    let countResult;
+    let items;
+    
+    // If admin user or no user ID specified, query all items in the category
+    if (userRole === 'admin' || !userId) {
+      countResult = await db.select({ count: sql`count(*)` })
+        .from(portfolioItems)
+        .where(eq(portfolioItems.category, category));
+      
+      items = await db.select()
+        .from(portfolioItems)
+        .where(eq(portfolioItems.category, category))
+        .limit(validPageSize)
+        .offset(offset)
+        .orderBy(portfolioItems.displayOrder);
+    } else {
+      // Otherwise, query only user's items in the category
+      countResult = await db.select({ count: sql`count(*)` })
+        .from(portfolioItems)
+        .where(
+          and(
+            eq(portfolioItems.category, category),
+            eq(portfolioItems.userId, userId)
+          )
+        );
+      
+      items = await db.select()
+        .from(portfolioItems)
+        .where(
+          and(
+            eq(portfolioItems.category, category),
+            eq(portfolioItems.userId, userId)
+          )
+        )
+        .limit(validPageSize)
+        .offset(offset)
+        .orderBy(portfolioItems.displayOrder);
+    }
     
     const total = Number(countResult[0].count);
-    
-    // Get items for current page
-    const items = await db.select()
-      .from(portfolioItems)
-      .where(eq(portfolioItems.category, category))
-      .limit(validPageSize)
-      .offset(offset)
-      .orderBy(portfolioItems.displayOrder); // Order by display order
     
     // Calculate total pages
     const totalPages = Math.ceil(total / validPageSize);
