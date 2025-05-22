@@ -81,11 +81,16 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  console.log('Starting database migration...');
-  await migrateDatabase();
-  await migrateNFTFields();
-  await migrateItemCollectors();
-  console.log('All migrations completed successfully!');
+  // Only run migrations in development environment
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('Starting database migration...');
+    await migrateDatabase();
+    await migrateNFTFields();
+    await migrateItemCollectors();
+    console.log('All migrations completed successfully!');
+  } else {
+    console.log('Production environment detected - skipping migrations');
+  }
   
   const server = registerRoutes(app);
 
