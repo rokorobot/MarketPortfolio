@@ -1,0 +1,159 @@
+==> Cloning from https://github.com/rokorobot/MarketPortfolio
+==> Checking out commit b51407fa19c7f85ddffae4123d3f8242a64124d0 in branch main
+==> Using Node.js version 22.14.0 (default)
+==> Docs on specifying a Node.js version: https://render.com/docs/node-version
+==> Using Bun version 1.1.0 (default)
+==> Docs on specifying a bun version: https://render.com/docs/bun-version
+==> Running build command 'npm install; npm run build'...
+added 582 packages, and audited 583 packages in 8s
+70 packages are looking for funding
+  run `npm fund` for details
+7 moderate severity vulnerabilities
+To address issues that do not require attention, run:
+  npm audit fix
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+Run `npm audit` for details.
+> rest-express@1.0.0 build
+> vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+vite v5.4.10 building for production...
+transforming...
+Browserslist: browsers data (caniuse-lite) is 7 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+✓ 1935 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/public/index.html                   1.58 kB │ gzip:   0.62 kB
+../dist/public/assets/index-C5sLWVwJ.css   71.62 kB │ gzip:  12.35 kB
+../dist/public/assets/index-nxsoFXGd.js   789.30 kB │ gzip: 236.27 kB
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 4.75s
+  dist/index.js  122.8kb
+⚡ Done in 9ms
+==> Uploading build...
+==> Uploaded in 13.0s. Compression took 3.2s
+==> Build successful 🎉
+==> Deploying...
+==> Running 'npm run start'
+> rest-express@1.0.0 start
+> NODE_ENV=production node dist/index.js
+Starting database migration...
+SendGrid API key configured successfully
+Starting database migration...
+Starting database migration...
+Adding missing columns to users table: password, email, display_name, bio, profile_image, tezos_wallet_address, ethereum_wallet_address, website, twitter, instagram, is_email_verified, verification_token, reset_password_token, reset_password_expires, created_at, updated_at, is_active
+Error during migration: error: relation "users" does not exist
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async migrateDatabase (file:///opt/render/project/src/dist/index.js:328:7)
+    at async file:///opt/render/project/src/dist/index.js:3284:3 {
+  length: 103,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'namespace.c',
+  line: '434',
+  routine: 'RangeVarGetRelidExtended'
+}
+node:internal/process/promises:394
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+error: relation "users" does not exist
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async migrateDatabase (file:///opt/render/project/src/dist/index.js:328:7)
+    at async file:///opt/render/project/src/dist/index.js:3284:3 {
+  length: 103,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'namespace.c',
+  line: '434',
+  routine: 'RangeVarGetRelidExtended'
+}
+Node.js v22.14.0
+==> Exited with status 1
+==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
+==> Running 'npm run start'
+> rest-express@1.0.0 start
+> NODE_ENV=production node dist/index.js
+Starting database migration...
+SendGrid API key configured successfully
+Starting database migration...
+Starting database migration...
+Adding missing columns to users table: password, email, display_name, bio, profile_image, tezos_wallet_address, ethereum_wallet_address, website, twitter, instagram, is_email_verified, verification_token, reset_password_token, reset_password_expires, created_at, updated_at, is_active
+Adding missing columns to users table: password, email, display_name, bio, profile_image, tezos_wallet_address, ethereum_wallet_address, website, twitter, instagram, is_email_verified, verification_token, reset_password_token, reset_password_expires, created_at, updated_at, is_active
+Error during migration: error: relation "users" does not exist
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async migrateDatabase (file:///opt/render/project/src/dist/index.js:328:7)
+    at async file:///opt/render/project/src/dist/index.js:3284:3 {
+  length: 103,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'namespace.c',
+  line: '434',
+  routine: 'RangeVarGetRelidExtended'
+}
+node:internal/process/promises:394
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+error: relation "users" does not exist
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async migrateDatabase (file:///opt/render/project/src/dist/index.js:328:7)
+    at async file:///opt/render/project/src/dist/index.js:3284:3 {
+  length: 103,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'namespace.c',
+  line: '434',
+  routine: 'RangeVarGetRelidExtended'
+}
+Node.js v22.14.0
