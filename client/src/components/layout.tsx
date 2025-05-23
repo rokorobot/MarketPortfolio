@@ -284,7 +284,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     </>
                   )}
                   
-                  {isAdmin && (
+                  {user && user.role === 'superadmin' && (
                     <>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={() => navigate("/admin/dashboard")}>
