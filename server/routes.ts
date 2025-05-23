@@ -46,6 +46,59 @@ declare global {
   }
 }
 
+// Helper function to check if user has reached limits
+async function checkUserLimits(userId: number, additionalItemSize: number = 0): Promise<{ canUpload: boolean; reason?: string }> {
+  try {
+    // Get user info to check subscription type
+    const user = await storage.getUser(userId);
+    if (!user) {
+      return { canUpload: false, reason: "User not found" };
+    }
+
+    // Paid users have no limits
+    if (user.subscription_type === 'paid') {
+      return { canUpload: true };
+    }
+
+    // Get site settings for limits
+    const settings = await storage.getSiteSettings();
+    const itemLimit = parseInt(settings.free_user_item_limit || "50");
+    const storageLimitMB = parseInt(settings.free_user_storage_limit_mb || "50");
+
+    // Count user's current items
+    const userItems = await storage.getItemsByUser(userId);
+    const currentItemCount = userItems.length;
+
+    // Calculate current storage usage in MB
+    const currentStorageMB = userItems.reduce((total, item) => {
+      const sizeInMB = (item.file_size_bytes || 0) / (1024 * 1024);
+      return total + sizeInMB;
+    }, 0);
+
+    // Check item count limit
+    if (currentItemCount >= itemLimit) {
+      return { 
+        canUpload: false, 
+        reason: `You've reached your limit of ${itemLimit} items. Upgrade to premium for unlimited items.` 
+      };
+    }
+
+    // Check storage limit (including the size of the item being added)
+    const additionalSizeMB = additionalItemSize / (1024 * 1024);
+    if (currentStorageMB + additionalSizeMB > storageLimitMB) {
+      return { 
+        canUpload: false, 
+        reason: `Adding this item would exceed your ${storageLimitMB}MB storage limit. Upgrade to premium for unlimited storage.` 
+      };
+    }
+
+    return { canUpload: true };
+  } catch (error) {
+    console.error('Error checking user limits:', error);
+    return { canUpload: false, reason: "Error checking limits" };
+  }
+}
+
 // Auth middleware
 function requireAuth(req: Request, res: Response, next: NextFunction) {
   if (req.session && req.session.userId) {
