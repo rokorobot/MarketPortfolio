@@ -7,7 +7,9 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Users, HardDrive, TrendingUp, Settings, Crown, Palette, Activity, Shield, 
   DollarSign, Globe, Server, Database, ChevronDown, ChevronRight, AlertTriangle,
@@ -107,6 +109,8 @@ export default function AdminDashboard() {
   const [location, navigate] = useLocation();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
+  const [itemLimit, setItemLimit] = useState("");
+  const [storageLimit, setStorageLimit] = useState("");
 
   const { data: stats, isLoading: statsLoading } = useQuery<DashboardStats>({
     queryKey: ['/api/admin/dashboard/stats'],
@@ -127,6 +131,48 @@ export default function AdminDashboard() {
   const { data: systemHealth, isLoading: systemLoading } = useQuery<SystemHealth>({
     queryKey: ['/api/admin/system-health'],
   });
+
+  const { data: siteSettings } = useQuery({
+    queryKey: ['/api/site-settings'],
+  });
+
+  const { toast } = useToast();
+
+  const updateLimitsMutation = useMutation({
+    mutationFn: async (data: { free_user_item_limit: string; free_user_storage_limit_mb: string }) => {
+      const res = await apiRequest('POST', '/api/site-settings', data);
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Settings updated",
+        description: "Free user limits have been successfully updated.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/site-settings'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Update failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Load current settings into form when data is available
+  useEffect(() => {
+    if (siteSettings) {
+      setItemLimit(siteSettings.free_user_item_limit || "50");
+      setStorageLimit(siteSettings.free_user_storage_limit_mb || "50");
+    }
+  }, [siteSettings]);
+
+  const handleSaveLimits = () => {
+    updateLimitsMutation.mutate({
+      free_user_item_limit: itemLimit,
+      free_user_storage_limit_mb: storageLimit,
+    });
+  };
 
   const toggleSection = (section: string) => {
     setExpandedSections(prev => 
