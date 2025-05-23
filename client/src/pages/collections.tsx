@@ -26,7 +26,7 @@ export default function Collections() {
   const [selectedCategoryName, setSelectedCategoryName] = useState<string | null>(null);
   const [selectedCategoryData, setSelectedCategoryData] = useState<CategoryModel | null>(null);
   const { user, isLoading: authLoading } = useAuth();
-  const isAdmin = Boolean(user && user.role === "admin");
+  const isAdmin = Boolean(user && (user.role === "admin" || user.role === "superadmin"));
 
   // Get all categories
   const { data: categories, isLoading: categoriesLoading } = useQuery<CategoryModel[]>({
