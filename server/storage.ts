@@ -468,56 +468,38 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getItemsByAuthor(authorName: string, userId?: number, userRole?: string): Promise<PortfolioItem[]> {
-    // If admin user or no user ID specified, return all items by this author
-    if (userRole === 'admin' || !userId) {
-      return await db.select()
-        .from(portfolioItems)
-        .where(eq(portfolioItems.author, authorName))
-        .orderBy(portfolioItems.displayOrder);
-    }
-    
-    // For any user, get both created and collected items by this author
-    
-    // Get created items by this author
-    const createdItems = await db.select()
+  // If superadmin user or no user ID specified (visitors), return all items by this author
+  if (userRole === 'superadmin' || !userId) {
+    return await db.select()
+      .from(portfolioItems)
+      .where(eq(portfolioItems.author, authorName))
+      .orderBy(portfolioItems.displayOrder);
+  }
+  
+  // For admin/creator users, return items by this author that they uploaded/imported
+  if (userRole === 'admin') {
+    return await db.select()
       .from(portfolioItems)
       .where(
         and(
           eq(portfolioItems.author, authorName),
           eq(portfolioItems.userId, userId)
         )
-      );
-    
-    // Get collected items by this author
-    const collectedItems = await db.select({
-      item: portfolioItems
-    })
-    .from(itemCollectors)
-    .innerJoin(portfolioItems, eq(itemCollectors.itemId, portfolioItems.id))
+      )
+      .orderBy(portfolioItems.displayOrder);
+  }
+  
+  // For regular users, return items by this author that they uploaded/imported
+  return await db.select()
+    .from(portfolioItems)
     .where(
       and(
         eq(portfolioItems.author, authorName),
-        eq(itemCollectors.collectorId, userId)
+        eq(portfolioItems.userId, userId)
       )
-    );
-    
-    // Combine both sets, removing duplicates by ID
-    const itemMap = new Map();
-    
-    // Add created items to the map
-    createdItems.forEach(item => {
-      itemMap.set(item.id, item);
-    });
-    
-    // Add collected items to the map (will overwrite any duplicates)
-    collectedItems.forEach(result => {
-      itemMap.set(result.item.id, result.item);
-    });
-    
-    // Convert the map back to an array and sort by display order
-    return Array.from(itemMap.values())
-      .sort((a, b) => a.displayOrder - b.displayOrder);
-  }
+    )
+    .orderBy(portfolioItems.displayOrder);
+}
 
   async createItem(item: InsertPortfolioItem, userId?: number): Promise<PortfolioItem> {
     // Include the userId in the item data if provided
