@@ -1881,6 +1881,40 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Creator Dashboard Analytics Endpoints
+  
+  // Creator stats - only their own content
+  app.get("/api/creator/stats", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      const creatorStats = await storage.getCreatorStats(userId);
+      res.json(creatorStats);
+    } catch (error) {
+      console.error("Error fetching creator stats:", error);
+      res.status(500).json({ message: "Failed to fetch creator statistics" });
+    }
+  });
+
+  // Creator's items
+  app.get("/api/creator/items", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      const items = await storage.getItemsByUserId(userId);
+      res.json(items);
+    } catch (error) {
+      console.error("Error fetching creator items:", error);
+      res.status(500).json({ message: "Failed to fetch creator items" });
+    }
+  });
+
   // Admin Dashboard Analytics Endpoints
 
   // Dashboard stats
