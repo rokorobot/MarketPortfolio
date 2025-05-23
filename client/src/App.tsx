@@ -74,6 +74,13 @@ function Router() {
           <ImportNFTs />
         </ProtectedRoute>
       </Route>
+      
+      <Route path="/admin/dashboard">
+        <ProtectedRoute requireAdmin>
+          <AdminDashboard />
+        </ProtectedRoute>
+      </Route>
+      
       <Route component={NotFound} />
     </Switch>
   );
