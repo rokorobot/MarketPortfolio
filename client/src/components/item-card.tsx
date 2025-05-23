@@ -4,6 +4,7 @@ import { useLocation } from "wouter";
 import { type PortfolioItem } from "@shared/schema";
 import { ExternalLink } from "lucide-react";
 import { getProxiedImageUrl } from "@/lib/utils";
+import { useState, useRef, useEffect } from "react";
 
 export function ItemCard({ 
   item, 
@@ -13,6 +14,9 @@ export function ItemCard({
   onClick?: () => void;
 }) {
   const [, navigate] = useLocation();
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
   
   const handleClick = () => {
     if (onClick) {
@@ -21,21 +25,53 @@ export function ItemCard({
       navigate(`/item/${item.id}`);
     }
   };
+
+  useEffect(() => {
+    const img = imgRef.current;
+    if (!img) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const imageSrc = getProxiedImageUrl(item.imageUrl);
+            img.src = imageSrc;
+            observer.unobserve(img);
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(img);
+    return () => observer.disconnect();
+  }, [item.imageUrl]);
   
   return (
     <Card className="overflow-hidden h-full flex flex-col">
       <div 
-        className="relative aspect-[4/3] block cursor-pointer" 
+        className="relative aspect-[4/3] block cursor-pointer bg-gray-100" 
         onClick={handleClick}
       >
+        {!imageLoaded && !imageError && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-100 animate-pulse">
+            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        )}
         <img
-          src={getProxiedImageUrl(item.imageUrl)}
+          ref={imgRef}
           alt={item.title}
-          className="object-cover w-full h-full hover:scale-105 transition-transform"
+          className={`object-cover w-full h-full hover:scale-105 transition-all duration-300 ${
+            imageLoaded ? 'opacity-100' : 'opacity-0'
+          }`}
+          onLoad={() => setImageLoaded(true)}
           onError={(e) => {
+            setImageError(true);
             e.currentTarget.src = "https://placehold.co/400x300/gray/white?text=Image+Not+Available";
             console.log('Item image failed to load:', item.imageUrl);
           }}
+          loading="lazy"
+          decoding="async"
           crossOrigin="anonymous"
         />
       </div>
