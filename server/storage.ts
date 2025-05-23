@@ -286,8 +286,8 @@ export class DatabaseStorage implements IStorage {
     let countResult;
     let items;
     
-    // If admin user or no user ID specified, query all items in the category
-    if (userRole === 'admin' || !userId) {
+    // If admin/superadmin user or no user ID specified, query all items in the category
+    if (userRole === 'admin' || userRole === 'superadmin' || !userId) {
       countResult = await db.select({ count: sql`count(*)` })
         .from(portfolioItems)
         .where(eq(portfolioItems.category, category));
