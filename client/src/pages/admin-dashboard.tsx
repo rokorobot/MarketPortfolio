@@ -820,6 +820,50 @@ export default function AdminDashboard() {
                 </div>
               </CardContent>
             </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Settings className="h-4 w-4" />
+                  <span>Storage Limits</span>
+                </CardTitle>
+                <CardDescription>
+                  Configure storage limits for free users
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="item-limit">Free User Item Limit</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="item-limit"
+                        type="number"
+                        placeholder="50"
+                        className="w-32"
+                      />
+                      <span className="flex items-center text-sm text-muted-foreground">items</span>
+                    </div>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="storage-limit">Free User Storage Limit</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="storage-limit"
+                        type="number"
+                        placeholder="50"
+                        className="w-32"
+                      />
+                      <span className="flex items-center text-sm text-muted-foreground">MB</span>
+                    </div>
+                  </div>
+                  <Button size="sm" className="w-fit">
+                    <Save className="h-4 w-4 mr-2" />
+                    Update Limits
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </TabsContent>
 
