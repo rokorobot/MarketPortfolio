@@ -11,8 +11,10 @@ import { useQuery } from "@tanstack/react-query";
 import { 
   Users, HardDrive, TrendingUp, Settings, Crown, Palette, Activity, Shield, 
   DollarSign, Globe, Server, Database, ChevronDown, ChevronRight, AlertTriangle,
-  Eye, Upload, Clock, FileImage, Zap, Lock, Calendar, BarChart3, ArrowLeft
+  Eye, Upload, Clock, FileImage, Zap, Lock, Calendar, BarChart3, ArrowLeft, Save
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface User {
   id: string;
