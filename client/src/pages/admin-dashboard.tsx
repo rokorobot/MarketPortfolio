@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,7 @@ import { useQuery } from "@tanstack/react-query";
 import { 
   Users, HardDrive, TrendingUp, Settings, Crown, Palette, Activity, Shield, 
   DollarSign, Globe, Server, Database, ChevronDown, ChevronRight, AlertTriangle,
-  Eye, Upload, Clock, FileImage, Zap, Lock, Calendar, BarChart3
+  Eye, Upload, Clock, FileImage, Zap, Lock, Calendar, BarChart3, ArrowLeft
 } from "lucide-react";
 
 interface User {
@@ -101,6 +102,7 @@ interface SystemHealth {
 }
 
 export default function AdminDashboard() {
+  const [location, navigate] = useLocation();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
 
@@ -170,11 +172,22 @@ export default function AdminDashboard() {
   return (
     <div className="container mx-auto p-6 space-y-8">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
-          <p className="text-muted-foreground">
-            Platform overview and user management
-          </p>
+        <div className="flex items-center space-x-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate("/")}
+            className="flex items-center space-x-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span>Back to Portfolio</span>
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+            <p className="text-muted-foreground">
+              Platform overview and user management
+            </p>
+          </div>
         </div>
         <div className="flex items-center space-x-2">
           <Crown className="h-5 w-5 text-yellow-500" />
