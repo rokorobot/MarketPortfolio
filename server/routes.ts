@@ -55,22 +55,23 @@ async function checkUserLimits(userId: number, additionalItemSize: number = 0): 
       return { canUpload: false, reason: "User not found" };
     }
 
-    // Paid users have no limits
-    if (user.subscription_type === 'paid') {
-      return { canUpload: true };
-    }
-
+    // For now, treat all users as free users since subscription_type isn't implemented yet
+    // TODO: Add subscription_type check when implemented
+    
     // Get site settings for limits
     const settings = await storage.getSiteSettings();
-    const itemLimit = parseInt(settings.free_user_item_limit || "50");
-    const storageLimitMB = parseInt(settings.free_user_storage_limit_mb || "50");
+    const itemLimitSetting = settings.find(s => s.key === 'free_user_item_limit');
+    const storageLimitSetting = settings.find(s => s.key === 'free_user_storage_limit_mb');
+    
+    const itemLimit = parseInt(itemLimitSetting?.value || "50");
+    const storageLimitMB = parseInt(storageLimitSetting?.value || "50");
 
     // Count user's current items
-    const userItems = await storage.getItemsByUser(userId);
+    const userItems = await storage.getItemsByUserId(userId);
     const currentItemCount = userItems.length;
 
     // Calculate current storage usage in MB
-    const currentStorageMB = userItems.reduce((total, item) => {
+    const currentStorageMB = userItems.reduce((total: number, item: any) => {
       const sizeInMB = (item.file_size_bytes || 0) / (1024 * 1024);
       return total + sizeInMB;
     }, 0);
@@ -686,6 +687,12 @@ export function registerRoutes(app: Express) {
       
       console.log(`Importing NFTs for wallet ${address} with limit ${parsedLimit} starting from offset ${parsedOffset}...`);
       
+      // Check user limits before importing
+      const limitCheck = await checkUserLimits(userId);
+      if (!limitCheck.canUpload) {
+        return res.status(403).json({ message: limitCheck.reason });
+      }
+      
       // Import selected NFTs or all if none selected
       const importResult = await importTezosNFTsToPortfolio(
         address, 
@@ -835,6 +842,12 @@ export function registerRoutes(app: Express) {
       });
       
       console.log(`Found ${existingNftMap.size} already imported OBJKT NFTs out of ${nftsToImport.length} selected`);
+      
+      // Check user limits before importing
+      const limitCheck = await checkUserLimits(userId);
+      if (!limitCheck.canUpload) {
+        return res.status(403).json({ message: limitCheck.reason });
+      }
       
       // Import each NFT as a portfolio item
       for (const nft of nftsToImport) {
