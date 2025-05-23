@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Plus, UserCircle, LogOut, FolderPlus, Settings, Heart, Grid3X3, Presentation, Clock, User, Download } from "lucide-react";
+import { Plus, UserCircle, LogOut, FolderPlus, Settings, Heart, Grid3X3, Presentation, Clock, User, Download, BarChart3 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -277,6 +277,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   {isAdmin && (
                     <>
                       <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => navigate("/admin/dashboard")}>
+                        <BarChart3 className="h-4 w-4 mr-2" />
+                        Admin Dashboard
+                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => navigate("/manage-categories")}>
                         <Settings className="h-4 w-4 mr-2" />
                         Manage Categories
