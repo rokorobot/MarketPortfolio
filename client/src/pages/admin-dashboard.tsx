@@ -887,6 +887,8 @@ export default function AdminDashboard() {
                       <Input
                         id="item-limit"
                         type="number"
+                        value={itemLimit}
+                        onChange={(e) => setItemLimit(e.target.value)}
                         placeholder="50"
                         className="w-32"
                       />
@@ -899,15 +901,22 @@ export default function AdminDashboard() {
                       <Input
                         id="storage-limit"
                         type="number"
+                        value={storageLimit}
+                        onChange={(e) => setStorageLimit(e.target.value)}
                         placeholder="50"
                         className="w-32"
                       />
                       <span className="flex items-center text-sm text-muted-foreground">MB</span>
                     </div>
                   </div>
-                  <Button size="sm" className="w-fit">
+                  <Button 
+                    size="sm" 
+                    className="w-fit"
+                    onClick={handleSaveLimits}
+                    disabled={updateLimitsMutation.isPending}
+                  >
                     <Save className="h-4 w-4 mr-2" />
-                    Update Limits
+                    {updateLimitsMutation.isPending ? "Saving..." : "Update Limits"}
                   </Button>
                 </div>
               </CardContent>
