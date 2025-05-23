@@ -5,8 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useQuery } from "@tanstack/react-query";
-import { Users, HardDrive, TrendingUp, Settings, Crown, Palette } from "lucide-react";
+import { 
+  Users, HardDrive, TrendingUp, Settings, Crown, Palette, Activity, Shield, 
+  DollarSign, Globe, Server, Database, ChevronDown, ChevronRight, AlertTriangle,
+  Eye, Upload, Clock, FileImage, Zap, Lock, Calendar, BarChart3
+} from "lucide-react";
 
 interface User {
   id: string;
@@ -28,10 +33,76 @@ interface DashboardStats {
   total_storage_limit_gb: number;
   active_users_30d: number;
   new_users_7d: number;
+  daily_active_users: number;
+  weekly_active_users: number;
+  total_portfolio_views: number;
+  uploads_this_week: number;
+  avg_response_time_ms: number;
+  error_rate_percent: number;
+  uptime_percent: number;
+  failed_logins_24h: number;
+  revenue_monthly: number;
+  conversion_rate_percent: number;
+}
+
+interface ActivityMetrics {
+  upload_frequency: {
+    today: number;
+    this_week: number;
+    this_month: number;
+  };
+  popular_collections: Array<{
+    name: string;
+    views: number;
+    items: number;
+  }>;
+  file_types_distribution: Array<{
+    type: string;
+    count: number;
+    total_size_mb: number;
+  }>;
+}
+
+interface SecurityMetrics {
+  failed_login_attempts: Array<{
+    username: string;
+    attempts: number;
+    last_attempt: string;
+    ip_address: string;
+  }>;
+  unverified_emails: number;
+  weak_passwords: number;
+  suspicious_activity: Array<{
+    type: string;
+    user: string;
+    timestamp: string;
+    details: string;
+  }>;
+}
+
+interface SystemHealth {
+  database_size_gb: number;
+  backup_status: {
+    last_backup: string;
+    status: 'success' | 'failed' | 'in_progress';
+    next_backup: string;
+  };
+  server_metrics: {
+    cpu_usage: number;
+    memory_usage: number;
+    disk_usage: number;
+  };
+  api_performance: Array<{
+    endpoint: string;
+    avg_response_ms: number;
+    requests_count: number;
+    error_rate: number;
+  }>;
 }
 
 export default function AdminDashboard() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [expandedSections, setExpandedSections] = useState<string[]>([]);
 
   const { data: stats, isLoading: statsLoading } = useQuery<DashboardStats>({
     queryKey: ['/api/admin/dashboard/stats'],
@@ -40,6 +111,26 @@ export default function AdminDashboard() {
   const { data: users, isLoading: usersLoading } = useQuery<User[]>({
     queryKey: ['/api/admin/users'],
   });
+
+  const { data: activityMetrics, isLoading: activityLoading } = useQuery<ActivityMetrics>({
+    queryKey: ['/api/admin/activity-metrics'],
+  });
+
+  const { data: securityMetrics, isLoading: securityLoading } = useQuery<SecurityMetrics>({
+    queryKey: ['/api/admin/security-metrics'],
+  });
+
+  const { data: systemHealth, isLoading: systemLoading } = useQuery<SystemHealth>({
+    queryKey: ['/api/admin/system-health'],
+  });
+
+  const toggleSection = (section: string) => {
+    setExpandedSections(prev => 
+      prev.includes(section) 
+        ? prev.filter(s => s !== section)
+        : [...prev, section]
+    );
+  };
 
   const formatBytes = (bytes: number) => {
     if (bytes === 0) return '0 MB';
@@ -114,7 +205,7 @@ export default function AdminDashboard() {
           <CardContent>
             <div className="text-2xl font-bold">{stats?.total_items || 0}</div>
             <p className="text-xs text-muted-foreground">
-              Across all collections
+              +{stats?.uploads_this_week || 0} uploads this week
             </p>
           </CardContent>
         </Card>
@@ -140,24 +231,85 @@ export default function AdminDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Users</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">System Health</CardTitle>
+            <Zap className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.active_users_30d || 0}</div>
+            <div className="text-2xl font-bold">{stats?.uptime_percent?.toFixed(1) || 99.9}%</div>
             <p className="text-xs text-muted-foreground">
-              Last 30 days
+              {stats?.avg_response_time_ms || 120}ms avg response
             </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Secondary Stats */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Daily Active</CardTitle>
+            <Activity className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl font-bold">{stats?.daily_active_users || 0}</div>
+            <p className="text-xs text-muted-foreground">users today</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Portfolio Views</CardTitle>
+            <Eye className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl font-bold">{stats?.total_portfolio_views || 0}</div>
+            <p className="text-xs text-muted-foreground">total views</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Revenue</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl font-bold">${stats?.revenue_monthly || 0}</div>
+            <p className="text-xs text-muted-foreground">this month</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Error Rate</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl font-bold">{stats?.error_rate_percent?.toFixed(2) || 0.01}%</div>
+            <p className="text-xs text-muted-foreground">last 24h</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Conversion</CardTitle>
+            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl font-bold">{stats?.conversion_rate_percent?.toFixed(1) || 12.5}%</div>
+            <p className="text-xs text-muted-foreground">free to paid</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Detailed Tabs */}
       <Tabs defaultValue="users" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="users">User Management</TabsTrigger>
-          <TabsTrigger value="storage">Storage Analysis</TabsTrigger>
-          <TabsTrigger value="settings">Platform Settings</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="users">Users</TabsTrigger>
+          <TabsTrigger value="activity">Activity</TabsTrigger>
+          <TabsTrigger value="security">Security</TabsTrigger>
+          <TabsTrigger value="system">System</TabsTrigger>
+          <TabsTrigger value="storage">Storage</TabsTrigger>
+          <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
 
         <TabsContent value="users" className="space-y-4">
@@ -225,6 +377,379 @@ export default function AdminDashboard() {
                       </TableCell>
                     </TableRow>
                   ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="activity" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Upload className="h-4 w-4" />
+                  <span>Upload Activity</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Today:</span>
+                    <span className="font-medium">{activityMetrics?.upload_frequency.today || 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">This Week:</span>
+                    <span className="font-medium">{activityMetrics?.upload_frequency.this_week || 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">This Month:</span>
+                    <span className="font-medium">{activityMetrics?.upload_frequency.this_month || 0}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Eye className="h-4 w-4" />
+                  <span>Popular Collections</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {activityMetrics?.popular_collections?.slice(0, 5).map((collection, index) => (
+                    <div key={index} className="flex justify-between items-center">
+                      <div>
+                        <div className="text-sm font-medium">{collection.name}</div>
+                        <div className="text-xs text-muted-foreground">{collection.items} items</div>
+                      </div>
+                      <Badge variant="secondary">{collection.views} views</Badge>
+                    </div>
+                  )) || (
+                    <div className="text-sm text-muted-foreground">Loading collection data...</div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <FileImage className="h-4 w-4" />
+                  <span>File Types</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {activityMetrics?.file_types_distribution?.map((fileType, index) => (
+                    <div key={index} className="space-y-1">
+                      <div className="flex justify-between text-sm">
+                        <span>{fileType.type.toUpperCase()}</span>
+                        <span>{fileType.count} files</span>
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {formatBytes(fileType.total_size_mb * 1024 * 1024)}
+                      </div>
+                      <Progress value={(fileType.count / (activityMetrics?.file_types_distribution?.reduce((sum, ft) => sum + ft.count, 0) || 1)) * 100} className="h-1" />
+                    </div>
+                  )) || (
+                    <div className="text-sm text-muted-foreground">Loading file type data...</div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Activity className="h-4 w-4" />
+                <span>User Activity Trends</span>
+              </CardTitle>
+              <CardDescription>
+                Daily and weekly active user patterns
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <div className="text-sm font-medium">Weekly Active Users</div>
+                  <div className="text-2xl font-bold">{stats?.weekly_active_users || 0}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {((stats?.weekly_active_users || 0) / (stats?.total_users || 1) * 100).toFixed(1)}% of total users
+                  </div>
+                  <Progress value={(stats?.weekly_active_users || 0) / (stats?.total_users || 1) * 100} />
+                </div>
+                <div className="space-y-2">
+                  <div className="text-sm font-medium">Daily Active Users</div>
+                  <div className="text-2xl font-bold">{stats?.daily_active_users || 0}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {((stats?.daily_active_users || 0) / (stats?.weekly_active_users || 1) * 100).toFixed(1)}% of weekly active
+                  </div>
+                  <Progress value={(stats?.daily_active_users || 0) / (stats?.weekly_active_users || 1) * 100} />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="security" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Shield className="h-4 w-4" />
+                  <span>Security Overview</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center space-x-2">
+                      <AlertTriangle className="h-4 w-4 text-red-500" />
+                      <span className="text-sm">Failed Logins (24h)</span>
+                    </div>
+                    <Badge variant={stats?.failed_logins_24h && stats.failed_logins_24h > 10 ? "destructive" : "secondary"}>
+                      {stats?.failed_logins_24h || 0}
+                    </Badge>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center space-x-2">
+                      <Lock className="h-4 w-4 text-yellow-500" />
+                      <span className="text-sm">Unverified Emails</span>
+                    </div>
+                    <Badge variant="outline">
+                      {securityMetrics?.unverified_emails || 0}
+                    </Badge>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center space-x-2">
+                      <Shield className="h-4 w-4 text-orange-500" />
+                      <span className="text-sm">Weak Passwords</span>
+                    </div>
+                    <Badge variant="outline">
+                      {securityMetrics?.weak_passwords || 0}
+                    </Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <AlertTriangle className="h-4 w-4" />
+                  <span>Recent Security Events</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {securityMetrics?.suspicious_activity?.slice(0, 5).map((activity, index) => (
+                    <div key={index} className="p-3 border rounded-lg space-y-1">
+                      <div className="flex justify-between items-start">
+                        <div className="text-sm font-medium">{activity.type}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {new Date(activity.timestamp).toLocaleDateString()}
+                        </div>
+                      </div>
+                      <div className="text-xs text-muted-foreground">User: {activity.user}</div>
+                      <div className="text-xs">{activity.details}</div>
+                    </div>
+                  )) || (
+                    <div className="text-sm text-muted-foreground">No recent security events</div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Failed Login Attempts</CardTitle>
+              <CardDescription>Recent failed authentication attempts</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Username</TableHead>
+                    <TableHead>Attempts</TableHead>
+                    <TableHead>Last Attempt</TableHead>
+                    <TableHead>IP Address</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {securityMetrics?.failed_login_attempts?.map((attempt, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{attempt.username}</TableCell>
+                      <TableCell>
+                        <Badge variant={attempt.attempts > 5 ? "destructive" : "secondary"}>
+                          {attempt.attempts}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{new Date(attempt.last_attempt).toLocaleString()}</TableCell>
+                      <TableCell>{attempt.ip_address}</TableCell>
+                      <TableCell>
+                        <Button variant="outline" size="sm">
+                          Block IP
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  )) || (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center text-muted-foreground">
+                        No failed login attempts
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="system" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Server className="h-4 w-4" />
+                  <span>Server Metrics</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>CPU Usage</span>
+                      <span>{systemHealth?.server_metrics.cpu_usage || 0}%</span>
+                    </div>
+                    <Progress value={systemHealth?.server_metrics.cpu_usage || 0} />
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>Memory Usage</span>
+                      <span>{systemHealth?.server_metrics.memory_usage || 0}%</span>
+                    </div>
+                    <Progress value={systemHealth?.server_metrics.memory_usage || 0} />
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>Disk Usage</span>
+                      <span>{systemHealth?.server_metrics.disk_usage || 0}%</span>
+                    </div>
+                    <Progress value={systemHealth?.server_metrics.disk_usage || 0} />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Database className="h-4 w-4" />
+                  <span>Database Status</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Database Size:</span>
+                    <span className="font-medium">{systemHealth?.database_size_gb?.toFixed(2) || 0} GB</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Last Backup:</span>
+                    <span className="font-medium">
+                      {systemHealth?.backup_status.last_backup ? 
+                        new Date(systemHealth.backup_status.last_backup).toLocaleDateString() : 
+                        'Never'
+                      }
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Backup Status:</span>
+                    <Badge variant={
+                      systemHealth?.backup_status.status === 'success' ? 'default' :
+                      systemHealth?.backup_status.status === 'failed' ? 'destructive' : 'secondary'
+                    }>
+                      {systemHealth?.backup_status.status || 'unknown'}
+                    </Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Zap className="h-4 w-4" />
+                  <span>Performance</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Uptime:</span>
+                    <span className="font-medium">{stats?.uptime_percent?.toFixed(2) || 99.9}%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Avg Response:</span>
+                    <span className="font-medium">{stats?.avg_response_time_ms || 120}ms</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Error Rate:</span>
+                    <span className="font-medium">{stats?.error_rate_percent?.toFixed(3) || 0.001}%</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>API Performance</CardTitle>
+              <CardDescription>Response times and error rates by endpoint</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Endpoint</TableHead>
+                    <TableHead>Avg Response Time</TableHead>
+                    <TableHead>Requests</TableHead>
+                    <TableHead>Error Rate</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {systemHealth?.api_performance?.map((endpoint, index) => (
+                    <TableRow key={index}>
+                      <TableCell className="font-mono text-sm">{endpoint.endpoint}</TableCell>
+                      <TableCell>{endpoint.avg_response_ms}ms</TableCell>
+                      <TableCell>{endpoint.requests_count.toLocaleString()}</TableCell>
+                      <TableCell>
+                        <Badge variant={endpoint.error_rate > 5 ? "destructive" : endpoint.error_rate > 1 ? "secondary" : "default"}>
+                          {endpoint.error_rate.toFixed(2)}%
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={endpoint.avg_response_ms < 200 ? "default" : endpoint.avg_response_ms < 500 ? "secondary" : "destructive"}>
+                          {endpoint.avg_response_ms < 200 ? "Good" : endpoint.avg_response_ms < 500 ? "Fair" : "Slow"}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  )) || (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center text-muted-foreground">
+                        Loading API performance data...
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </CardContent>

@@ -20,6 +20,7 @@ import Authors from "@/pages/authors";
 import AuthorItems from "@/pages/author-items";
 import ManageAuthors from "@/pages/manage-authors";
 import ImportNFTs from "@/pages/import-nfts";
+import AdminDashboard from "@/pages/admin-dashboard";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/components/protected-route";
 import { ThemeProvider } from "@/components/theme-provider";
