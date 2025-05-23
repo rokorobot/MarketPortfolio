@@ -56,7 +56,7 @@ function requireAuth(req: Request, res: Response, next: NextFunction) {
 
 // Admin role middleware
 function requireAdmin(req: Request, res: Response, next: NextFunction) {
-  if (req.session && req.session.userRole === 'admin') {
+  if (req.session && (req.session.userRole === 'admin' || req.session.userRole === 'superadmin')) {
     return next();
   }
   return res.status(403).json({ message: "Admin access required" });
