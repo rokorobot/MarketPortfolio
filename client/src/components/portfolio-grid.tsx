@@ -8,6 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useShowcase } from "@/hooks/use-showcase";
 import { Eye } from "lucide-react";
+import { getProxiedImageUrl } from "@/lib/utils";
 
 // Default grid settings if site settings are not available
 const DEFAULT_GRID_SETTINGS = {
