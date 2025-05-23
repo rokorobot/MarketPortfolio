@@ -452,7 +452,9 @@ export function registerRoutes(app: Express) {
       // If category is provided, use category-specific pagination
       if (category && typeof category === 'string') {
         // Pass userId and userRole to filter items by user
+        console.log(`Category filtering for: ${category}, User: ${userId}, Role: ${userRole}`);
         const result = await storage.getItemsByCategoryPaginated(category, pageNum, pageSizeNum, userId, userRole);
+        console.log(`Category results for ${category}: ${result.total} items`);
         res.json(result);
       } else {
         // Use general pagination with user filtering
