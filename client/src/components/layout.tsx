@@ -274,6 +274,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     Authors
                   </DropdownMenuItem>
                   
+                  {user && (user.role === 'admin' || user.role === 'superadmin') && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => navigate("/creator/dashboard")}>
+                        <BarChart3 className="h-4 w-4 mr-2" />
+                        Creator Dashboard
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  
                   {isAdmin && (
                     <>
                       <DropdownMenuSeparator />

@@ -21,6 +21,7 @@ import AuthorItems from "@/pages/author-items";
 import ManageAuthors from "@/pages/manage-authors";
 import ImportNFTs from "@/pages/import-nfts";
 import AdminDashboard from "@/pages/admin-dashboard";
+import CreatorDashboard from "@/pages/creator-dashboard";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/components/protected-route";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -78,6 +79,12 @@ function Router() {
       <Route path="/admin/dashboard">
         <ProtectedRoute requireAdmin>
           <AdminDashboard />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/creator/dashboard">
+        <ProtectedRoute>
+          <CreatorDashboard />
         </ProtectedRoute>
       </Route>
       

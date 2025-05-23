@@ -225,7 +225,7 @@ export default function CreatorDashboard() {
                 <div>
                   <p className="font-medium text-sm truncate">{item.title}</p>
                   <p className="text-xs text-muted-foreground">
-                    {item.collection || "No collection"}
+                    {item.category || "No collection"}
                   </p>
                 </div>
               </div>
