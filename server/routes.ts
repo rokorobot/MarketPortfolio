@@ -55,16 +55,32 @@ function requireAuth(req: Request, res: Response, next: NextFunction) {
 }
 
 // Admin role middleware
-function requireAdmin(req: Request, res: Response, next: NextFunction) {
+async function requireAdmin(req: Request, res: Response, next: NextFunction) {
   console.log("Admin check - Session data:", {
     userId: req.session?.userId,
     username: req.session?.username,
     userRole: req.session?.userRole
   });
   
+  // Check session first
   if (req.session && (req.session.userRole === 'admin' || req.session.userRole === 'superadmin')) {
     return next();
   }
+  
+  // Fallback: check user role directly from database if session role is missing
+  if (req.session?.userId) {
+    try {
+      const user = await storage.getUserById(req.session.userId);
+      if (user && (user.role === 'admin' || user.role === 'superadmin')) {
+        // Update session with correct role
+        req.session.userRole = user.role;
+        return next();
+      }
+    } catch (error) {
+      console.error("Error checking user role:", error);
+    }
+  }
+  
   return res.status(403).json({ message: "Admin access required" });
 }
 
