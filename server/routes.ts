@@ -1730,7 +1730,11 @@ export function registerRoutes(app: Express) {
       }
 
       const userId = req.session.userId!;
+      console.log(`Toggle favorite API: userId=${userId}, itemId=${itemId}`);
+
       const isFavorited = await storage.toggleFavorite(userId, itemId);
+      console.log(`Toggle favorite API result: isFavorited=${isFavorited}`);
+
       res.json({ isFavorited });
     } catch (error) {
       console.error("Error toggling favorite:", error);
