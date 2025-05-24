@@ -74,12 +74,17 @@ export default function Item() {
     enabled: !!user && !!params?.id, // Only run this query if user is logged in and we have an item ID
   });
   
-  // Update favorite state when the data is loaded
+    // Update favorite state when the data is loaded
   React.useEffect(() => {
-    if (favoriteStatus) {
+    if (favoriteStatus !== undefined) {
       setIsFavorited(favoriteStatus.isFavorited);
     }
   }, [favoriteStatus]);
+
+  // Reset favorite state when switching to different items
+  React.useEffect(() => {
+    setIsFavorited(false);
+  }, [params?.id]);
 
   // Get category options from API (combines built-in and custom categories)
   const { data: categoryOptions, isLoading: isLoadingCategories } = useQuery<string[]>({
