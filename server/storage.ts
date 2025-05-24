@@ -204,12 +204,15 @@ export class DatabaseStorage implements IStorage {
    * Admin users can see all items
    */
   async getItemsPaginated(page: number, pageSize: number, userId?: number, userRole?: string): Promise<PaginatedResult<PortfolioItem>> {
-    // Ensure valid page and pageSize
-    const validPage = Math.max(1, page);
-    const validPageSize = Math.max(1, Math.min(100, pageSize)); // Limit max page size to 100
-    
-    // Calculate offset
-    const offset = (validPage - 1) * validPageSize;
+  // Debug logging
+  console.log(`getItemsPaginated called - Page: ${page}, UserId: ${userId}, UserRole: '${userRole}'`);
+  
+  // Ensure valid page and pageSize
+  const validPage = Math.max(1, page);
+  const validPageSize = Math.max(1, Math.min(100, pageSize)); // Limit max page size to 100
+  
+  // Calculate offset
+  const offset = (validPage - 1) * validPageSize;
     
     // Get total count and items
     let countResult;
