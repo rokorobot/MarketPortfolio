@@ -229,8 +229,8 @@ export class DatabaseStorage implements IStorage {
         .orderBy(portfolioItems.displayOrder);
       
         } else {
-      // For creator users (admin role), show only their uploaded items
-      if (userRole === 'admin') {
+      // For creator users (admin or creator role), show only their uploaded items
+      if (userRole === 'admin' || userRole === 'creator') {
         // Count total items created by this user
         countResult = await db.select({ count: sql`count(*)` })
           .from(portfolioItems)
