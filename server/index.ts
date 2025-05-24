@@ -6,7 +6,7 @@ import path from "path";
 import { migrateDatabase } from "./migration";
 import { migrateNFTFields } from "./nft-migration";
 import { migrateItemCollectors } from "./collector-migration";
-
+import { migrateFavorites } from "./favorites-migration";
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
