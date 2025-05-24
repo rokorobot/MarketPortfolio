@@ -224,41 +224,56 @@ export class DatabaseStorage implements IStorage {
         .limit(validPageSize)
         .offset(offset)
         .orderBy(portfolioItems.displayOrder);
-    } else {
-      // For any user, get both created and collected items
-      // First, get all relevant item IDs (both created and collected)
       
-      // Get IDs of items created by this user
-      const createdItemsQuery = db.select({ id: portfolioItems.id })
-        .from(portfolioItems)
-        .where(eq(portfolioItems.userId, userId));
-      
-      // Get IDs of items where the user is a collector
-      const collectedItemsQuery = db.select({ id: portfolioItems.id })
-        .from(itemCollectors)
-        .innerJoin(portfolioItems, eq(itemCollectors.itemId, portfolioItems.id))
-        .where(eq(itemCollectors.collectorId, userId));
-      
-      // Union the queries to get all relevant IDs
-      const allItemIds = await db.select().from(
-        createdItemsQuery.union(collectedItemsQuery).as('combined_items')
-      );
-      
-      // Count the total number of items
-      countResult = [{ count: allItemIds.length }];
-      
-      // Get the actual items for this page
-      if (allItemIds.length > 0) {
-        const itemIdList = allItemIds.map(item => item.id);
+        } else {
+      // For creator users (admin role), show only their uploaded items
+      if (userRole === 'admin') {
+        // Count total items created by this user
+        countResult = await db.select({ count: sql`count(*)` })
+          .from(portfolioItems)
+          .where(eq(portfolioItems.userId, userId));
         
+        // Get items created by this user for this page
         items = await db.select()
           .from(portfolioItems)
-          .where(inArray(portfolioItems.id, itemIdList))
+          .where(eq(portfolioItems.userId, userId))
           .limit(validPageSize)
           .offset(offset)
           .orderBy(portfolioItems.displayOrder);
       } else {
-        items = [];
+        // For other users, get both created and collected items
+        // Get IDs of items created by this user
+        const createdItemsQuery = db.select({ id: portfolioItems.id })
+          .from(portfolioItems)
+          .where(eq(portfolioItems.userId, userId));
+        
+        // Get IDs of items where the user is a collector
+        const collectedItemsQuery = db.select({ id: portfolioItems.id })
+          .from(itemCollectors)
+          .innerJoin(portfolioItems, eq(itemCollectors.itemId, portfolioItems.id))
+          .where(eq(itemCollectors.collectorId, userId));
+        
+        // Union the queries to get all relevant IDs
+        const allItemIds = await db.select().from(
+          createdItemsQuery.union(collectedItemsQuery).as('combined_items')
+        );
+        
+        // Count the total number of items
+        countResult = [{ count: allItemIds.length }];
+        
+        // Get the actual items for this page
+        if (allItemIds.length > 0) {
+          const itemIdList = allItemIds.map(item => item.id);
+          
+          items = await db.select()
+            .from(portfolioItems)
+            .where(inArray(portfolioItems.id, itemIdList))
+            .limit(validPageSize)
+            .offset(offset)
+            .orderBy(portfolioItems.displayOrder);
+        } else {
+          items = [];
+        }
       }
     }
     
