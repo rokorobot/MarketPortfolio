@@ -1739,21 +1739,23 @@ export function registerRoutes(app: Express) {
   });
   
   // Check if an item is favorited by the current user
-  app.get("/api/favorites/check/:itemId", requireAuth, async (req, res) => {
-    try {
-      const itemId = parseInt(req.params.itemId);
-      if (isNaN(itemId)) {
-        return res.status(400).json({ message: "Invalid item ID" });
-      }
-
-      const userId = req.session.userId!;
-      const isFavorited = await storage.isFavorited(userId, itemId);
-      res.json({ isFavorited });
-    } catch (error) {
-      console.error("Error checking favorite status:", error);
-      res.status(500).json({ message: "Failed to check favorite status" });
+ app.get("/api/favorites/check/:itemId", requireAuth, async (req, res) => {
+  try {
+    const itemId = parseInt(req.params.itemId);
+    if (isNaN(itemId)) {
+      return res.status(400).json({ message: "Invalid item ID" });
     }
-  });
+    const userId = req.session.userId!;
+    console.log(`Checking favorite: userId=${userId}, itemId=${itemId}`);
+    const isFavorited = await storage.isFavorited(userId, itemId);
+    console.log(`Favorite check result: ${isFavorited}`);
+    res.json({ isFavorited });
+  } catch (error) {
+    console.error("Error checking favorite status:", error);
+    // Return false instead of error to prevent UI issues
+    res.json({ isFavorited: false });
+  }
+});
   
   // Get all favorite items for the current user
   app.get("/api/favorites", requireAuth, async (req, res) => {
