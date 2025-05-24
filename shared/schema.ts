@@ -159,7 +159,7 @@ export type SiteSetting = typeof siteSettings.$inferSelect;
 
 // Favorites table - junction table between users and portfolio items
 export const favorites = pgTable("favorites", {
-  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  userId: text("user_id").notNull(), // Changed to text to match production database
   itemId: integer("item_id").notNull().references(() => portfolioItems.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 }, (table) => {
