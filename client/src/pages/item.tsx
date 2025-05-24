@@ -183,16 +183,19 @@ export default function Item() {
       }
       return response.json();
     },
-    onSuccess: (data) => {
-      setIsFavorited(data.isFavorited);
-      
-      // Show toast message
-      toast({
-        title: data.isFavorited ? "Added to favorites" : "Removed from favorites",
-        description: data.isFavorited 
-          ? "This item has been added to your favorites." 
-          : "This item has been removed from your favorites.",
-      });
+onSuccess: (data) => {
+  console.log("Favorites toggle response:", data);
+  console.log("Previous state:", isFavorited, "New state:", data.isFavorited);
+  
+  setIsFavorited(data.isFavorited);
+  
+  // Show toast message
+  toast({
+    title: data.isFavorited ? "Added to favorites" : "Removed from favorites",
+    description: data.isFavorited 
+      ? "This item has been added to your favorites." 
+      : "This item has been removed from your favorites.",
+  });
       
       // Invalidate favorites query to update any favorites list elsewhere in the app
       queryClient.invalidateQueries({ queryKey: ["/api/favorites"] });
