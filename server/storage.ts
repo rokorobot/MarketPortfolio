@@ -791,36 +791,39 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Favorites methods
-  async toggleFavorite(userId: number, itemId: number): Promise<boolean> {
-  try {
-    // Check if already favorited
-    const isFavorite = await this.isFavorited(userId, itemId);
-    console.log(`Toggle favorite: userId=${userId}, itemId=${itemId}, isFavorite=${isFavorite}`);
-    
-    if (isFavorite) {
-      // Remove from favorites
-      await db.delete(favorites)
-        .where(and(
-          eq(favorites.userId, userId),
-          eq(favorites.itemId, itemId)
-        ));
-      console.log(`Removed favorite: userId=${userId}, itemId=${itemId}`);
-      return false; // No longer favorited
-    } else {
-      // Add to favorites
-      await db.insert(favorites)
-        .values({
-          userId,
-          itemId,
-        });
-      console.log(`Added favorite: userId=${userId}, itemId=${itemId}`);
-      return true; // Now favorited
-    }
-  } catch (error) {
-    console.error("Error toggling favorite:", error);
-    return false;
-  }
-}
+794  async toggleFavorite(userId: number, itemId: number): Promise<boolean> {
+795    try {
+796      // Convert userId to string to match database schema
+797      const userIdStr = userId.toString();              // ← ADD THIS LINE
+798      
+799      // Check if already favorited
+800      const isFavorite = await this.isFavorited(userId, itemId);
+801      console.log(`Toggle favorite: userId=${userId}, itemId=${itemId}, isFavorite=${isFavorite}`);
+802      
+803      if (isFavorite) {
+804        // Remove from favorites
+805        await db.delete(favorites)
+806          .where(and(
+807            eq(favorites.userId, userIdStr),             // ← CHANGE: use userIdStr
+808            eq(favorites.itemId, itemId)
+809          ));
+810        console.log(`Removed favorite: userId=${userId}, itemId=${itemId}`);
+811        return false;
+812      } else {
+813        // Add to favorites
+814        await db.insert(favorites)
+815          .values({
+816            userId: userIdStr,                           // ← CHANGE: use userIdStr
+817            itemId,
+818          });
+819        console.log(`Added favorite: userId=${userId}, itemId=${itemId}`);
+820        return true;
+821      }
+822    } catch (error) {
+823      console.error("Error toggling favorite:", error);
+824      return false;
+825    }
+826  }
   
  async isFavorited(userId: number, itemId: number): Promise<boolean> {
   try {
