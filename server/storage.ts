@@ -792,34 +792,38 @@ export class DatabaseStorage implements IStorage {
 
   // Favorites methods
   async toggleFavorite(userId: number, itemId: number): Promise<boolean> {
-    try {
-      // Check if already favorited
-      const isFavorite = await this.isFavorited(userId, itemId);
-      
-      if (isFavorite) {
-        // Remove from favorites
-        await db.delete(favorites)
-          .where(and(
-            eq(favorites.userId, userId),
-            eq(favorites.itemId, itemId)
-          ));
-        return false; // No longer favorited
-      } else {
-        // Add to favorites
-        await db.insert(favorites)
-          .values({
-            userId,
-            itemId,
-          });
-        return true; // Now favorited
-      }
-    } catch (error) {
-      console.error("Error toggling favorite:", error);
-      return false;
+  try {
+    // Check if already favorited
+    const isFavorite = await this.isFavorited(userId, itemId);
+    console.log(`Toggle favorite: userId=${userId}, itemId=${itemId}, isFavorite=${isFavorite}`);
+    
+    if (isFavorite) {
+      // Remove from favorites
+      await db.delete(favorites)
+        .where(and(
+          eq(favorites.userId, userId),
+          eq(favorites.itemId, itemId)
+        ));
+      console.log(`Removed favorite: userId=${userId}, itemId=${itemId}`);
+      return false; // No longer favorited
+    } else {
+      // Add to favorites
+      await db.insert(favorites)
+        .values({
+          userId,
+          itemId,
+        });
+      console.log(`Added favorite: userId=${userId}, itemId=${itemId}`);
+      return true; // Now favorited
     }
+  } catch (error) {
+    console.error("Error toggling favorite:", error);
+    return false;
   }
+}
   
-  async isFavorited(userId: number, itemId: number): Promise<boolean> {
+ async isFavorited(userId: number, itemId: number): Promise<boolean> {
+  try {
     const [favorite] = await db.select()
       .from(favorites)
       .where(and(
@@ -828,7 +832,11 @@ export class DatabaseStorage implements IStorage {
       ));
     
     return !!favorite;
+  } catch (error) {
+    console.error("Error checking if favorited:", error);
+    return false;
   }
+}
   
   async getUserFavorites(userId: number): Promise<PortfolioItem[]> {
     // Join favorites and portfolio items to get all favorited items
