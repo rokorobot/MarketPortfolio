@@ -1,0 +1,14 @@
+{
+  "name": "Portfolio Platform",
+  "short_name": "Portfolio",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "theme_color": "#22c55e",
+  "background_color": "#27272a",
+  "display": "standalone"
+}
