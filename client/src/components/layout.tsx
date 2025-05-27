@@ -308,7 +308,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                         <BarChart3 className="h-4 w-4 mr-2" />
                         Creator Dashboard
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => navigate("/admin/collections")}>
+                      <DropdownMenuItem onClick={() => navigate("/manage-categories")}>
                         <Settings className="h-4 w-4 mr-2" />
                         Manage Collections
                       </DropdownMenuItem>
