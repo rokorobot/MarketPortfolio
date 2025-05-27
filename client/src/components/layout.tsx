@@ -1,6 +1,12 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Plus, UserCircle, LogOut, FolderPlus, Settings, Heart, Grid3X3, Presentation, Clock, User, Download, BarChart3 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -205,17 +211,38 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <ThemeToggle />
             
             {isAdmin && (
-              <>
-                <Button onClick={() => navigate("/add-item")}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Item
-                </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      onClick={() => navigate("/add-item")} 
+                      size="sm" 
+                      className="px-2"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Add Item</p>
+                  </TooltipContent>
+                </Tooltip>
                 
-                <Button onClick={() => navigate("/add-collection")} variant="outline">
-                  <FolderPlus className="mr-2 h-4 w-4" />
-                  Add Collection
-                </Button>
-              </>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      onClick={() => navigate("/add-collection")} 
+                      variant="outline" 
+                      size="sm" 
+                      className="px-2"
+                    >
+                      <FolderPlus className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Add Collection</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
             
             {/* Import NFTs button - available to all users */}
