@@ -263,10 +263,9 @@ const ImportNFTsPage = () => {
                     >
                       <option value="50">50 NFTs</option>
                       <option value="100">100 NFTs</option>
-                      <option value="250">250 NFTs</option>
+                      <option value="200">200 NFTs</option>
+                      <option value="300">300 NFTs</option>
                       <option value="500">500 NFTs</option>
-                      <option value="1000">1000 NFTs</option>
-                      <option value="2000">2000 NFTs</option>
                     </select>
                   </div>
                   <Button 
