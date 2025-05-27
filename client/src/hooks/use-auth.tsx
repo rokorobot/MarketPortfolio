@@ -145,7 +145,7 @@ export function useAuth() {
   // Add convenience methods and derived properties
   return {
     ...context,
-    isAdmin: context.user?.role === 'admin' || context.user?.role === 'superadmin',
+    isAdmin: context.user?.role === 'admin' || context.user?.role === 'superadmin' || context.user?.role === 'creator',
     logout: async () => {
       try {
         await context.logoutMutation.mutateAsync();
