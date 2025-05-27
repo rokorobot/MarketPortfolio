@@ -301,12 +301,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     Authors
                   </DropdownMenuItem>
                   
-                  {user && (user.role === 'admin' || user.role === 'superadmin') && (
+                  {user && (user.role === 'admin' || user.role === 'superadmin' || user.role === 'creator') && (
                     <>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={() => navigate("/creator/dashboard")}>
                         <BarChart3 className="h-4 w-4 mr-2" />
                         Creator Dashboard
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate("/admin/categories")}>
+                        <Settings className="h-4 w-4 mr-2" />
+                        Manage Categories
                       </DropdownMenuItem>
                     </>
                   )}
