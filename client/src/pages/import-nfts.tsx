@@ -185,11 +185,44 @@ const ImportNFTsPage = () => {
       <div className="container py-6">
         <h1 className="text-3xl font-bold mb-6">Import NFTs from OBJKT</h1>
         
+        {/* OBJKT Profile Authorization */}
+        <Card className="mb-6 border-2 border-primary/20">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <span className="text-primary">🔗</span>
+              Authorize your Tez Wallet for your OBJKT profile
+            </CardTitle>
+            <CardDescription>
+              Connect with your OBJKT profile to automatically import your collections and created NFTs.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="bg-muted/50 p-4 rounded-lg">
+              <p className="text-sm mb-3">
+                By authorizing with OBJKT, we'll automatically retrieve your Tezos wallet address 
+                associated with your profile, making it easier to import your NFT collections.
+              </p>
+              <div className="flex items-center gap-3">
+                <Button 
+                  onClick={() => window.open('/api/nfts/objkt/auth-url', '_self')}
+                  className="bg-primary hover:bg-primary/90"
+                >
+                  <span className="mr-2">🔑</span>
+                  Authorize with OBJKT
+                </Button>
+                <span className="text-xs text-muted-foreground">
+                  Secure OAuth connection
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
         <Card className="mb-8">
           <CardHeader>
             <CardTitle>Import from Tezos Wallet</CardTitle>
             <CardDescription>
-              Enter a Tezos wallet address to find and import NFTs.
+              Alternatively, enter a Tezos wallet address manually to find and import NFTs.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
