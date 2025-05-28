@@ -40,10 +40,11 @@ export default function Collections() {
 
   // Get items for a specific category
   const { data: items, isLoading: itemsLoading } = useQuery<PortfolioItem[]>({
-    queryKey: ["/api/items/category", selectedCategory],
+    queryKey: ["/api/items", "category", selectedCategory],
     queryFn: async () => {
       if (!selectedCategory) return [];
-      const response = await fetch(`/api/items/category/${selectedCategory}`);
+      const params = new URLSearchParams({ category: selectedCategory });
+      const response = await fetch(`/api/items?${params}`);
       if (!response.ok) throw new Error("Failed to fetch items for category");
       return response.json();
     },
@@ -86,9 +87,8 @@ export default function Collections() {
 
   // Handle selecting a category
   const handleCategorySelect = (category: CategoryModel) => {
-    // Properly encode the category name for URL safety
-    const encodedCategory = encodeURIComponent(category.name);
-    setSelectedCategory(encodedCategory);
+    // Use the exact category name for filtering, let the server handle special characters
+    setSelectedCategory(category.name);
     setSelectedCategoryName(category.name);
     setSelectedCategoryData(category);
   };
