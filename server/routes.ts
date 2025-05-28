@@ -1240,8 +1240,8 @@ export function registerRoutes(app: Express) {
           success = await storage.updateItemsOrder(itemIdsToUpdate);
         }
       } else {
-        // For non-favorites, only admins can reorder items
-        if (userRole === 'admin') {
+        // For non-favorites, allow admins, superadmins, and creators to reorder items
+        if (userRole === 'admin' || userRole === 'superadmin' || userRole === 'creator') {
           success = await storage.updateItemsOrder(items);
         } else {
           return res.status(403).json({ message: "Only admins can reorder the main portfolio items" });
