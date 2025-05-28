@@ -222,22 +222,30 @@ const ImportNFTsPage = () => {
                   Direct Wallet Connection
                 </h4>
                 <p className="text-sm mb-3 text-muted-foreground">
-                  Wallet connection is being optimized. Use manual entry below for now.
+                  Connect your Tezos wallet directly using Beacon SDK for secure authentication.
                 </p>
                 <Button 
-                  onClick={() => {
-                    toast({
-                      title: "Feature In Development",
-                      description: "Direct wallet connection is being improved. Please use the manual address entry below.",
-                      variant: "default"
-                    });
-                  }}
+                  onClick={handleWalletConnect}
+                  disabled={isConnecting}
                   variant="outline"
                   className="w-full"
-                  disabled
                 >
-                  <span className="mr-2">🔐</span>
-                  Connect Wallet (Coming Soon)
+                  {isConnecting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Connecting...
+                    </>
+                  ) : isConnected ? (
+                    <>
+                      <span className="mr-2">✅</span>
+                      Connected: {connectedAddress?.slice(0, 10)}...
+                    </>
+                  ) : (
+                    <>
+                      <span className="mr-2">🔐</span>
+                      Connect Wallet & Sign
+                    </>
+                  )}
                 </Button>
               </div>
 

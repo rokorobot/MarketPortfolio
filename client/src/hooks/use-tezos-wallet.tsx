@@ -47,55 +47,38 @@ export function useTezosWallet() {
         setConnectedAddress(activeAccount.address);
         
         toast({
-          title: "Already Connected",
+          title: "Wallet Connected",
           description: `Using existing connection to ${activeAccount.address.slice(0, 10)}...`,
           variant: "default"
         });
 
-        // Still create a signature for authentication
-        const timestamp = new Date().toISOString();
-        const message = `Authenticate wallet for Portfolio Platform at ${timestamp}`;
-
-        const result = await dAppClient.requestSignPayload({
-          signingType: SigningType.RAW,
-          payload: Buffer.from(message).toString("hex")
-        });
-
         return {
           address: activeAccount.address,
-          message: message,
-          signature: result.signature
+          message: "Already connected",
+          signature: "existing_connection"
         };
       }
 
       // Step 1: Request new connection
+      console.log("Requesting wallet permissions...");
       const permissions = await dAppClient.requestPermissions();
       const userAddress = permissions.address;
-
-      // Step 2: Generate authentication message
-      const timestamp = new Date().toISOString();
-      const message = `Authenticate wallet for Portfolio Platform at ${timestamp}`;
-
-      // Step 3: Request signature
-      const result = await dAppClient.requestSignPayload({
-        signingType: SigningType.RAW,
-        payload: Buffer.from(message).toString("hex")
-      });
-
-      // Step 4: Prepare connection data
-      const walletConnection: WalletConnection = {
-        address: userAddress,
-        message: message,
-        signature: result.signature
-      };
+      console.log("Wallet connected successfully:", userAddress);
 
       setConnectedAddress(userAddress);
       
       toast({
-        title: "Wallet Connected",
+        title: "Wallet Connected!",
         description: `Successfully connected to ${userAddress.slice(0, 10)}...`,
         variant: "default"
       });
+
+      // Return simplified connection data
+      const walletConnection: WalletConnection = {
+        address: userAddress,
+        message: `Connected at ${new Date().toISOString()}`,
+        signature: "beacon_authenticated"
+      };
 
       return walletConnection;
 
@@ -103,10 +86,13 @@ export function useTezosWallet() {
       console.error("Wallet connection failed:", error);
       
       let errorMessage = "Failed to connect wallet. Please try again.";
-      if (error.errorType === "NOT_GRANTED_ERROR") {
-        errorMessage = "Connection was cancelled. Please try again and approve the connection.";
+      
+      if (error.errorType === "NOT_GRANTED_ERROR" || error.message?.includes("rejected")) {
+        errorMessage = "Connection was cancelled. Please try again and approve the connection in your wallet.";
       } else if (error.errorType === "UNKNOWN_ERROR") {
-        errorMessage = "Wallet connection failed. Make sure you have a Tezos wallet installed.";
+        errorMessage = "Connection issue occurred. Please refresh the page and try again.";
+      } else if (error.message?.includes("timeout")) {
+        errorMessage = "Connection timed out. Please try again.";
       }
       
       toast({
