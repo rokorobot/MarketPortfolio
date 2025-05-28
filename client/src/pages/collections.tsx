@@ -46,7 +46,8 @@ export default function Collections() {
       const params = new URLSearchParams({ category: selectedCategory });
       const response = await fetch(`/api/items?${params}`);
       if (!response.ok) throw new Error("Failed to fetch items for category");
-      return response.json();
+      const data = await response.json();
+      return data.items || data;
     },
     enabled: !!selectedCategory
   });
