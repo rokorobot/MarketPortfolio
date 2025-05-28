@@ -149,8 +149,7 @@ export function registerRoutes(app: Express) {
         return res.redirect('/');
       }
 
-      const title = `${item.title} - Portfolio Platform`;
-      const description = item.description || `View "${item.title}" in this portfolio collection.`;
+      const title = item.title;
       const imageUrl = item.imageUrl;
       const url = `${req.protocol}://${req.get('host')}/item/${itemId}`;
 
@@ -165,7 +164,6 @@ export function registerRoutes(app: Express) {
   <!-- Open Graph meta tags for social media -->
   <meta property="og:type" content="website" />
   <meta property="og:title" content="${title}" />
-  <meta property="og:description" content="${description}" />
   <meta property="og:image" content="${imageUrl}" />
   <meta property="og:url" content="${url}" />
   <meta property="og:site_name" content="Portfolio Platform" />
@@ -173,7 +171,6 @@ export function registerRoutes(app: Express) {
   <!-- Twitter Card meta tags -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="${title}" />
-  <meta name="twitter:description" content="${description}" />
   <meta name="twitter:image" content="${imageUrl}" />
   
   <!-- Favicon -->
