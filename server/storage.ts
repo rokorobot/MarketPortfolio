@@ -158,8 +158,8 @@ export class DatabaseStorage implements IStorage {
    * Admin users can see all items
    */
   async getItems(userId?: number, userRole?: string): Promise<PortfolioItem[]> {
-    // If admin user or no user ID specified, return all items
-    if (userRole === 'admin' || !userId) {
+    // If superadmin user or no user ID specified (anonymous), return all items
+    if (userRole === 'superadmin' || !userId) {
       return await db.select()
         .from(portfolioItems)
         .orderBy(portfolioItems.displayOrder);
@@ -219,8 +219,8 @@ export class DatabaseStorage implements IStorage {
     let countResult;
     let items;
     
-    // If admin user or no user ID specified, query all items
-    if (userRole === 'admin' || !userId) {
+    // If superadmin user or no user ID specified (anonymous), query all items
+    if (userRole === 'superadmin' || !userId) {
       countResult = await db.select({ count: sql`count(*)` }).from(portfolioItems);
       
       items = await db.select()
@@ -230,7 +230,7 @@ export class DatabaseStorage implements IStorage {
         .orderBy(portfolioItems.displayOrder);
       
         } else {
-      // For creator users (admin or creator role), show only their uploaded items
+      // For creator and admin users, show only their uploaded items
       if (userRole === 'admin' || userRole === 'creator') {
         // Count total items created by this user
         countResult = await db.select({ count: sql`count(*)` })
@@ -305,8 +305,8 @@ export class DatabaseStorage implements IStorage {
     let countResult;
     let items;
     
-    // If admin/superadmin user or no user ID specified, query all items in the category
-    if (userRole === 'admin' || userRole === 'superadmin' || !userId) {
+    // If superadmin user or no user ID specified (anonymous), query all items in the category
+    if (userRole === 'superadmin' || !userId) {
       countResult = await db.select({ count: sql`count(*)` })
         .from(portfolioItems)
         .where(eq(portfolioItems.category, category));
