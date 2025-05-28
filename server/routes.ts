@@ -108,7 +108,7 @@ function requireAuth(req: Request, res: Response, next: NextFunction) {
   return res.status(401).json({ message: "Authentication required" });
 }
 
-// Admin role middleware
+// Admin role middleware (includes creator role)
 async function requireAdmin(req: Request, res: Response, next: NextFunction) {
   console.log("Admin check - Session data:", {
     userId: req.session?.userId,
@@ -116,16 +116,16 @@ async function requireAdmin(req: Request, res: Response, next: NextFunction) {
     userRole: req.session?.userRole
   });
   
-  // Check session first
-  if (req.session && (req.session.userRole === 'admin' || req.session.userRole === 'superadmin')) {
+  // Check session first - allow admin, superadmin, and creator roles
+  if (req.session && (req.session.userRole === 'admin' || req.session.userRole === 'superadmin' || req.session.userRole === 'creator')) {
     return next();
   }
   
   // Fallback: check user role directly from database if session role is missing
   if (req.session?.userId) {
     try {
-      const user = await storage.getUserById(req.session.userId);
-      if (user && (user.role === 'admin' || user.role === 'superadmin')) {
+      const user = await storage.getUser(req.session.userId);
+      if (user && (user.role === 'admin' || user.role === 'superadmin' || user.role === 'creator')) {
         // Update session with correct role
         req.session.userRole = user.role;
         return next();
