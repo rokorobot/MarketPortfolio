@@ -579,15 +579,17 @@ export function registerRoutes(app: Express) {
   });
 
   // Get all category options for the dropdown menu
-  app.get("/api/category-options", async (_req, res) => {
+  app.get("/api/category-options", async (req, res) => {
     try {
-      // Get all categories from the database
-      const categories = await storage.getCategories();
+      const userId = req.session?.userId;
+      const userRole = req.session?.userRole;
+      
+      // Get categories filtered by user (creators see only their own, superadmin sees all)
+      const categories = await storage.getCategories(userId, userRole);
       
       // Extract the category names
       const categoryNames = categories.map(cat => cat.name);
       
-      // Use only database categories now (no built-in categories)
       res.json(categoryNames);
     } catch (error) {
       console.error("Error fetching category options:", error);
