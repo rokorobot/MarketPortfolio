@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
+import { useTezosWallet } from '@/hooks/use-tezos-wallet';
 import { useMutation } from '@tanstack/react-query';
 import { Layout } from '@/components/layout';
 import { apiRequest, queryClient } from '@/lib/queryClient';
