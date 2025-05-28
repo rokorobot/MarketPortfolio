@@ -68,7 +68,8 @@ export interface IStorage {
   incrementShareLinkClicks(shareCode: string): Promise<void>;
   
   // Categories
-  getCategories(): Promise<CategoryModel[]>;
+  getCategories(userId?: number, userRole?: string): Promise<CategoryModel[]>;
+  getUserCategories(userId: number): Promise<string[]>;
   getCategory(id: number): Promise<CategoryModel | undefined>;
   getCategoryByName(name: string): Promise<CategoryModel | undefined>;
   createCategory(category: InsertCategory): Promise<CategoryModel>;
@@ -764,6 +765,15 @@ export class DatabaseStorage implements IStorage {
       .from(categories)
       .where(inArray(categories.name, categoryNames))
       .orderBy(categories.displayOrder);
+  }
+
+  async getUserCategories(userId: number): Promise<string[]> {
+    // Get distinct category names from the user's portfolio items
+    const userCategories = await db.selectDistinct({ category: portfolioItems.category })
+      .from(portfolioItems)
+      .where(eq(portfolioItems.userId, userId));
+    
+    return userCategories.map(c => c.category);
   }
   
   async getCategory(id: number): Promise<CategoryModel | undefined> {

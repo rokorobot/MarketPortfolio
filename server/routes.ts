@@ -584,13 +584,16 @@ export function registerRoutes(app: Express) {
       const userId = req.session?.userId;
       const userRole = req.session?.userRole;
       
-      // Get categories filtered by user (creators see only their own, superadmin sees all)
-      const categories = await storage.getCategories(userId, userRole);
-      
-      // Extract the category names
-      const categoryNames = categories.map(cat => cat.name);
-      
-      res.json(categoryNames);
+      // For logged-in creators/admins, get only categories from their own items
+      if (userId && userRole !== 'superadmin') {
+        const userCategories = await storage.getUserCategories(userId);
+        res.json(userCategories);
+      } else {
+        // For anonymous users and superadmin, show all categories
+        const categories = await storage.getCategories();
+        const categoryNames = categories.map(cat => cat.name);
+        res.json(categoryNames);
+      }
     } catch (error) {
       console.error("Error fetching category options:", error);
       // Return empty array if database query fails
