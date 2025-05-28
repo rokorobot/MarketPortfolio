@@ -139,6 +139,66 @@ async function requireAdmin(req: Request, res: Response, next: NextFunction) {
 }
 
 export function registerRoutes(app: Express) {
+  // Open Graph meta tags for item pages (for social media previews)
+  app.get('/item/:id', async (req: Request, res: Response) => {
+    try {
+      const itemId = parseInt(req.params.id);
+      const item = await storage.getItem(itemId);
+      
+      if (!item) {
+        return res.redirect('/');
+      }
+
+      const title = `${item.title} - Portfolio Platform`;
+      const description = item.description || `View "${item.title}" in this portfolio collection.`;
+      const imageUrl = item.imageUrl;
+      const url = `${req.protocol}://${req.get('host')}/item/${itemId}`;
+
+      const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${title}</title>
+  
+  <!-- Open Graph meta tags for social media -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="${title}" />
+  <meta property="og:description" content="${description}" />
+  <meta property="og:image" content="${imageUrl}" />
+  <meta property="og:url" content="${url}" />
+  <meta property="og:site_name" content="Portfolio Platform" />
+  
+  <!-- Twitter Card meta tags -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="${title}" />
+  <meta name="twitter:description" content="${description}" />
+  <meta name="twitter:image" content="${imageUrl}" />
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  
+  <!-- Redirect to React app after meta tags are loaded -->
+  <script>
+    window.location.href = '/#/item/${itemId}';
+  </script>
+</head>
+<body>
+  <div style="text-align: center; padding: 50px; font-family: Arial, sans-serif;">
+    <h1>Loading portfolio item...</h1>
+    <p>If you're not redirected automatically, <a href="/#/item/${itemId}">click here</a>.</p>
+  </div>
+</body>
+</html>`;
+
+      res.send(html);
+    } catch (error) {
+      console.error('Error serving item page:', error);
+      res.redirect('/');
+    }
+  });
+
   // Set up session
   app.use(session({
     secret: process.env.SESSION_SECRET || 'portfolio-secret-key',
