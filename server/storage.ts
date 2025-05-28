@@ -738,8 +738,32 @@ export class DatabaseStorage implements IStorage {
   }
   
   // Category methods
-  async getCategories(): Promise<CategoryModel[]> {
-    return await db.select().from(categories);
+  async getCategories(userId?: number, userRole?: string): Promise<CategoryModel[]> {
+    // If no user info provided (anonymous user), return all categories for public viewing
+    if (!userId) {
+      return await db.select().from(categories).orderBy(categories.displayOrder);
+    }
+    
+    // Superadmin users can see all categories
+    if (userRole === 'superadmin') {
+      return await db.select().from(categories).orderBy(categories.displayOrder);
+    }
+    
+    // Creator and admin users only see categories that are used in their own portfolio items
+    const userCategories = await db.selectDistinct({ category: portfolioItems.category })
+      .from(portfolioItems)
+      .where(eq(portfolioItems.userId, userId));
+    
+    const categoryNames = userCategories.map(c => c.category);
+    
+    if (categoryNames.length === 0) {
+      return [];
+    }
+    
+    return await db.select()
+      .from(categories)
+      .where(inArray(categories.name, categoryNames))
+      .orderBy(categories.displayOrder);
   }
   
   async getCategory(id: number): Promise<CategoryModel | undefined> {

@@ -599,9 +599,12 @@ export function registerRoutes(app: Express) {
   });
   
   // Get all categories from the database
-  app.get("/api/categories", async (_req, res) => {
+  app.get("/api/categories", async (req, res) => {
     try {
-      const categories = await storage.getCategories();
+      const userId = req.session?.userId;
+      const userRole = req.session?.userRole;
+      
+      const categories = await storage.getCategories(userId, userRole);
       res.json(categories);
     } catch (error) {
       console.error("Error fetching categories:", error);
