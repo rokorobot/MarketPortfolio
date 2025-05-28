@@ -224,29 +224,45 @@ const ImportNFTsPage = () => {
                 <p className="text-sm mb-3 text-muted-foreground">
                   Connect your Tezos wallet directly using Beacon SDK for secure authentication.
                 </p>
-                <Button 
-                  onClick={handleWalletConnect}
-                  disabled={isConnecting}
-                  variant="outline"
-                  className="w-full"
-                >
-                  {isConnecting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Connecting...
-                    </>
-                  ) : isConnected ? (
-                    <>
+                {isConnected ? (
+                  <div className="space-y-2">
+                    <Button 
+                      variant="outline"
+                      className="w-full"
+                      disabled
+                    >
                       <span className="mr-2">✅</span>
                       Connected: {connectedAddress?.slice(0, 10)}...
-                    </>
-                  ) : (
-                    <>
-                      <span className="mr-2">🔐</span>
-                      Connect Wallet & Sign
-                    </>
-                  )}
-                </Button>
+                    </Button>
+                    <Button 
+                      onClick={disconnectWallet}
+                      variant="secondary"
+                      size="sm"
+                      className="w-full"
+                    >
+                      Disconnect & Test Again
+                    </Button>
+                  </div>
+                ) : (
+                  <Button 
+                    onClick={handleWalletConnect}
+                    disabled={isConnecting}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    {isConnecting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Connecting...
+                      </>
+                    ) : (
+                      <>
+                        <span className="mr-2">🔐</span>
+                        Connect Wallet & Sign
+                      </>
+                    )}
+                  </Button>
+                )}
               </div>
 
               {/* OBJKT OAuth */}
