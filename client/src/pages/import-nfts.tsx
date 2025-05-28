@@ -214,74 +214,54 @@ const ImportNFTsPage = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid md:grid-cols-2 gap-4">
-              {/* Direct Wallet Connection */}
-              <div className="bg-muted/50 p-4 rounded-lg">
-                <h4 className="font-medium mb-2 flex items-center gap-2">
-                  <span>🔐</span>
-                  Direct Wallet Connection
-                </h4>
-                <p className="text-sm mb-3 text-muted-foreground">
-                  Connect your Tezos wallet directly using Beacon SDK for secure authentication.
-                </p>
-                {isConnected ? (
-                  <div className="space-y-2">
-                    <Button 
-                      variant="outline"
-                      className="w-full"
-                      disabled
-                    >
-                      <span className="mr-2">✅</span>
-                      Connected: {connectedAddress?.slice(0, 10)}...
-                    </Button>
-                    <Button 
-                      onClick={disconnectWallet}
-                      variant="secondary"
-                      size="sm"
-                      className="w-full"
-                    >
-                      Disconnect & Test Again
-                    </Button>
-                  </div>
-                ) : (
+            {/* Direct Wallet Connection */}
+            <div className="bg-muted/50 p-4 rounded-lg max-w-md mx-auto">
+              <h4 className="font-medium mb-2 flex items-center gap-2">
+                <span>🔐</span>
+                Direct Wallet Connection
+              </h4>
+              <p className="text-sm mb-3 text-muted-foreground">
+                Connect your Tezos wallet directly using Beacon SDK for secure authentication.
+              </p>
+              {isConnected ? (
+                <div className="space-y-2">
                   <Button 
-                    onClick={handleWalletConnect}
-                    disabled={isConnecting}
                     variant="outline"
                     className="w-full"
+                    disabled
                   >
-                    {isConnecting ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Connecting...
-                      </>
-                    ) : (
-                      <>
-                        <span className="mr-2">🔐</span>
-                        Connect Wallet & Sign
-                      </>
-                    )}
+                    <span className="mr-2">✅</span>
+                    Connected: {connectedAddress?.slice(0, 10)}...
                   </Button>
-                )}
-              </div>
-
-              {/* OBJKT OAuth */}
-              <div className="bg-muted/50 p-4 rounded-lg">
-                <h4 className="font-medium mb-2 flex items-center gap-2">
-                  <span>🔑</span>
-                  OBJKT Profile Authorization
-                </h4>
-                <p className="text-sm mb-3 text-muted-foreground">
-                  Authorize with your OBJKT profile to access your collections and created NFTs.
-                </p>
+                  <Button 
+                    onClick={disconnectWallet}
+                    variant="secondary"
+                    size="sm"
+                    className="w-full"
+                  >
+                    Disconnect & Test Again
+                  </Button>
+                </div>
+              ) : (
                 <Button 
-                  onClick={() => window.open('/api/nfts/objkt/auth-url', '_self')}
-                  className="bg-primary hover:bg-primary/90 w-full"
+                  onClick={handleWalletConnect}
+                  disabled={isConnecting}
+                  variant="outline"
+                  className="w-full"
                 >
-                  <span className="mr-2">🔑</span>
-                  Authorize with OBJKT
+                  {isConnecting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Connecting...
+                    </>
+                  ) : (
+                    <>
+                      <span className="mr-2">🔐</span>
+                      Connect Wallet & Sign
+                    </>
+                  )}
                 </Button>
-              </div>
+              )}
             </div>
           </CardContent>
         </Card>
