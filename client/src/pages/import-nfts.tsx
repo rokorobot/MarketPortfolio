@@ -185,34 +185,61 @@ const ImportNFTsPage = () => {
       <div className="container py-6">
         <h1 className="text-3xl font-bold mb-6">Import NFTs from OBJKT</h1>
         
-        {/* OBJKT Profile Authorization */}
+        {/* Tezos Wallet Connection */}
         <Card className="mb-6 border-2 border-primary/20">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <span className="text-primary">🔗</span>
-              Authorize your Tez Wallet for your OBJKT profile
+              Connect your Tezos Wallet
             </CardTitle>
             <CardDescription>
-              Connect with your OBJKT profile to automatically import your collections and created NFTs.
+              Connect your Tezos wallet directly to automatically import your NFT collections.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="bg-muted/50 p-4 rounded-lg">
-              <p className="text-sm mb-3">
-                By authorizing with OBJKT, we'll automatically retrieve your Tezos wallet address 
-                associated with your profile, making it easier to import your NFT collections.
-              </p>
-              <div className="flex items-center gap-3">
+            <div className="grid md:grid-cols-2 gap-4">
+              {/* Direct Wallet Connection */}
+              <div className="bg-muted/50 p-4 rounded-lg">
+                <h4 className="font-medium mb-2 flex items-center gap-2">
+                  <span>🔐</span>
+                  Direct Wallet Connection
+                </h4>
+                <p className="text-sm mb-3 text-muted-foreground">
+                  Connect your Tezos wallet directly using Beacon SDK for secure authentication.
+                </p>
+                <Button 
+                  onClick={() => {
+                    // TODO: Implement Beacon SDK wallet connection
+                    toast({
+                      title: "Wallet Connection",
+                      description: "Direct wallet connection coming soon! Use manual entry for now.",
+                      variant: "default"
+                    });
+                  }}
+                  variant="outline"
+                  className="w-full"
+                >
+                  <span className="mr-2">🔐</span>
+                  Connect Wallet & Sign
+                </Button>
+              </div>
+
+              {/* OBJKT OAuth */}
+              <div className="bg-muted/50 p-4 rounded-lg">
+                <h4 className="font-medium mb-2 flex items-center gap-2">
+                  <span>🔑</span>
+                  OBJKT Profile Authorization
+                </h4>
+                <p className="text-sm mb-3 text-muted-foreground">
+                  Authorize with your OBJKT profile to access your collections and created NFTs.
+                </p>
                 <Button 
                   onClick={() => window.open('/api/nfts/objkt/auth-url', '_self')}
-                  className="bg-primary hover:bg-primary/90"
+                  className="bg-primary hover:bg-primary/90 w-full"
                 >
                   <span className="mr-2">🔑</span>
                   Authorize with OBJKT
                 </Button>
-                <span className="text-xs text-muted-foreground">
-                  Secure OAuth connection
-                </span>
               </div>
             </div>
           </CardContent>
