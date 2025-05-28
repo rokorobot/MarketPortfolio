@@ -86,8 +86,9 @@ export default function Collections() {
 
   // Handle selecting a category
   const handleCategorySelect = (category: CategoryModel) => {
-    const slug = category.name.replace(/\s+/g, '-').toLowerCase();
-    setSelectedCategory(slug);
+    // Properly encode the category name for URL safety
+    const encodedCategory = encodeURIComponent(category.name);
+    setSelectedCategory(encodedCategory);
     setSelectedCategoryName(category.name);
     setSelectedCategoryData(category);
   };

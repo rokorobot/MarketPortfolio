@@ -637,17 +637,16 @@ export function registerRoutes(app: Express) {
   // Get all items for a specific category
   app.get("/api/items/category/:category", async (req, res) => {
     try {
-      const categoryName = req.params.category;
+      // Decode the URL-encoded category name
+      const categoryName = decodeURIComponent(req.params.category);
       
-      // First convert the slug format (lowercase-with-dashes) back to the actual category name
       // Get all categories to find a match
       const categories = await storage.getCategories();
       
-      // Find the category that matches the slug
+      // Find the category that matches the decoded name
       let targetCategory = null;
       for (const category of categories) {
-        const slug = category.name.replace(/\s+/g, '-').toLowerCase();
-        if (slug === categoryName) {
+        if (category.name === categoryName) {
           targetCategory = category.name;
           break;
         }
