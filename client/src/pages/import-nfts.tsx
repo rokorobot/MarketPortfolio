@@ -37,6 +37,7 @@ const ImportNFTsPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [, navigate] = useLocation();
+  const { connectWallet, disconnectWallet, isConnecting, connectedAddress, isConnected } = useTezosWallet();
   
   // Tezos wallet import states
   const [walletAddress, setWalletAddress] = useState<string>('');
@@ -181,6 +182,21 @@ const ImportNFTsPage = () => {
 
   const selectedCount = Object.values(selectedNfts).filter(Boolean).length;
 
+  // Handle wallet connection and auto-populate address
+  const handleWalletConnect = async () => {
+    const walletConnection = await connectWallet();
+    if (walletConnection) {
+      // Auto-populate the wallet address field
+      setWalletAddress(walletConnection.address);
+      
+      toast({
+        title: "Address Auto-filled",
+        description: "Your wallet address has been automatically entered below.",
+        variant: "default"
+      });
+    }
+  };
+
   return (
     <Layout>
       <div className="container py-6">
@@ -209,19 +225,27 @@ const ImportNFTsPage = () => {
                   Connect your Tezos wallet directly using Beacon SDK for secure authentication.
                 </p>
                 <Button 
-                  onClick={() => {
-                    // TODO: Implement Beacon SDK wallet connection
-                    toast({
-                      title: "Wallet Connection",
-                      description: "Direct wallet connection coming soon! Use manual entry for now.",
-                      variant: "default"
-                    });
-                  }}
+                  onClick={handleWalletConnect}
+                  disabled={isConnecting}
                   variant="outline"
                   className="w-full"
                 >
-                  <span className="mr-2">🔐</span>
-                  Connect Wallet & Sign
+                  {isConnecting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Connecting...
+                    </>
+                  ) : isConnected ? (
+                    <>
+                      <span className="mr-2">✅</span>
+                      Connected: {connectedAddress?.slice(0, 10)}...
+                    </>
+                  ) : (
+                    <>
+                      <span className="mr-2">🔐</span>
+                      Connect Wallet & Sign
+                    </>
+                  )}
                 </Button>
               </div>
 
