@@ -440,19 +440,28 @@ export class DatabaseStorage implements IStorage {
       .orderBy(portfolioItems.displayOrder); // Order by display order
   }
   
-  async getUniqueAuthors(): Promise<{name: string, count: number, profileImage: string | null}[]> {
+  async getUniqueAuthors(userId?: number, userRole?: string): Promise<{name: string, count: number, profileImage: string | null}[]> {
+    // Build WHERE conditions based on user role and ID
+    let whereConditions = and(
+      isNotNull(portfolioItems.author),
+      ne(portfolioItems.author, "")
+    );
+
+    // For non-superadmin users, only show authors from their own items
+    if (userId && userRole !== 'superadmin') {
+      whereConditions = and(
+        whereConditions,
+        eq(portfolioItems.userId, userId)
+      );
+    }
+
     // First, get all non-null, non-empty authors and count their items
     const authorsWithCounts = await db.select({
       name: portfolioItems.author,
       count: sql<number>`count(*)::int`
     })
     .from(portfolioItems)
-    .where(
-      and(
-        isNotNull(portfolioItems.author),
-        ne(portfolioItems.author, '')
-      )
-    )
+    .where(whereConditions)
     .groupBy(portfolioItems.author)
     .orderBy(portfolioItems.author);
     

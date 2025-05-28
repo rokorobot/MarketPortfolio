@@ -1852,7 +1852,10 @@ export function registerRoutes(app: Express) {
   // Get all unique authors from portfolio items
   app.get("/api/authors", async (req, res) => {
     try {
-      const authors = await storage.getUniqueAuthors();
+      const userId = req.session?.userId;
+      const userRole = req.session?.userRole;
+      
+      const authors = await storage.getUniqueAuthors(userId, userRole);
       res.json(authors);
     } catch (error) {
       console.error("Error fetching authors:", error);
