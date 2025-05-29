@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { portfolioItems } from "@shared/schema";
+import { portfolioItems, categories } from "@shared/schema";
 import { eq, like } from "drizzle-orm";
 
 /**
@@ -31,6 +31,12 @@ export async function migrateCollectionAddresses() {
             .update(portfolioItems)
             .set({ category: fullContractAddress })
             .where(eq(portfolioItems.category, item.category));
+          
+          // Also update the categories table to match
+          await db
+            .update(categories)
+            .set({ name: fullContractAddress })
+            .where(eq(categories.name, item.category));
           
           console.log(`Successfully updated collection: ${item.category} -> ${fullContractAddress}`);
         } else {
