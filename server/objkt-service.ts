@@ -220,9 +220,9 @@ export async function fetchObjktCollectionProfile(contractAddress: string): Prom
     // GraphQL query for collection data
     const collectionQuery = `
       query GetCollection($address: String!) {
-        token(where: {fa2_address: {_eq: $address}}, limit: 1) {
-          fa2_address
-          fa2 {
+        token(where: {fa: {contract: {_eq: $address}}}, limit: 1) {
+          fa {
+            contract
             name
             description
             logo
@@ -240,8 +240,8 @@ export async function fetchObjktCollectionProfile(contractAddress: string): Prom
       
       console.log('Collection response:', JSON.stringify(collectionResponse.data, null, 2));
       
-      if (collectionResponse.data?.data?.token?.[0]?.fa2) {
-        const collection = collectionResponse.data.data.token[0].fa2;
+      if (collectionResponse.data?.data?.token?.[0]?.fa) {
+        const collection = collectionResponse.data.data.token[0].fa;
         console.log('Full collection data:', collection);
         
         // Extract the name if available
