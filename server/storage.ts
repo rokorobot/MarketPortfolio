@@ -225,8 +225,8 @@ export class DatabaseStorage implements IStorage {
     let countResult;
     let items;
     
-    // If superadmin user or no user ID specified (anonymous), query all items
-    if (userRole === 'superadmin' || !userId) {
+    // If superadmin user, guest user, or no user ID specified (anonymous), query all items
+    if (userRole === 'superadmin' || userRole === 'guest' || !userId) {
       countResult = await db.select({ count: sql`count(*)` }).from(portfolioItems);
       
       items = await db.select()
@@ -454,8 +454,8 @@ export class DatabaseStorage implements IStorage {
       ne(portfolioItems.author, "")
     );
 
-    // For non-superadmin users, only show authors from their own items
-    if (userId && userRole !== 'superadmin') {
+    // For non-superadmin and non-guest users, only show authors from their own items
+    if (userId && userRole !== 'superadmin' && userRole !== 'guest') {
       whereConditions = and(
         whereConditions,
         eq(portfolioItems.userId, userId)
@@ -502,8 +502,8 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getItemsByAuthor(authorName: string, userId?: number, userRole?: string): Promise<PortfolioItem[]> {
-  // If superadmin user or no user ID specified (visitors), return all items by this author
-  if (userRole === 'superadmin' || !userId) {
+  // If superadmin user, guest user, or no user ID specified (visitors), return all items by this author
+  if (userRole === 'superadmin' || userRole === 'guest' || !userId) {
     return await db.select()
       .from(portfolioItems)
       .where(eq(portfolioItems.author, authorName))
@@ -809,8 +809,8 @@ export class DatabaseStorage implements IStorage {
       return await db.select().from(categories).orderBy(categories.displayOrder);
     }
     
-    // Superadmin users can see all categories
-    if (userRole === 'superadmin') {
+    // Superadmin and guest users can see all categories
+    if (userRole === 'superadmin' || userRole === 'guest') {
       return await db.select().from(categories).orderBy(categories.displayOrder);
     }
     
