@@ -15,32 +15,15 @@ export async function fetchObjktAuthorProfileImage(tezosAddress: string): Promis
   try {
     console.log('Fetching author profile from OBJKT for address:', tezosAddress);
     
-    // Try OBJKT v2 API first
-    try {
-      const v2Response = await axios.get(`https://data.objkt.com/v2/accounts/${tezosAddress}`);
-      console.log('V2 API response for', tezosAddress, ':', JSON.stringify(v2Response.data, null, 2));
-      
-      if (v2Response.data?.avatar) {
-        const avatarUri = v2Response.data.avatar;
-        console.log('Found avatar in V2 API:', avatarUri);
-        // Convert IPFS URI to HTTP URL if needed
-        if (avatarUri.startsWith('ipfs://')) {
-          return `https://ipfs.io/ipfs/${avatarUri.replace('ipfs://', '')}`;
-        }
-        return avatarUri;
-      }
-    } catch (v2Error) {
-      console.log(`V2 API failed for ${tezosAddress}:`, v2Error.message);
-      console.log('Trying GraphQL...');
-    }
-
-    // Fallback to GraphQL query
+    // Try OBJKT GraphQL API with correct structure
     const query = `
-      query GetUser($address: String!) {
-        user(where: {address: {_eq: $address}}) {
+      query GetProfile($address: String!) {
+        holder(where: {address: {_eq: $address}}) {
           address
           name
           description
+          hdao_balance
+          metadata_file
           avatar_uri
         }
       }
@@ -51,8 +34,45 @@ export async function fetchObjktAuthorProfileImage(tezosAddress: string): Promis
       variables: { address: tezosAddress }
     });
 
-    if (response.data?.data?.user?.[0]?.avatar_uri) {
-      const avatarUri = response.data.data.user[0].avatar_uri;
+    console.log('GraphQL response for', tezosAddress, ':', JSON.stringify(response.data, null, 2));
+
+    if (response.data?.data?.holder?.[0]) {
+      const profile = response.data.data.holder[0];
+      console.log('Found profile data:', profile);
+      
+      if (profile.avatar_uri) {
+        const avatarUri = profile.avatar_uri;
+        console.log('Found avatar URI:', avatarUri);
+        
+        // Convert IPFS URI to HTTP URL if needed
+        if (avatarUri.startsWith('ipfs://')) {
+          return `https://ipfs.io/ipfs/${avatarUri.replace('ipfs://', '')}`;
+        }
+        return avatarUri;
+      }
+    }
+
+    // Try alternative GraphQL structure
+    const altQuery = `
+      query GetUser($address: String!) {
+        user_by_pk(address: $address) {
+          address
+          name
+          description
+          avatar_uri
+        }
+      }
+    `;
+
+    const altResponse = await axios.post('https://data.objkt.com/v3/graphql', {
+      query: altQuery,
+      variables: { address: tezosAddress }
+    });
+
+    console.log('Alternative GraphQL response for', tezosAddress, ':', JSON.stringify(altResponse.data, null, 2));
+
+    if (altResponse.data?.data?.user_by_pk?.avatar_uri) {
+      const avatarUri = altResponse.data.data.user_by_pk.avatar_uri;
       
       // Convert IPFS URI to HTTP URL if needed
       if (avatarUri.startsWith('ipfs://')) {
