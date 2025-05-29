@@ -8,7 +8,7 @@ import crypto from 'crypto';
  * @returns Promise with profile data (name and image) or null
  */
 export async function fetchObjktAuthorProfile(tezosAddress: string): Promise<{ name: string; profileImage: string | null } | null> {
-  if (!tezosAddress || !tezosAddress.startsWith('tz1')) {
+  if (!tezosAddress || (!tezosAddress.startsWith('tz1') && !tezosAddress.startsWith('tz2') && !tezosAddress.startsWith('tz3'))) {
     return null;
   }
 

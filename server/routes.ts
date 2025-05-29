@@ -1971,7 +1971,7 @@ export function registerRoutes(app: Express) {
       const { authorName } = req.params;
       
       // Check if authorName is a Tezos address
-      if (!authorName.startsWith('tz1')) {
+      if (!authorName.startsWith('tz1') && !authorName.startsWith('tz2') && !authorName.startsWith('tz3')) {
         return res.status(400).json({ message: "Author name must be a Tezos address to fetch from OBJKT" });
       }
       
