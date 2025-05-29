@@ -1988,8 +1988,8 @@ export function registerRoutes(app: Express) {
           nameUpdateSuccess = await storage.updateAuthorName(authorName, profileData.name);
         }
         
-        // Update profile image if available
-        if (profileData.profileImage) {
+        // Update profile image only if it's not a placeholder and we don't already have a good image
+        if (profileData.profileImage && !profileData.profileImage.includes('assets.objkt.media/file/assets-004/h/')) {
           imageUpdateSuccess = await storage.updateAuthorProfileImage(
             profileData.name || authorName, 
             profileData.profileImage
