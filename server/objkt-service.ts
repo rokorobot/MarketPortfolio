@@ -15,14 +15,14 @@ export async function fetchObjktAuthorProfileImage(tezosAddress: string): Promis
   try {
     console.log('Fetching author profile from OBJKT for address:', tezosAddress);
     
-    // Try OBJKT API v1 for user profiles
+    // Try OBJKT API v1 for users (correct endpoint)
     try {
-      const objktResponse = await axios.get(`https://data.objkt.com/v1/profiles/${tezosAddress}`);
-      console.log('OBJKT v1 profiles response for', tezosAddress, ':', JSON.stringify(objktResponse.data, null, 2));
+      const objktResponse = await axios.get(`https://data.objkt.com/v1/users/${tezosAddress}`);
+      console.log('OBJKT v1 users response for', tezosAddress, ':', JSON.stringify(objktResponse.data, null, 2));
       
       if (objktResponse.data?.avatar_uri) {
         const avatarUri = objktResponse.data.avatar_uri;
-        console.log('Found avatar URI in v1 profiles:', avatarUri);
+        console.log('Found avatar URI in v1 users:', avatarUri);
         
         // Convert IPFS URI to HTTP URL if needed
         if (avatarUri.startsWith('ipfs://')) {
@@ -31,7 +31,7 @@ export async function fetchObjktAuthorProfileImage(tezosAddress: string): Promis
         return avatarUri;
       }
     } catch (v1Error) {
-      console.log(`OBJKT v1 profiles failed for ${tezosAddress}:`, (v1Error as any).message);
+      console.log(`OBJKT v1 users failed for ${tezosAddress}:`, (v1Error as any).message);
     }
 
     // Try OBJKT GraphQL API with correct schema
