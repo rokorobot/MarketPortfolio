@@ -34,7 +34,7 @@ export async function fetchObjktAuthorProfileImage(tezosAddress: string): Promis
       console.log(`OBJKT v1 users failed for ${tezosAddress}:`, (v1Error as any).message);
     }
 
-    // Try the holder entity with more profile fields
+    // Try the holder entity with available profile fields (no metadata)
     const holderQuery = `
       query GetHolder($address: String!) {
         holder(where: {address: {_eq: $address}}) {
@@ -47,7 +47,6 @@ export async function fetchObjktAuthorProfileImage(tezosAddress: string): Promis
           instagram
           github
           discord
-          metadata
         }
       }
     `;
@@ -65,37 +64,18 @@ export async function fetchObjktAuthorProfileImage(tezosAddress: string): Promis
         const holder = holderResponse.data.data.holder[0];
         console.log('Full holder data:', holder);
         
-        // Check metadata for profile image first
-        if (holder.metadata) {
-          try {
-            const metadata = typeof holder.metadata === 'string' 
-              ? JSON.parse(holder.metadata) 
-              : holder.metadata;
-            
-            console.log('Holder metadata:', metadata);
-            
-            // Look for various profile image fields in metadata
-            const profileImageFields = ['avatar', 'profile_image', 'image', 'logo', 'avatar_uri', 'profile_img'];
-            for (const field of profileImageFields) {
-              if (metadata[field]) {
-                console.log(`Found profile image in metadata.${field}:`, metadata[field]);
-                
-                // Convert IPFS URI to HTTP URL if needed
-                if (metadata[field].startsWith('ipfs://')) {
-                  return `https://ipfs.io/ipfs/${metadata[field].replace('ipfs://', '')}`;
-                }
-                
-                return metadata[field];
-              }
-            }
-          } catch (parseError) {
-            console.log('Failed to parse holder metadata:', parseError);
-          }
-        }
-        
-        // Fallback to logo field, but only if it's not the default OBJKT logo
-        if (holder.logo && !holder.logo.includes('assets.objkt.media/file/assets-004/h/') ) {
+        // Check if logo exists and is not the default OBJKT placeholder
+        if (holder.logo) {
           console.log('Found logo in holder:', holder.logo);
+          
+          // Skip the default OBJKT logo placeholder
+          if (holder.logo.includes('assets.objkt.media/file/assets-004/h/')) {
+            console.log('Logo appears to be default OBJKT placeholder, looking for alternatives');
+            
+            // For now, return null to indicate no custom profile image found
+            // The OBJKT API may not expose actual user profile images through this endpoint
+            return null;
+          }
           
           // Convert IPFS URI to HTTP URL if needed
           if (holder.logo.startsWith('ipfs://')) {
@@ -104,8 +84,6 @@ export async function fetchObjktAuthorProfileImage(tezosAddress: string): Promis
           
           return holder.logo;
         }
-        
-        console.log('Logo appears to be default OBJKT placeholder, skipping');
       }
     } catch (holderError) {
       console.log('Holder query failed:', (holderError as any).message);
