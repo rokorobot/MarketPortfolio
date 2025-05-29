@@ -350,6 +350,30 @@ export default function ManageCategories() {
       });
     },
   });
+
+  // OBJKT URLs migration mutation
+  const migrateObjktUrlsMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/items/migrate-objkt-urls");
+      return await response.json();
+    },
+    onSuccess: (data) => {
+      // Invalidate items queries to refresh the data
+      queryClient.invalidateQueries({ queryKey: ['/api/items'] });
+      
+      toast({
+        title: "Success",
+        description: data.message || "OBJKT URLs updated successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: `Failed to update OBJKT URLs: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
   
   // Delete category mutation
   const deleteCategoryMutation = useMutation({
@@ -521,6 +545,23 @@ export default function ManageCategories() {
                 <>
                   <FileText className="mr-2 h-4 w-4" />
                   Update Descriptions
+                </>
+              )}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => migrateObjktUrlsMutation.mutate()}
+              disabled={migrateObjktUrlsMutation.isPending}
+            >
+              {migrateObjktUrlsMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Adding URLs...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Add OBJKT URLs
                 </>
               )}
             </Button>

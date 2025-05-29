@@ -1989,6 +1989,18 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Update OBJKT URLs migration endpoint
+  app.post("/api/items/migrate-objkt-urls", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const { migrateObjktUrls } = await import('./objkt-url-migration');
+      const result = await migrateObjktUrls();
+      res.json(result);
+    } catch (error) {
+      console.error("Error migrating OBJKT URLs:", error);
+      res.status(500).json({ message: "Failed to migrate OBJKT URLs" });
+    }
+  });
+
   // Fetch collection profile from OBJKT by contract address
   app.get("/api/collections/:collectionName/fetch-objkt-profile", requireAuth, requireAdmin, async (req, res) => {
     try {

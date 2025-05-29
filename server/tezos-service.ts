@@ -402,7 +402,7 @@ export async function importTezosNFTsToPortfolio(
         author,
         dateCreated: new Date(),
         status: 'published',
-        marketplaceUrl: nft.marketplaceUrl || '',
+        marketplaceUrl: nft.marketplaceUrl || `https://objkt.com/tokens/${nft.contract}/${nft.tokenId}`,
         marketplaceName: nft.marketplace || 'OBJKT',
         price: null,
         currency: 'XTZ',
