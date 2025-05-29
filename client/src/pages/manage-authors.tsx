@@ -34,7 +34,11 @@ interface Author {
 
 // Form schema for updating author profile image and name
 const authorProfileSchema = z.object({
-  authorProfileImage: z.string().url("Please enter a valid URL").or(z.literal("")).optional(),
+  authorProfileImage: z.string().refine((val) => {
+    if (!val || val === "") return true;
+    // Allow URLs (http/https) or local paths (/uploads/...)
+    return val.startsWith("http://") || val.startsWith("https://") || val.startsWith("/uploads/");
+  }, "Please enter a valid URL or upload an image").optional(),
   authorName: z.string().min(2, "Name must be at least 2 characters").optional(),
 });
 
