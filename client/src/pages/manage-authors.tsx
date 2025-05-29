@@ -236,7 +236,7 @@ function AuthorEditor({ author, onCancel, onSave, isSaving }: AuthorEditorProps)
                 <Upload className="h-4 w-4 mr-2" />
                 Upload Image
               </TabsTrigger>
-              {author.name.startsWith('tz1') && (
+              {(author.name.startsWith('tz1') || author.name.startsWith('tz2') || author.name.startsWith('tz3')) && (
                 <TabsTrigger value="objkt">
                   <User className="h-4 w-4 mr-2" />
                   Fetch from OBJKT
