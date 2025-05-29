@@ -32,17 +32,17 @@ export async function migrateObjktUrls() {
           const newObjktUrl = `https://objkt.com/tokens/${contract}/${tokenId}`;
           
           // Check if URL needs updating (either missing or using old format)
-          const needsUpdate = !item.marketplaceUrl || 
-                             item.marketplaceUrl.includes('/asset/') || 
-                             item.marketplaceUrl !== newObjktUrl;
+          const needsUpdate = !item.marketplaceUrl1 || 
+                             item.marketplaceUrl1?.includes('/asset/') || 
+                             item.marketplaceUrl1 !== newObjktUrl;
           
           if (needsUpdate) {
-            // Update the item with new OBJKT URL format
+            // Update the item with new OBJKT URL format in the correct fields
             await db
               .update(portfolioItems)
               .set({ 
-                marketplaceUrl: newObjktUrl,
-                marketplaceName: 'OBJKT'
+                marketplaceUrl1: newObjktUrl,
+                marketplaceName1: 'OBJKT'
               })
               .where(eq(portfolioItems.id, item.id));
 
