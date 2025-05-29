@@ -3,6 +3,55 @@ import { JSDOM } from 'jsdom';
 import crypto from 'crypto';
 
 /**
+ * Fetch author profile image from OBJKT API using Tezos address
+ * @param tezosAddress - The Tezos address (tz1...)
+ * @returns Promise with the IPFS profile image URL or null
+ */
+export async function fetchObjktAuthorProfileImage(tezosAddress: string): Promise<string | null> {
+  if (!tezosAddress || !tezosAddress.startsWith('tz1')) {
+    return null;
+  }
+
+  try {
+    console.log('Fetching author profile from OBJKT for address:', tezosAddress);
+    
+    // OBJKT GraphQL query to get user profile
+    const query = `
+      query GetUser($address: String!) {
+        user(where: {address: {_eq: $address}}) {
+          address
+          name
+          description
+          avatar_uri
+        }
+      }
+    `;
+
+    const response = await axios.post('https://data.objkt.com/v3/graphql', {
+      query,
+      variables: { address: tezosAddress }
+    });
+
+    if (response.data?.data?.user?.[0]?.avatar_uri) {
+      const avatarUri = response.data.data.user[0].avatar_uri;
+      
+      // Convert IPFS URI to HTTP URL if needed
+      if (avatarUri.startsWith('ipfs://')) {
+        return `https://ipfs.io/ipfs/${avatarUri.replace('ipfs://', '')}`;
+      }
+      
+      return avatarUri;
+    }
+
+    console.log('No profile image found for address:', tezosAddress);
+    return null;
+  } catch (error) {
+    console.error('Error fetching OBJKT author profile:', error);
+    return null;
+  }
+}
+
+/**
  * Extract author profile image from OBJKT.com profile URL or generate one
  * @param objktProfileUrl - The URL to an OBJKT.com profile
  * @returns Promise with the profile image URL or a generated one

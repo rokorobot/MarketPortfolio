@@ -94,6 +94,37 @@ function AuthorEditor({ author, onCancel, onSave, isSaving }: AuthorEditorProps)
     },
     onError: (error: Error) => {
       toast({
+        title: "Upload failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // OBJKT profile fetch mutation
+  const fetchObjktProfileMutation = useMutation({
+    mutationFn: async (authorName: string) => {
+      const response = await fetch(`/api/authors/${encodeURIComponent(authorName)}/fetch-objkt-profile`);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to fetch profile from OBJKT');
+      }
+      
+      return await response.json();
+    },
+    onSuccess: (data) => {
+      // Update form with the fetched profile image
+      form.setValue("authorProfileImage", data.profileImage);
+      setPreviewImage(data.profileImage);
+      
+      toast({
+        title: "Success",
+        description: data.message,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
         title: "Error",
         description: `Failed to upload image: ${error.message}`,
         variant: "destructive",
@@ -197,6 +228,12 @@ function AuthorEditor({ author, onCancel, onSave, isSaving }: AuthorEditorProps)
                 <Upload className="h-4 w-4 mr-2" />
                 Upload Image
               </TabsTrigger>
+              {author.name.startsWith('tz1') && (
+                <TabsTrigger value="objkt">
+                  <User className="h-4 w-4 mr-2" />
+                  Fetch from OBJKT
+                </TabsTrigger>
+              )}
             </TabsList>
             
             <TabsContent value="url">
@@ -245,6 +282,36 @@ function AuthorEditor({ author, onCancel, onSave, isSaving }: AuthorEditorProps)
                 </FormItem>
               </div>
             </TabsContent>
+            
+            {author.name.startsWith('tz1') && (
+              <TabsContent value="objkt">
+                <div className="space-y-4">
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Fetch the official profile image for this Tezos address from OBJKT.com
+                    </p>
+                    <Button
+                      type="button"
+                      onClick={() => fetchObjktProfileMutation.mutate(author.name)}
+                      disabled={fetchObjktProfileMutation.isPending}
+                      className="w-full"
+                    >
+                      {fetchObjktProfileMutation.isPending ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Fetching from OBJKT...
+                        </>
+                      ) : (
+                        <>
+                          <User className="mr-2 h-4 w-4" />
+                          Fetch Profile from OBJKT
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </TabsContent>
+            )}
           </Tabs>
           
           {/* Image Preview Section */}

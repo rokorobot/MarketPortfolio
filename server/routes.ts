@@ -1953,6 +1953,41 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Fetch author profile from OBJKT by Tezos address
+  app.get("/api/authors/:authorName/fetch-objkt-profile", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const { authorName } = req.params;
+      
+      // Check if authorName is a Tezos address
+      if (!authorName.startsWith('tz1')) {
+        return res.status(400).json({ message: "Author name must be a Tezos address to fetch from OBJKT" });
+      }
+      
+      const { fetchObjktAuthorProfileImage } = await import('./objkt-service');
+      const profileImageUrl = await fetchObjktAuthorProfileImage(authorName);
+      
+      if (profileImageUrl) {
+        // Update the author profile image in database
+        const success = await storage.updateAuthorProfileImage(authorName, profileImageUrl);
+        
+        if (success) {
+          res.json({ 
+            success: true, 
+            profileImage: profileImageUrl,
+            message: "Author profile image fetched from OBJKT successfully" 
+          });
+        } else {
+          res.status(500).json({ message: "Failed to update author profile image in database" });
+        }
+      } else {
+        res.status(404).json({ message: "No profile image found on OBJKT for this address" });
+      }
+    } catch (error) {
+      console.error("Error fetching OBJKT author profile:", error);
+      res.status(500).json({ message: "Failed to fetch author profile from OBJKT" });
+    }
+  });
+
   // Update author profile image
   app.patch("/api/authors/:authorName", requireAuth, requireAdmin, async (req, res) => {
     try {
