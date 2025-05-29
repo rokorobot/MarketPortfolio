@@ -114,9 +114,17 @@ function AuthorEditor({ author, onCancel, onSave, isSaving }: AuthorEditorProps)
       return await response.json();
     },
     onSuccess: (data) => {
-      // Update form with the fetched profile image
-      form.setValue("authorProfileImage", data.profileImage);
-      setPreviewImage(data.profileImage);
+      // Update form with the fetched profile data
+      if (data.name) {
+        form.setValue("authorName", data.name);
+      }
+      if (data.profileImage) {
+        form.setValue("authorProfileImage", data.profileImage);
+        setPreviewImage(data.profileImage);
+      }
+      
+      // Invalidate authors cache to refresh the list
+      queryClient.invalidateQueries({ queryKey: ["/api/authors"] });
       
       toast({
         title: "Success",
