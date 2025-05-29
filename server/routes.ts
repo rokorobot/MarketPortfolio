@@ -1965,6 +1965,18 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Update collection addresses migration endpoint
+  app.post("/api/collections/migrate-addresses", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const { migrateCollectionAddresses } = await import('./collection-migration');
+      await migrateCollectionAddresses();
+      res.json({ success: true, message: "Collection addresses migrated successfully" });
+    } catch (error) {
+      console.error("Error migrating collection addresses:", error);
+      res.status(500).json({ message: "Failed to migrate collection addresses" });
+    }
+  });
+
   // Fetch collection profile from OBJKT by contract address
   app.get("/api/collections/:collectionName/fetch-objkt-profile", requireAuth, requireAdmin, async (req, res) => {
     try {

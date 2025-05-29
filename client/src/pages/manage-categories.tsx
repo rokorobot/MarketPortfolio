@@ -22,7 +22,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Layout } from "@/components/layout";
-import { Loader2, Pencil, Trash2, Plus, AlertCircle, ArrowUp, ArrowDown, X, Upload, Image as ImageIcon, User } from "lucide-react";
+import { Loader2, Pencil, Trash2, Plus, AlertCircle, ArrowUp, ArrowDown, X, Upload, Image as ImageIcon, User, RefreshCw } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -291,6 +291,34 @@ export default function ManageCategories() {
       });
     },
   });
+
+  // Collection address migration mutation
+  const migrateCollectionAddressesMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/collections/migrate-addresses");
+      return await response.json();
+    },
+    onSuccess: () => {
+      // Invalidate all categories queries to refresh the data
+      queryClient.invalidateQueries({ queryKey: ['/api/categories'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/category-options'] });
+      
+      toast({
+        title: "Success",
+        description: "Collection addresses updated successfully",
+      });
+      
+      // Refetch categories
+      refetchCategories();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: `Failed to update collection addresses: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
   
   // Delete category mutation
   const deleteCategoryMutation = useMutation({
@@ -430,6 +458,23 @@ export default function ManageCategories() {
             >
               Sort by: {sortType === 'name' ? 'Name' : 'Date Added'}
               {sortType === 'name' ? <ArrowDown className="ml-2 h-4 w-4" /> : <ArrowUp className="ml-2 h-4 w-4" />}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => migrateCollectionAddressesMutation.mutate()}
+              disabled={migrateCollectionAddressesMutation.isPending}
+            >
+              {migrateCollectionAddressesMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Update Collection Addresses
+                </>
+              )}
             </Button>
             <Button onClick={() => navigate("/add-collection")}>
               <Plus className="mr-2 h-4 w-4" />
