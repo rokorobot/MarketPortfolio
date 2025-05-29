@@ -34,13 +34,11 @@ export async function fetchObjktAuthorProfileImage(tezosAddress: string): Promis
       console.log(`OBJKT v1 users failed for ${tezosAddress}:`, (v1Error as any).message);
     }
 
-    // Try OBJKT GraphQL API with correct schema
+    // Try OBJKT GraphQL API with minimal query to discover schema
     const query = `
       query GetProfile($address: String!) {
         holder(where: {address: {_eq: $address}}) {
           address
-          hdao_balance
-          metadata
         }
       }
     `;
