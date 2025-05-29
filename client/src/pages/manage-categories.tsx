@@ -702,7 +702,7 @@ export default function ManageCategories() {
                       <Upload className="h-4 w-4 mr-2" />
                       Upload Image
                     </TabsTrigger>
-                    {editingCategory && (editingCategory.name.startsWith('Collection KT1') || editingCategory.name.startsWith('KT1')) && (
+                    {editingCategory && (
                       <TabsTrigger value="objkt">
                         <User className="h-4 w-4 mr-2" />
                         Fetch from OBJKT
@@ -757,7 +757,7 @@ export default function ManageCategories() {
                     </div>
                   </TabsContent>
                   
-                  {editingCategory && (editingCategory.name.startsWith('Collection KT1') || editingCategory.name.startsWith('KT1')) && (
+                  {editingCategory && (
                     <TabsContent value="objkt">
                       <div className="space-y-4">
                         <div className="text-center">
