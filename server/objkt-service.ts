@@ -34,11 +34,13 @@ export async function fetchObjktAuthorProfileImage(tezosAddress: string): Promis
       console.log(`OBJKT v1 users failed for ${tezosAddress}:`, (v1Error as any).message);
     }
 
-    // Try OBJKT GraphQL API with minimal query to discover schema
+    // Try OBJKT GraphQL API with correct query structure
     const query = `
       query GetProfile($address: String!) {
-        holder(where: {address: {_eq: $address}}) {
+        user(where: {address: {_eq: $address}}) {
           address
+          name
+          profile_img
         }
       }
     `;
@@ -50,33 +52,20 @@ export async function fetchObjktAuthorProfileImage(tezosAddress: string): Promis
 
     console.log('GraphQL response for', tezosAddress, ':', JSON.stringify(response.data, null, 2));
 
-    if (response.data?.data?.holder?.[0]) {
-      const profile = response.data.data.holder[0];
+    if (response.data?.data?.user?.[0]) {
+      const profile = response.data.data.user[0];
       console.log('Found profile data:', profile);
       
-      // Parse metadata if it exists
-      if (profile.metadata) {
-        try {
-          const metadata = typeof profile.metadata === 'string' 
-            ? JSON.parse(profile.metadata) 
-            : profile.metadata;
-          
-          console.log('Parsed metadata:', metadata);
-          
-          if (metadata.avatar_uri || metadata.avatarUri || metadata.image) {
-            const avatarUri = metadata.avatar_uri || metadata.avatarUri || metadata.image;
-            console.log('Found avatar URI in metadata:', avatarUri);
-            
-            // Convert IPFS URI to HTTP URL if needed
-            if (avatarUri.startsWith('ipfs://')) {
-              return `https://ipfs.io/ipfs/${avatarUri.replace('ipfs://', '')}`;
-            }
-            
-            return avatarUri;
-          }
-        } catch (parseError) {
-          console.log('Failed to parse metadata:', parseError);
+      if (profile.profile_img) {
+        const profileImg = profile.profile_img;
+        console.log('Found profile image:', profileImg);
+        
+        // Convert IPFS URI to HTTP URL if needed
+        if (profileImg.startsWith('ipfs://')) {
+          return `https://ipfs.io/ipfs/${profileImg.replace('ipfs://', '')}`;
         }
+        
+        return profileImg;
       }
     }
 
