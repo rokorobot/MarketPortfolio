@@ -1975,24 +1975,39 @@ export function registerRoutes(app: Express) {
         return res.status(400).json({ message: "Author name must be a Tezos address to fetch from OBJKT" });
       }
       
-      const { fetchObjktAuthorProfileImage } = await import('./objkt-service');
-      const profileImageUrl = await fetchObjktAuthorProfileImage(authorName);
+      const { fetchObjktAuthorProfile } = await import('./objkt-service');
+      const profileData = await fetchObjktAuthorProfile(authorName);
       
-      if (profileImageUrl) {
-        // Update the author profile image in database
-        const success = await storage.updateAuthorProfileImage(authorName, profileImageUrl);
+      if (profileData) {
+        // Update both author name and profile image if available
+        let nameUpdateSuccess = true;
+        let imageUpdateSuccess = true;
         
-        if (success) {
+        // Update name if different from current Tezos address
+        if (profileData.name && profileData.name !== authorName) {
+          nameUpdateSuccess = await storage.updateAuthorName(authorName, profileData.name);
+        }
+        
+        // Update profile image if available
+        if (profileData.profileImage) {
+          imageUpdateSuccess = await storage.updateAuthorProfileImage(
+            profileData.name || authorName, 
+            profileData.profileImage
+          );
+        }
+        
+        if (nameUpdateSuccess && imageUpdateSuccess) {
           res.json({ 
             success: true, 
-            profileImage: profileImageUrl,
-            message: "Author profile image fetched from OBJKT successfully" 
+            name: profileData.name,
+            profileImage: profileData.profileImage,
+            message: "Author profile fetched from OBJKT successfully" 
           });
         } else {
-          res.status(500).json({ message: "Failed to update author profile image in database" });
+          res.status(500).json({ message: "Failed to update author profile in database" });
         }
       } else {
-        res.status(404).json({ message: "No profile image found on OBJKT for this address" });
+        res.status(404).json({ message: "No profile data found on OBJKT for this address" });
       }
     } catch (error) {
       console.error("Error fetching OBJKT author profile:", error);

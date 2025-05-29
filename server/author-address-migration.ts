@@ -1,7 +1,7 @@
 import { db } from "./db";
 import { portfolioItems } from "@shared/schema";
 import { eq, like } from "drizzle-orm";
-import { fetchObjktAuthorProfileImage } from "./objkt-service";
+import { fetchObjktAuthorProfile } from "./objkt-service";
 
 /**
  * Migration script to update truncated Tezos addresses with full addresses

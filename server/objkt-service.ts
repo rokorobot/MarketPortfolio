@@ -3,11 +3,11 @@ import { JSDOM } from 'jsdom';
 import crypto from 'crypto';
 
 /**
- * Fetch author profile image from OBJKT API using Tezos address
+ * Fetch author profile data from OBJKT API using Tezos address
  * @param tezosAddress - The Tezos address (tz1...)
- * @returns Promise with the IPFS profile image URL or null
+ * @returns Promise with profile data (name and image) or null
  */
-export async function fetchObjktAuthorProfileImage(tezosAddress: string): Promise<string | null> {
+export async function fetchObjktAuthorProfile(tezosAddress: string): Promise<{ name: string; profileImage: string | null } | null> {
   if (!tezosAddress || !tezosAddress.startsWith('tz1')) {
     return null;
   }
@@ -24,11 +24,14 @@ export async function fetchObjktAuthorProfileImage(tezosAddress: string): Promis
         const avatarUri = objktResponse.data.avatar_uri;
         console.log('Found avatar URI in v1 users:', avatarUri);
         
-        // Convert IPFS URI to HTTP URL if needed
-        if (avatarUri.startsWith('ipfs://')) {
-          return `https://ipfs.io/ipfs/${avatarUri.replace('ipfs://', '')}`;
-        }
-        return avatarUri;
+        const profileImage = avatarUri.startsWith('ipfs://') 
+          ? `https://ipfs.io/ipfs/${avatarUri.replace('ipfs://', '')}`
+          : avatarUri;
+          
+        return { 
+          name: objktResponse.data.alias || tezosAddress, 
+          profileImage 
+        };
       }
     } catch (v1Error) {
       console.log(`OBJKT v1 users failed for ${tezosAddress}:`, (v1Error as any).message);
@@ -64,25 +67,32 @@ export async function fetchObjktAuthorProfileImage(tezosAddress: string): Promis
         const holder = holderResponse.data.data.holder[0];
         console.log('Full holder data:', holder);
         
+        // Extract the name (alias) if available
+        const name = holder.alias || tezosAddress;
+        console.log('Found name/alias:', name);
+        
         // Check if logo exists and is not the default OBJKT placeholder
+        let profileImage = null;
         if (holder.logo) {
           console.log('Found logo in holder:', holder.logo);
           
           // Skip the default OBJKT logo placeholder
           if (holder.logo.includes('assets.objkt.media/file/assets-004/h/')) {
-            console.log('Logo appears to be default OBJKT placeholder, looking for alternatives');
-            
-            // For now, return null to indicate no custom profile image found
-            // The OBJKT API may not expose actual user profile images through this endpoint
-            return null;
+            console.log('Logo appears to be default OBJKT placeholder, skipping');
+            profileImage = null;
+          } else {
+            // Convert IPFS URI to HTTP URL if needed
+            if (holder.logo.startsWith('ipfs://')) {
+              profileImage = `https://ipfs.io/ipfs/${holder.logo.replace('ipfs://', '')}`;
+            } else {
+              profileImage = holder.logo;
+            }
           }
-          
-          // Convert IPFS URI to HTTP URL if needed
-          if (holder.logo.startsWith('ipfs://')) {
-            return `https://ipfs.io/ipfs/${holder.logo.replace('ipfs://', '')}`;
-          }
-          
-          return holder.logo;
+        }
+        
+        // Return profile data if we found a name
+        if (name && name !== tezosAddress) {
+          return { name, profileImage };
         }
       }
     } catch (holderError) {
@@ -91,7 +101,7 @@ export async function fetchObjktAuthorProfileImage(tezosAddress: string): Promis
 
 
 
-    console.log('No profile image found for address:', tezosAddress);
+    console.log('No profile data found for address:', tezosAddress);
     return null;
   } catch (error) {
     console.error('Error fetching OBJKT author profile:', error);
