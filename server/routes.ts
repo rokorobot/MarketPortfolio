@@ -1953,6 +1953,18 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Migrate truncated Tezos addresses to full addresses and fetch profiles
+  app.post("/api/authors/migrate-addresses", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const { migrateAuthorAddresses } = await import('./author-address-migration');
+      await migrateAuthorAddresses();
+      res.json({ success: true, message: "Author addresses migrated successfully" });
+    } catch (error) {
+      console.error("Error migrating author addresses:", error);
+      res.status(500).json({ message: "Failed to migrate author addresses" });
+    }
+  });
+
   // Fetch author profile from OBJKT by Tezos address
   app.get("/api/authors/:authorName/fetch-objkt-profile", requireAuth, requireAdmin, async (req, res) => {
     try {

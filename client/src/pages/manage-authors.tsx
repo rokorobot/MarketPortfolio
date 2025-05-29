@@ -447,6 +447,28 @@ export default function ManageAuthorsPage() {
     },
   });
 
+  // Migration mutation to update truncated Tezos addresses
+  const migrateAddressesMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/authors/migrate-addresses");
+      return response;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Migration Complete",
+        description: "All Tezos addresses have been updated with full addresses and profile images.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/authors"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Migration Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   // Handle author profile updates - called from the AuthorEditor component
   const handleSaveAuthorProfile = (originalName: string, newName: string, profileImage: string | null) => {
     updateAuthorProfileMutation.mutate({ 
@@ -482,9 +504,25 @@ export default function ManageAuthorsPage() {
       <div className="container py-8">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Manage Authors</h1>
-          <Button variant="outline" onClick={() => navigate("/authors")}>
-            View Authors
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant="secondary"
+              onClick={() => migrateAddressesMutation.mutate()}
+              disabled={migrateAddressesMutation.isPending}
+            >
+              {migrateAddressesMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Migrating...
+                </>
+              ) : (
+                "Update Tezos Addresses"
+              )}
+            </Button>
+            <Button variant="outline" onClick={() => navigate("/authors")}>
+              View Authors
+            </Button>
+          </div>
         </div>
         
         {authors && authors.length > 0 ? (
