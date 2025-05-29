@@ -15,14 +15,32 @@ export async function fetchObjktAuthorProfileImage(tezosAddress: string): Promis
   try {
     console.log('Fetching author profile from OBJKT for address:', tezosAddress);
     
-    // Try OBJKT GraphQL API with correct structure
+    // Try OBJKT API v1 for user profiles
+    try {
+      const objktResponse = await axios.get(`https://data.objkt.com/v1/profiles/${tezosAddress}`);
+      console.log('OBJKT v1 profiles response for', tezosAddress, ':', JSON.stringify(objktResponse.data, null, 2));
+      
+      if (objktResponse.data?.avatar_uri) {
+        const avatarUri = objktResponse.data.avatar_uri;
+        console.log('Found avatar URI in v1 profiles:', avatarUri);
+        
+        // Convert IPFS URI to HTTP URL if needed
+        if (avatarUri.startsWith('ipfs://')) {
+          return `https://ipfs.io/ipfs/${avatarUri.replace('ipfs://', '')}`;
+        }
+        return avatarUri;
+      }
+    } catch (v1Error) {
+      console.log(`OBJKT v1 profiles failed for ${tezosAddress}:`, (v1Error as any).message);
+    }
+
+    // Try OBJKT GraphQL API
     const query = `
       query GetProfile($address: String!) {
         holder(where: {address: {_eq: $address}}) {
           address
           name
           description
-          hdao_balance
           metadata_file
           avatar_uri
         }
@@ -48,38 +66,9 @@ export async function fetchObjktAuthorProfileImage(tezosAddress: string): Promis
         if (avatarUri.startsWith('ipfs://')) {
           return `https://ipfs.io/ipfs/${avatarUri.replace('ipfs://', '')}`;
         }
+        
         return avatarUri;
       }
-    }
-
-    // Try alternative GraphQL structure
-    const altQuery = `
-      query GetUser($address: String!) {
-        user_by_pk(address: $address) {
-          address
-          name
-          description
-          avatar_uri
-        }
-      }
-    `;
-
-    const altResponse = await axios.post('https://data.objkt.com/v3/graphql', {
-      query: altQuery,
-      variables: { address: tezosAddress }
-    });
-
-    console.log('Alternative GraphQL response for', tezosAddress, ':', JSON.stringify(altResponse.data, null, 2));
-
-    if (altResponse.data?.data?.user_by_pk?.avatar_uri) {
-      const avatarUri = altResponse.data.data.user_by_pk.avatar_uri;
-      
-      // Convert IPFS URI to HTTP URL if needed
-      if (avatarUri.startsWith('ipfs://')) {
-        return `https://ipfs.io/ipfs/${avatarUri.replace('ipfs://', '')}`;
-      }
-      
-      return avatarUri;
     }
 
     console.log('No profile image found for address:', tezosAddress);
