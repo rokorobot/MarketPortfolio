@@ -239,6 +239,9 @@ export default function ManageCategories() {
         editForm.setValue("imageUrl", data.collectionImage);
         setPreviewImage(data.collectionImage);
       }
+      if (data.description) {
+        editForm.setValue("description", data.description);
+      }
       
       // Invalidate categories cache to refresh the list
       queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
