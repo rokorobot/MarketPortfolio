@@ -1977,6 +1977,18 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Update collection descriptions migration endpoint
+  app.post("/api/collections/migrate-descriptions", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const { migrateCollectionDescriptions } = await import('./collection-description-migration');
+      const result = await migrateCollectionDescriptions();
+      res.json(result);
+    } catch (error) {
+      console.error("Error migrating collection descriptions:", error);
+      res.status(500).json({ message: "Failed to migrate collection descriptions" });
+    }
+  });
+
   // Fetch collection profile from OBJKT by contract address
   app.get("/api/collections/:collectionName/fetch-objkt-profile", requireAuth, requireAdmin, async (req, res) => {
     try {

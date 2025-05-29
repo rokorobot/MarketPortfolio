@@ -322,6 +322,34 @@ export default function ManageCategories() {
       });
     },
   });
+
+  // Collection description migration mutation
+  const migrateCollectionDescriptionsMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/collections/migrate-descriptions");
+      return await response.json();
+    },
+    onSuccess: (data) => {
+      // Invalidate all categories queries to refresh the data
+      queryClient.invalidateQueries({ queryKey: ['/api/categories'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/category-options'] });
+      
+      toast({
+        title: "Success",
+        description: data.message || "Collection descriptions updated successfully",
+      });
+      
+      // Refetch categories
+      refetchCategories();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: `Failed to update collection descriptions: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
   
   // Delete category mutation
   const deleteCategoryMutation = useMutation({
@@ -476,6 +504,23 @@ export default function ManageCategories() {
                 <>
                   <RefreshCw className="mr-2 h-4 w-4" />
                   Update Collection Addresses
+                </>
+              )}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => migrateCollectionDescriptionsMutation.mutate()}
+              disabled={migrateCollectionDescriptionsMutation.isPending}
+            >
+              {migrateCollectionDescriptionsMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Fetching...
+                </>
+              ) : (
+                <>
+                  <FileText className="mr-2 h-4 w-4" />
+                  Update Descriptions
                 </>
               )}
             </Button>
