@@ -291,7 +291,7 @@ function AuthorEditor({ author, onCancel, onSave, isSaving }: AuthorEditorProps)
               </div>
             </TabsContent>
             
-            {author.name.startsWith('tz1') && (
+            {(author.name.startsWith('tz1') || author.name.startsWith('tz2') || author.name.startsWith('tz3')) && (
               <TabsContent value="objkt">
                 <div className="space-y-4">
                   <div className="text-center">
