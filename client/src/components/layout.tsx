@@ -245,8 +245,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
               </TooltipProvider>
             )}
             
-            {/* Import NFTs button - available to all users */}
-            {user && !location.startsWith("/import-nfts") && (
+            {/* Import NFTs button - available only to creators, admin, and superadmin */}
+            {user && (user.role === 'creator' || user.role === 'admin' || user.role === 'superadmin') && !location.startsWith("/import-nfts") && (
               <Button 
                 variant="outline" 
                 size="sm"
