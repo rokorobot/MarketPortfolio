@@ -34,16 +34,97 @@ export async function fetchObjktAuthorProfileImage(tezosAddress: string): Promis
       console.log(`OBJKT v1 users failed for ${tezosAddress}:`, (v1Error as any).message);
     }
 
-    // Try OBJKT GraphQL API with correct query structure
-    const query = `
-      query GetProfile($address: String!) {
-        user(where: {address: {_eq: $address}}) {
-          address
-          name
-          profile_img
+    // First try to discover the schema with introspection
+    const introspectionQuery = `
+      query {
+        __schema {
+          queryType {
+            fields {
+              name
+              type {
+                name
+              }
+            }
+          }
         }
       }
     `;
+
+    try {
+      const introspectionResponse = await axios.post('https://data.objkt.com/v3/graphql', {
+        query: introspectionQuery
+      });
+      console.log('OBJKT Schema fields:', introspectionResponse.data?.data?.__schema?.queryType?.fields?.map(f => f.name));
+    } catch (schemaError) {
+      console.log('Schema introspection failed:', (schemaError as any).message);
+    }
+
+    // Try different possible field names
+    const possibleQueries = [
+      {
+        name: 'users',
+        query: `
+          query GetProfile($address: String!) {
+            users(where: {address: {_eq: $address}}) {
+              address
+              name
+              profile_img
+            }
+          }
+        `
+      },
+      {
+        name: 'holder',
+        query: `
+          query GetProfile($address: String!) {
+            holder(where: {address: {_eq: $address}}) {
+              address
+              profile_img
+            }
+          }
+        `
+      },
+      {
+        name: 'holders',
+        query: `
+          query GetProfile($address: String!) {
+            holders(where: {address: {_eq: $address}}) {
+              address
+              profile_img
+            }
+          }
+        `
+      }
+    ];
+
+    for (const queryDef of possibleQueries) {
+      try {
+        console.log(`Trying query with field: ${queryDef.name}`);
+        const response = await axios.post('https://data.objkt.com/v3/graphql', {
+          query: queryDef.query,
+          variables: { address: tezosAddress }
+        });
+
+        console.log(`${queryDef.name} response:`, JSON.stringify(response.data, null, 2));
+
+        if (response.data?.data?.[queryDef.name]?.[0]) {
+          const profile = response.data.data[queryDef.name][0];
+          if (profile.profile_img) {
+            const profileImg = profile.profile_img;
+            console.log('Found profile image:', profileImg);
+            
+            // Convert IPFS URI to HTTP URL if needed
+            if (profileImg.startsWith('ipfs://')) {
+              return `https://ipfs.io/ipfs/${profileImg.replace('ipfs://', '')}`;
+            }
+            
+            return profileImg;
+          }
+        }
+      } catch (queryError) {
+        console.log(`Query ${queryDef.name} failed:`, (queryError as any).message);
+      }
+    }
 
     const response = await axios.post('https://data.objkt.com/v3/graphql', {
       query,
