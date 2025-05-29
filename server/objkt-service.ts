@@ -34,15 +34,13 @@ export async function fetchObjktAuthorProfileImage(tezosAddress: string): Promis
       console.log(`OBJKT v1 profiles failed for ${tezosAddress}:`, (v1Error as any).message);
     }
 
-    // Try OBJKT GraphQL API
+    // Try OBJKT GraphQL API with correct schema
     const query = `
       query GetProfile($address: String!) {
         holder(where: {address: {_eq: $address}}) {
           address
-          name
-          description
-          metadata_file
-          avatar_uri
+          hdao_balance
+          metadata
         }
       }
     `;
@@ -58,16 +56,29 @@ export async function fetchObjktAuthorProfileImage(tezosAddress: string): Promis
       const profile = response.data.data.holder[0];
       console.log('Found profile data:', profile);
       
-      if (profile.avatar_uri) {
-        const avatarUri = profile.avatar_uri;
-        console.log('Found avatar URI:', avatarUri);
-        
-        // Convert IPFS URI to HTTP URL if needed
-        if (avatarUri.startsWith('ipfs://')) {
-          return `https://ipfs.io/ipfs/${avatarUri.replace('ipfs://', '')}`;
+      // Parse metadata if it exists
+      if (profile.metadata) {
+        try {
+          const metadata = typeof profile.metadata === 'string' 
+            ? JSON.parse(profile.metadata) 
+            : profile.metadata;
+          
+          console.log('Parsed metadata:', metadata);
+          
+          if (metadata.avatar_uri || metadata.avatarUri || metadata.image) {
+            const avatarUri = metadata.avatar_uri || metadata.avatarUri || metadata.image;
+            console.log('Found avatar URI in metadata:', avatarUri);
+            
+            // Convert IPFS URI to HTTP URL if needed
+            if (avatarUri.startsWith('ipfs://')) {
+              return `https://ipfs.io/ipfs/${avatarUri.replace('ipfs://', '')}`;
+            }
+            
+            return avatarUri;
+          }
+        } catch (parseError) {
+          console.log('Failed to parse metadata:', parseError);
         }
-        
-        return avatarUri;
       }
     }
 
