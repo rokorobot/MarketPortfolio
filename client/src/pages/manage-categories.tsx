@@ -708,6 +708,36 @@ export default function ManageCategories() {
                       </FormItem>
                     </div>
                   </TabsContent>
+                  
+                  {editingCategory && editingCategory.name.startsWith('Collection KT1') && (
+                    <TabsContent value="objkt">
+                      <div className="space-y-4">
+                        <div className="text-center">
+                          <p className="text-sm text-muted-foreground mb-4">
+                            Fetch the official collection name and image from OBJKT.com using the blockchain contract data
+                          </p>
+                          <Button
+                            type="button"
+                            onClick={() => fetchObjktCollectionMutation.mutate(editingCategory.name)}
+                            disabled={fetchObjktCollectionMutation.isPending}
+                            className="w-full"
+                          >
+                            {fetchObjktCollectionMutation.isPending ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Fetching from OBJKT...
+                              </>
+                            ) : (
+                              <>
+                                <User className="mr-2 h-4 w-4" />
+                                Fetch Collection from OBJKT
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    </TabsContent>
+                  )}
                 </Tabs>
                 
                 {(editForm.watch("imageUrl") || previewImage) && (
