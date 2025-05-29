@@ -10,18 +10,14 @@ export async function migrateObjktUrls() {
   console.log("Starting OBJKT URL migration...");
   
   try {
-    // Get all items that were imported from Tezos but don't have marketplace URLs
+    // Get all items that were imported from Tezos but either don't have marketplace URLs 
+    // or have old OBJKT format URLs that need updating
     const itemsToUpdate = await db
       .select()
       .from(portfolioItems)
-      .where(
-        and(
-          eq(portfolioItems.externalSource, "tezos"),
-          isNull(portfolioItems.marketplaceUrl)
-        )
-      );
+      .where(eq(portfolioItems.externalSource, "tezos"));
 
-    console.log(`Found ${itemsToUpdate.length} items without OBJKT URLs`);
+    console.log(`Found ${itemsToUpdate.length} Tezos items to check for OBJKT URL updates`);
 
     let updatedCount = 0;
 
@@ -33,19 +29,26 @@ export async function migrateObjktUrls() {
         const tokenId = metadata.tokenId;
 
         if (contract && tokenId) {
-          const objktUrl = `https://objkt.com/tokens/${contract}/${tokenId}`;
+          const newObjktUrl = `https://objkt.com/tokens/${contract}/${tokenId}`;
           
-          // Update the item with OBJKT URL
-          await db
-            .update(portfolioItems)
-            .set({ 
-              marketplaceUrl: objktUrl,
-              marketplaceName: 'OBJKT'
-            })
-            .where(eq(portfolioItems.id, item.id));
+          // Check if URL needs updating (either missing or using old format)
+          const needsUpdate = !item.marketplaceUrl || 
+                             item.marketplaceUrl.includes('/asset/') || 
+                             item.marketplaceUrl !== newObjktUrl;
+          
+          if (needsUpdate) {
+            // Update the item with new OBJKT URL format
+            await db
+              .update(portfolioItems)
+              .set({ 
+                marketplaceUrl: newObjktUrl,
+                marketplaceName: 'OBJKT'
+              })
+              .where(eq(portfolioItems.id, item.id));
 
-          console.log(`Updated item ${item.id} (${item.title}) with OBJKT URL: ${objktUrl}`);
-          updatedCount++;
+            console.log(`Updated item ${item.id} (${item.title}) with OBJKT URL: ${newObjktUrl}`);
+            updatedCount++;
+          }
         } else {
           console.log(`Missing contract/tokenId for item ${item.id}: ${item.title}`);
         }
