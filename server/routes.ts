@@ -1965,6 +1965,55 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Fetch collection profile from OBJKT by contract address
+  app.get("/api/collections/:collectionName/fetch-objkt-profile", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const { collectionName } = req.params;
+      
+      // Extract contract address from collection metadata
+      const items = await storage.getItemsByCollection(collectionName);
+      if (!items || items.length === 0) {
+        return res.status(404).json({ message: "No items found for this collection" });
+      }
+      
+      // Parse metadata to get full contract address
+      const metadata = JSON.parse(items[0].externalMetadata || '{}');
+      const contractAddress = metadata.collection?.address;
+      
+      if (!contractAddress || !contractAddress.startsWith('KT1')) {
+        return res.status(400).json({ message: "Collection must have a valid contract address to fetch from OBJKT" });
+      }
+      
+      const { fetchObjktCollectionProfile } = await import('./objkt-service');
+      const profileData = await fetchObjktCollectionProfile(contractAddress);
+      
+      if (profileData) {
+        // Update collection name if different from current name
+        let nameUpdateSuccess = true;
+        
+        if (profileData.name && profileData.name !== collectionName) {
+          nameUpdateSuccess = await storage.updateCollectionName(collectionName, profileData.name);
+        }
+        
+        if (nameUpdateSuccess) {
+          res.json({ 
+            success: true, 
+            name: profileData.name,
+            collectionImage: profileData.collectionImage,
+            message: "Collection profile fetched from OBJKT successfully" 
+          });
+        } else {
+          res.status(500).json({ message: "Failed to update collection profile in database" });
+        }
+      } else {
+        res.status(404).json({ message: "No profile data found on OBJKT for this collection" });
+      }
+    } catch (error) {
+      console.error("Error fetching OBJKT collection profile:", error);
+      res.status(500).json({ message: "Failed to fetch collection profile from OBJKT" });
+    }
+  });
+
   // Fetch author profile from OBJKT by Tezos address
   app.get("/api/authors/:authorName/fetch-objkt-profile", requireAuth, requireAdmin, async (req, res) => {
     try {

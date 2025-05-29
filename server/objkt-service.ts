@@ -203,3 +203,78 @@ function generateAvatarFromName(name: string): string {
   // using the hash as seed, ensuring consistency for the same username
   return `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(hash)}&backgroundColor=ffb8d9,b8c0ff,bbd0ff,c8b6ff&textureChance=50&mouthChance=100&sidesChance=50&scale=150&h=${hue}&s=${saturation}&l=${lightness}`;
 }
+
+/**
+ * Fetch collection data from OBJKT API using contract address
+ * @param contractAddress - The contract address (KT1...)
+ * @returns Promise with collection data (name and image) or null
+ */
+export async function fetchObjktCollectionProfile(contractAddress: string): Promise<{ name: string; collectionImage: string | null } | null> {
+  if (!contractAddress || !contractAddress.startsWith('KT1')) {
+    return null;
+  }
+
+  try {
+    console.log('Fetching collection profile from OBJKT for contract:', contractAddress);
+    
+    // GraphQL query for collection data
+    const collectionQuery = `
+      query GetCollection($address: String!) {
+        fa2(where: {contract: {_eq: $address}}) {
+          contract
+          name
+          description
+          logo
+          website
+          twitter
+          discord
+        }
+      }
+    `;
+
+    try {
+      console.log('Trying collection query for:', contractAddress);
+      const collectionResponse = await axios.post('https://data.objkt.com/v3/graphql', {
+        query: collectionQuery,
+        variables: { address: contractAddress }
+      });
+      
+      console.log('Collection response:', JSON.stringify(collectionResponse.data, null, 2));
+      
+      if (collectionResponse.data?.data?.fa2?.[0]) {
+        const collection = collectionResponse.data.data.fa2[0];
+        console.log('Full collection data:', collection);
+        
+        // Extract the name if available
+        const name = collection.name || contractAddress;
+        console.log('Found collection name:', name);
+        
+        // Check if logo exists and is not a placeholder
+        let collectionImage = null;
+        if (collection.logo) {
+          console.log('Found logo in collection:', collection.logo);
+          
+          // Convert IPFS URI to HTTP URL if needed
+          if (collection.logo.startsWith('ipfs://')) {
+            collectionImage = `https://ipfs.io/ipfs/${collection.logo.replace('ipfs://', '')}`;
+          } else {
+            collectionImage = collection.logo;
+          }
+        }
+        
+        return { 
+          name, 
+          collectionImage 
+        };
+      }
+    } catch (error) {
+      console.log('Collection query failed:', (error as any).message);
+    }
+
+    console.log('No collection data found for contract:', contractAddress);
+    return null;
+  } catch (error) {
+    console.error('Error fetching OBJKT collection profile:', error);
+    return null;
+  }
+}
