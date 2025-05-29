@@ -22,7 +22,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Layout } from "@/components/layout";
-import { Loader2, Pencil, Trash2, Plus, AlertCircle, ArrowUp, ArrowDown, X, Upload, Image as ImageIcon, User, RefreshCw } from "lucide-react";
+import { Loader2, Pencil, Trash2, Plus, AlertCircle, ArrowUp, ArrowDown, X, Upload, Image as ImageIcon, User, RefreshCw, FileText } from "lucide-react";
 import {
   Card,
   CardContent,
