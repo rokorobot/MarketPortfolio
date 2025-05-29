@@ -34,121 +34,44 @@ export async function fetchObjktAuthorProfileImage(tezosAddress: string): Promis
       console.log(`OBJKT v1 users failed for ${tezosAddress}:`, (v1Error as any).message);
     }
 
-    // First try to discover the schema with introspection
-    const introspectionQuery = `
-      query {
-        __schema {
-          queryType {
-            fields {
-              name
-              type {
-                name
-              }
-            }
-          }
+    // Try the holder entity based on OBJKT v3 documentation
+    const holderQuery = `
+      query GetHolder($address: String!) {
+        holder(where: {address: {_eq: $address}}) {
+          address
+          alias
+          logo
         }
       }
     `;
 
     try {
-      const introspectionResponse = await axios.post('https://data.objkt.com/v3/graphql', {
-        query: introspectionQuery
+      console.log('Trying holder query for:', tezosAddress);
+      const holderResponse = await axios.post('https://data.objkt.com/v3/graphql', {
+        query: holderQuery,
+        variables: { address: tezosAddress }
       });
-      console.log('OBJKT Schema fields:', introspectionResponse.data?.data?.__schema?.queryType?.fields?.map(f => f.name));
-    } catch (schemaError) {
-      console.log('Schema introspection failed:', (schemaError as any).message);
-    }
-
-    // Try different possible field names
-    const possibleQueries = [
-      {
-        name: 'users',
-        query: `
-          query GetProfile($address: String!) {
-            users(where: {address: {_eq: $address}}) {
-              address
-              name
-              profile_img
-            }
-          }
-        `
-      },
-      {
-        name: 'holder',
-        query: `
-          query GetProfile($address: String!) {
-            holder(where: {address: {_eq: $address}}) {
-              address
-              profile_img
-            }
-          }
-        `
-      },
-      {
-        name: 'holders',
-        query: `
-          query GetProfile($address: String!) {
-            holders(where: {address: {_eq: $address}}) {
-              address
-              profile_img
-            }
-          }
-        `
-      }
-    ];
-
-    for (const queryDef of possibleQueries) {
-      try {
-        console.log(`Trying query with field: ${queryDef.name}`);
-        const response = await axios.post('https://data.objkt.com/v3/graphql', {
-          query: queryDef.query,
-          variables: { address: tezosAddress }
-        });
-
-        console.log(`${queryDef.name} response:`, JSON.stringify(response.data, null, 2));
-
-        if (response.data?.data?.[queryDef.name]?.[0]) {
-          const profile = response.data.data[queryDef.name][0];
-          if (profile.profile_img) {
-            const profileImg = profile.profile_img;
-            console.log('Found profile image:', profileImg);
-            
-            // Convert IPFS URI to HTTP URL if needed
-            if (profileImg.startsWith('ipfs://')) {
-              return `https://ipfs.io/ipfs/${profileImg.replace('ipfs://', '')}`;
-            }
-            
-            return profileImg;
-          }
-        }
-      } catch (queryError) {
-        console.log(`Query ${queryDef.name} failed:`, (queryError as any).message);
-      }
-    }
-
-    const response = await axios.post('https://data.objkt.com/v3/graphql', {
-      query,
-      variables: { address: tezosAddress }
-    });
-
-    console.log('GraphQL response for', tezosAddress, ':', JSON.stringify(response.data, null, 2));
-
-    if (response.data?.data?.user?.[0]) {
-      const profile = response.data.data.user[0];
-      console.log('Found profile data:', profile);
       
-      if (profile.profile_img) {
-        const profileImg = profile.profile_img;
-        console.log('Found profile image:', profileImg);
-        
-        // Convert IPFS URI to HTTP URL if needed
-        if (profileImg.startsWith('ipfs://')) {
-          return `https://ipfs.io/ipfs/${profileImg.replace('ipfs://', '')}`;
+      console.log('Holder response:', JSON.stringify(holderResponse.data, null, 2));
+      
+      if (holderResponse.data?.data?.holder?.[0]) {
+        const holder = holderResponse.data.data.holder[0];
+        if (holder.logo) {
+          console.log('Found logo in holder:', holder.logo);
+          
+          // Convert IPFS URI to HTTP URL if needed
+          if (holder.logo.startsWith('ipfs://')) {
+            return `https://ipfs.io/ipfs/${holder.logo.replace('ipfs://', '')}`;
+          }
+          
+          return holder.logo;
         }
-        
-        return profileImg;
       }
+    } catch (holderError) {
+      console.log('Holder query failed:', (holderError as any).message);
     }
+
+
 
     console.log('No profile image found for address:', tezosAddress);
     return null;
