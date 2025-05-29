@@ -2007,10 +2007,16 @@ export function registerRoutes(app: Express) {
           updateSuccess = await storage.updateCollectionName(collectionName, profileData.name);
         }
         
-        // Also update the collection image if available
+        // Also update the collection image and description if available
         if (updateSuccess && profileData.collectionImage) {
           const finalCollectionName = profileData.name || collectionName;
           updateSuccess = await storage.updateCollectionImage(finalCollectionName, profileData.collectionImage);
+        }
+        
+        // Update collection description if available
+        if (updateSuccess && profileData.description) {
+          const finalCollectionName = profileData.name || collectionName;
+          updateSuccess = await storage.updateCollectionDescription(finalCollectionName, profileData.description);
         }
         
         if (updateSuccess) {
@@ -2018,7 +2024,8 @@ export function registerRoutes(app: Express) {
             success: true, 
             name: profileData.name,
             collectionImage: profileData.collectionImage,
-            message: "Collection profile and image fetched from OBJKT successfully" 
+            description: profileData.description,
+            message: "Collection profile, image, and description fetched from OBJKT successfully" 
           });
         } else {
           res.status(500).json({ message: "Failed to update collection profile in database" });

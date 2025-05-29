@@ -209,7 +209,7 @@ function generateAvatarFromName(name: string): string {
  * @param contractAddress - The contract address (KT1...)
  * @returns Promise with collection data (name and image) or null
  */
-export async function fetchObjktCollectionProfile(contractAddress: string): Promise<{ name: string; collectionImage: string | null } | null> {
+export async function fetchObjktCollectionProfile(contractAddress: string): Promise<{ name: string; collectionImage: string | null; description: string | null } | null> {
   if (!contractAddress || !contractAddress.startsWith('KT1')) {
     return null;
   }
@@ -263,7 +263,8 @@ export async function fetchObjktCollectionProfile(contractAddress: string): Prom
         
         return { 
           name, 
-          collectionImage 
+          collectionImage,
+          description: collection.description || null
         };
       }
     } catch (error) {

@@ -104,6 +104,7 @@ export interface IStorage {
   
   // Collection profile management
   updateCollectionImage(collectionName: string, imageUrl: string): Promise<boolean>;
+  updateCollectionDescription(collectionName: string, description: string): Promise<boolean>;
   
   // Admin Dashboard Analytics Methods
   getTotalUsersCount(): Promise<number>;
@@ -573,6 +574,21 @@ export class DatabaseStorage implements IStorage {
       return true;
     } catch (error) {
       console.error('Error updating collection image:', error);
+      return false;
+    }
+  }
+
+  async updateCollectionDescription(collectionName: string, description: string): Promise<boolean> {
+    try {
+      const result = await db
+        .update(categories)
+        .set({ description })
+        .where(eq(categories.name, collectionName));
+      
+      console.log(`Updated collection description for "${collectionName}"`);
+      return true;
+    } catch (error) {
+      console.error('Error updating collection description:', error);
       return false;
     }
   }
