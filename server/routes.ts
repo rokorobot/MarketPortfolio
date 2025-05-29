@@ -1988,13 +1988,10 @@ export function registerRoutes(app: Express) {
           nameUpdateSuccess = await storage.updateAuthorName(authorName, profileData.name);
         }
         
-        // Update profile image only if it's not a placeholder and we don't already have a good image
-        if (profileData.profileImage && !profileData.profileImage.includes('assets.objkt.media/file/assets-004/h/')) {
-          imageUpdateSuccess = await storage.updateAuthorProfileImage(
-            profileData.name || authorName, 
-            profileData.profileImage
-          );
-        }
+        // Don't update profile image if OBJKT returns a placeholder logo
+        // The OBJKT API doesn't provide actual user profile images, only generic logos
+        console.log('OBJKT returned placeholder logo, preserving existing profile image');
+        imageUpdateSuccess = true; // Consider this successful since we intentionally skip placeholder images
         
         if (nameUpdateSuccess && imageUpdateSuccess) {
           res.json({ 
