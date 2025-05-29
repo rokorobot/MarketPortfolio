@@ -18,8 +18,11 @@ export async function fetchObjktAuthorProfileImage(tezosAddress: string): Promis
     // Try OBJKT v2 API first
     try {
       const v2Response = await axios.get(`https://data.objkt.com/v2/accounts/${tezosAddress}`);
+      console.log('V2 API response for', tezosAddress, ':', JSON.stringify(v2Response.data, null, 2));
+      
       if (v2Response.data?.avatar) {
         const avatarUri = v2Response.data.avatar;
+        console.log('Found avatar in V2 API:', avatarUri);
         // Convert IPFS URI to HTTP URL if needed
         if (avatarUri.startsWith('ipfs://')) {
           return `https://ipfs.io/ipfs/${avatarUri.replace('ipfs://', '')}`;
@@ -27,7 +30,8 @@ export async function fetchObjktAuthorProfileImage(tezosAddress: string): Promis
         return avatarUri;
       }
     } catch (v2Error) {
-      console.log(`V2 API failed for ${tezosAddress}, trying GraphQL...`);
+      console.log(`V2 API failed for ${tezosAddress}:`, v2Error.message);
+      console.log('Trying GraphQL...');
     }
 
     // Fallback to GraphQL query
