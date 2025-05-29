@@ -44,10 +44,12 @@ export interface IStorage {
   getItemsByCategoryPaginated(category: string, page: number, pageSize: number, userId?: number, userRole?: string): Promise<PaginatedResult<PortfolioItem>>;
   getUniqueAuthors(): Promise<{name: string, count: number, profileImage: string | null}[]>;
   getItemsByAuthor(authorName: string, userId?: number, userRole?: string): Promise<PortfolioItem[]>;
+  getItemsByCollection(collectionName: string): Promise<PortfolioItem[]>;
   getItemsByExternalId(externalId: string, userId?: number): Promise<PortfolioItem[]>;
   createItem(item: InsertPortfolioItem, userId?: number): Promise<PortfolioItem>;
   updateItem(id: number, item: Partial<PortfolioItem>): Promise<PortfolioItem>;
   deleteItem(id: number): Promise<boolean>;
+  updateCollectionName(oldName: string, newName: string): Promise<boolean>;
   updateItemsOrder(items: {id: number, displayOrder: number}[]): Promise<boolean>;
   
   // Users
@@ -528,6 +530,28 @@ export class DatabaseStorage implements IStorage {
     )
     .orderBy(portfolioItems.displayOrder);
 }
+
+  async getItemsByCollection(collectionName: string): Promise<PortfolioItem[]> {
+    return await db.select()
+      .from(portfolioItems)
+      .where(eq(portfolioItems.category, collectionName))
+      .orderBy(portfolioItems.displayOrder);
+  }
+
+  async updateCollectionName(oldName: string, newName: string): Promise<boolean> {
+    try {
+      const result = await db
+        .update(portfolioItems)
+        .set({ category: newName })
+        .where(eq(portfolioItems.category, oldName));
+      
+      console.log(`Updated collection name from "${oldName}" to "${newName}"`);
+      return true;
+    } catch (error) {
+      console.error('Error updating collection name:', error);
+      return false;
+    }
+  }
 
   async createItem(item: InsertPortfolioItem, userId?: number): Promise<PortfolioItem> {
     // Include the userId in the item data if provided

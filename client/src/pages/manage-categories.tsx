@@ -22,7 +22,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Layout } from "@/components/layout";
-import { Loader2, Pencil, Trash2, Plus, AlertCircle, ArrowUp, ArrowDown, X, Upload, Image as ImageIcon } from "lucide-react";
+import { Loader2, Pencil, Trash2, Plus, AlertCircle, ArrowUp, ArrowDown, X, Upload, Image as ImageIcon, User } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -218,6 +218,46 @@ export default function ManageCategories() {
     },
   });
   
+  // OBJKT collection fetch mutation
+  const fetchObjktCollectionMutation = useMutation({
+    mutationFn: async (collectionName: string) => {
+      const response = await fetch(`/api/collections/${encodeURIComponent(collectionName)}/fetch-objkt-profile`);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to fetch collection from OBJKT');
+      }
+      
+      return await response.json();
+    },
+    onSuccess: (data) => {
+      // Update form with the fetched collection data
+      if (data.name) {
+        editForm.setValue("name", data.name);
+      }
+      if (data.collectionImage) {
+        editForm.setValue("imageUrl", data.collectionImage);
+        setPreviewImage(data.collectionImage);
+      }
+      
+      // Invalidate categories cache to refresh the list
+      queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/category-options"] });
+      
+      toast({
+        title: "Success",
+        description: data.message,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: `Failed to fetch collection: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+
   // Image upload mutation
   const uploadImageMutation = useMutation({
     mutationFn: async (formData: FormData) => {
@@ -606,8 +646,20 @@ export default function ManageCategories() {
               <div className="pb-4">
                 <Tabs defaultValue="url" className="w-full" onValueChange={setActiveTab}>
                   <TabsList className="mb-2">
-                    <TabsTrigger value="url">Image URL</TabsTrigger>
-                    <TabsTrigger value="upload">Upload Image</TabsTrigger>
+                    <TabsTrigger value="url">
+                      <ImageIcon className="h-4 w-4 mr-2" />
+                      Image URL
+                    </TabsTrigger>
+                    <TabsTrigger value="upload">
+                      <Upload className="h-4 w-4 mr-2" />
+                      Upload Image
+                    </TabsTrigger>
+                    {editingCategory && editingCategory.name.startsWith('Collection KT1') && (
+                      <TabsTrigger value="objkt">
+                        <User className="h-4 w-4 mr-2" />
+                        Fetch from OBJKT
+                      </TabsTrigger>
+                    )}
                   </TabsList>
                   
                   <TabsContent value="url">
