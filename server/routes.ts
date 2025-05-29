@@ -1959,6 +1959,14 @@ export function registerRoutes(app: Express) {
       const { authorName } = req.params;
       const { profileImage, newName } = req.body;
       
+      console.log("Author update request:", {
+        authorName,
+        profileImage,
+        newName,
+        userId: req.session?.userId,
+        userRole: req.session?.userRole
+      });
+      
       if (!authorName) {
         return res.status(400).json({ message: "Author name is required" });
       }
@@ -1996,20 +2004,25 @@ export function registerRoutes(app: Express) {
       
       // If only updating the profile image
       if (profileImage !== undefined) {
+        console.log("Updating author profile image for:", authorName, "with image:", profileImage);
         const success = await storage.updateAuthorProfileImage(authorName, profileImage);
         
         if (success) {
+          console.log("Author profile image update successful");
           return res.json({ success: true, message: "Author profile image updated successfully" });
         } else {
+          console.log("Author profile image update failed");
           return res.status(500).json({ message: "Failed to update author profile image" });
         }
       }
       
       // If neither name nor profile image was provided
+      console.log("No updates provided in request");
       return res.status(400).json({ message: "No updates provided" });
     } catch (error) {
-      console.error("Error updating author:", error);
-      res.status(500).json({ message: "Failed to update author" });
+      console.error("Error updating author - Full error:", error);
+      console.error("Error stack:", error.stack);
+      res.status(500).json({ message: "Failed to update author", error: error.message });
     }
   });
 
