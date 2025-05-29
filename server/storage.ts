@@ -102,6 +102,9 @@ export interface IStorage {
   updateAuthorProfileImage(authorName: string, profileImage: string | null): Promise<boolean>;
   updateAuthorName(oldName: string, newName: string): Promise<boolean>;
   
+  // Collection profile management
+  updateCollectionImage(collectionName: string, imageUrl: string): Promise<boolean>;
+  
   // Admin Dashboard Analytics Methods
   getTotalUsersCount(): Promise<number>;
   getTotalItemsCount(): Promise<number>;
@@ -540,15 +543,36 @@ export class DatabaseStorage implements IStorage {
 
   async updateCollectionName(oldName: string, newName: string): Promise<boolean> {
     try {
-      const result = await db
+      // Update both portfolio items and categories table
+      await db
         .update(portfolioItems)
         .set({ category: newName })
         .where(eq(portfolioItems.category, oldName));
+      
+      await db
+        .update(categories)
+        .set({ name: newName })
+        .where(eq(categories.name, oldName));
       
       console.log(`Updated collection name from "${oldName}" to "${newName}"`);
       return true;
     } catch (error) {
       console.error('Error updating collection name:', error);
+      return false;
+    }
+  }
+
+  async updateCollectionImage(collectionName: string, imageUrl: string): Promise<boolean> {
+    try {
+      const result = await db
+        .update(categories)
+        .set({ imageUrl })
+        .where(eq(categories.name, collectionName));
+      
+      console.log(`Updated collection image for "${collectionName}"`);
+      return true;
+    } catch (error) {
+      console.error('Error updating collection image:', error);
       return false;
     }
   }

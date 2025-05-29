@@ -2000,19 +2000,25 @@ export function registerRoutes(app: Express) {
       const profileData = await fetchObjktCollectionProfile(contractAddress);
       
       if (profileData) {
-        // Update collection name if different from current name
-        let nameUpdateSuccess = true;
+        // Update collection name and image
+        let updateSuccess = true;
         
         if (profileData.name && profileData.name !== collectionName) {
-          nameUpdateSuccess = await storage.updateCollectionName(collectionName, profileData.name);
+          updateSuccess = await storage.updateCollectionName(collectionName, profileData.name);
         }
         
-        if (nameUpdateSuccess) {
+        // Also update the collection image if available
+        if (updateSuccess && profileData.collectionImage) {
+          const finalCollectionName = profileData.name || collectionName;
+          updateSuccess = await storage.updateCollectionImage(finalCollectionName, profileData.collectionImage);
+        }
+        
+        if (updateSuccess) {
           res.json({ 
             success: true, 
             name: profileData.name,
             collectionImage: profileData.collectionImage,
-            message: "Collection profile fetched from OBJKT successfully" 
+            message: "Collection profile and image fetched from OBJKT successfully" 
           });
         } else {
           res.status(500).json({ message: "Failed to update collection profile in database" });
