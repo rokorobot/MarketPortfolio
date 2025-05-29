@@ -15,7 +15,22 @@ export async function fetchObjktAuthorProfileImage(tezosAddress: string): Promis
   try {
     console.log('Fetching author profile from OBJKT for address:', tezosAddress);
     
-    // OBJKT GraphQL query to get user profile
+    // Try OBJKT v2 API first
+    try {
+      const v2Response = await axios.get(`https://data.objkt.com/v2/accounts/${tezosAddress}`);
+      if (v2Response.data?.avatar) {
+        const avatarUri = v2Response.data.avatar;
+        // Convert IPFS URI to HTTP URL if needed
+        if (avatarUri.startsWith('ipfs://')) {
+          return `https://ipfs.io/ipfs/${avatarUri.replace('ipfs://', '')}`;
+        }
+        return avatarUri;
+      }
+    } catch (v2Error) {
+      console.log(`V2 API failed for ${tezosAddress}, trying GraphQL...`);
+    }
+
+    // Fallback to GraphQL query
     const query = `
       query GetUser($address: String!) {
         user(where: {address: {_eq: $address}}) {
