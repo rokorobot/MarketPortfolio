@@ -347,9 +347,9 @@ export function registerRoutes(app: Express) {
         if (emailService === 'sendgrid') {
           try {
             const success = await sendgridService.sendEmail(emailParams);
-            console.log(`SendGrid email result: ${success ? 'Success' : 'Failed'}`);
+            console.log(`SendGrid verification email result: ${success ? 'Success' : 'Failed'}`);
           } catch (sendgridError) {
-            console.error("SendGrid email error:", sendgridError);
+            console.error("SendGrid verification email error:", sendgridError);
           }
         } else {
           try {
@@ -486,10 +486,23 @@ export function registerRoutes(app: Express) {
       const emailService = emailServiceSetting?.value || 'nodemailer';
       
       // Send email using the preferred service
+      console.log(`Using email service for resend: ${emailService}`);
+      console.log(`Resending verification email to: ${user.email}`);
+      
       if (emailService === 'sendgrid') {
-        await sendgridService.sendEmail(emailParams);
+        try {
+          const success = await sendgridService.sendEmail(emailParams);
+          console.log(`SendGrid resend verification email result: ${success ? 'Success' : 'Failed'}`);
+        } catch (sendgridError) {
+          console.error("SendGrid resend verification email error:", sendgridError);
+        }
       } else {
-        await nodemailerService.sendEmail(emailParams);
+        try {
+          const success = await nodemailerService.sendEmail(emailParams);
+          console.log(`Nodemailer resend email result: ${success ? 'Success' : 'Failed'}`);
+        } catch (nodemailerError) {
+          console.error("Nodemailer resend email error:", nodemailerError);
+        }
       }
       
       // Return success without revealing too much information
