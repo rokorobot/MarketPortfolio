@@ -136,33 +136,18 @@ export async function sendContactFormEmail(
   console.log("=======================================");
   
   const subject = `New Contact Form Submission from ${name}`;
-  const text = `
-Name: ${name}
+  const text = `Name: ${name}
 Email: ${email}
 
 Message:
-${message}
-  `;
+${message}`;
   
-  const html = `
-<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-  <h2 style="color: #333;">New Contact Form Submission</h2>
-  <p><strong>From:</strong> ${name}</p>
-  <p><strong>Email:</strong> ${email}</p>
-  <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px;">
-    <h3 style="color: #555;">Message:</h3>
-    <p style="white-space: pre-line;">${message}</p>
-  </div>
-</div>
-  `;
-  
-  // Always use the verified email as the sender
+  // Use the same simple format as the API tests
   return await sendEmail({
-    to: process.env.VERIFIED_EMAIL || to,
-    from: process.env.VERIFIED_EMAIL || 'noreply@nftfolio.app',
+    to,
+    from: process.env.VERIFIED_EMAIL || 'customer@nftfolio.app',
     subject,
     text,
-    html,
     replyTo: email // Allow direct reply to the sender
   });
 }
