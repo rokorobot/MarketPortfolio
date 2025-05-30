@@ -6,12 +6,14 @@ import { AuthProvider } from "@/hooks/use-auth";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ShowcaseProvider } from "@/hooks/use-showcase";
 import Home from "@/pages/home";
+import AuthPage from "@/pages/auth-page";
 // Adding other imports one by one to identify the problematic component
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/auth" component={AuthPage} />
       <Route>
         <div>Page not found</div>
       </Route>
