@@ -17,7 +17,12 @@ import Authors from "@/pages/authors";
 import AuthorItems from "@/pages/author-items";
 import Favorites from "@/pages/favorites";
 import { ProtectedRoute } from "@/components/protected-route";
-// Removing admin components to test which one causes the blank page
+import AddItem from "@/pages/add-item";
+import AddCollection from "@/pages/add-collection";
+import ManageCategories from "@/pages/manage-categories";
+import SiteSettings from "@/pages/site-settings";
+import ManageAuthors from "@/pages/manage-authors";
+// Adding the remaining admin management components
 
 function Router() {
   return (
@@ -36,7 +41,31 @@ function Router() {
           <Favorites />
         </ProtectedRoute>
       </Route>
-
+      <Route path="/add-item">
+        <ProtectedRoute requireAdmin>
+          <AddItem />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/add-collection">
+        <ProtectedRoute requireAdmin>
+          <AddCollection />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/manage-categories">
+        <ProtectedRoute requireAdmin>
+          <ManageCategories />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/site-settings">
+        <ProtectedRoute requireAdmin>
+          <SiteSettings />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/manage-authors">
+        <ProtectedRoute requireAdmin>
+          <ManageAuthors />
+        </ProtectedRoute>
+      </Route>
       <Route component={NotFound} />
     </Switch>
   );
