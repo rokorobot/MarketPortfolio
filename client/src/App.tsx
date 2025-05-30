@@ -17,10 +17,7 @@ import Authors from "@/pages/authors";
 import AuthorItems from "@/pages/author-items";
 import Favorites from "@/pages/favorites";
 import { ProtectedRoute } from "@/components/protected-route";
-import ImportNFTs from "@/pages/import-nfts";
-import AdminDashboard from "@/pages/admin-dashboard";
-import CreatorDashboard from "@/pages/creator-dashboard";
-// Testing admin components that might be problematic
+// Removing admin components to test which one causes the blank page
 
 function Router() {
   return (
@@ -39,21 +36,7 @@ function Router() {
           <Favorites />
         </ProtectedRoute>
       </Route>
-      <Route path="/import-nfts">
-        <ProtectedRoute>
-          <ImportNFTs />
-        </ProtectedRoute>
-      </Route>
-      <Route path="/admin/dashboard">
-        <ProtectedRoute requireAdmin>
-          <AdminDashboard />
-        </ProtectedRoute>
-      </Route>
-      <Route path="/creator/dashboard">
-        <ProtectedRoute>
-          <CreatorDashboard />
-        </ProtectedRoute>
-      </Route>
+
       <Route component={NotFound} />
     </Switch>
   );
