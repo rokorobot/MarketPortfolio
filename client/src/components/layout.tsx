@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Plus, UserCircle, LogOut, FolderPlus, Settings, Heart, Grid3X3, Presentation, Clock, User, Download, BarChart3 } from "lucide-react";
+import { Plus, UserCircle, LogOut, FolderPlus, Settings, Heart, Grid3X3, Presentation, Clock, User, Download, BarChart3, Eye, Users } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -29,6 +29,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Footer } from "@/components/footer";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 // Showcase interval setting component for dropdown menu
 const ShowcaseIntervalSetting = () => {
@@ -121,6 +123,42 @@ const ShowcaseIntervalSetting = () => {
           </SelectContent>
         </Select>
       </div>
+    </div>
+  );
+};
+
+// View Toggle component for switching between creator and collector views
+const ViewToggle = ({ user }: { user: any }) => {
+  const [isCreatorView, setIsCreatorView] = useState(false);
+  
+  const handleToggle = (checked: boolean) => {
+    setIsCreatorView(checked);
+    // Dispatch custom event to notify components about view change
+    document.dispatchEvent(new CustomEvent('view-toggle-changed', {
+      detail: { isCreatorView: checked }
+    }));
+  };
+  
+  return (
+    <div className="flex items-center space-x-2">
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="flex items-center space-x-2">
+              <Users className="h-4 w-4 text-muted-foreground" />
+              <Switch
+                id="view-toggle"
+                checked={isCreatorView}
+                onCheckedChange={handleToggle}
+              />
+              <Eye className="h-4 w-4 text-muted-foreground" />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{isCreatorView ? "Creator View: Only your items" : "Collector View: All items"}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     </div>
   );
 };
@@ -256,6 +294,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <Download className="mr-2 h-4 w-4" />
                 Import NFTs
               </Button>
+            )}
+            
+            {/* View Toggle - available only to creators and collectors */}
+            {user && (user.role === 'creator' || user.role === 'collector') && (
+              <ViewToggle user={user} />
             )}
             
             <ShowcaseButton />
