@@ -16,7 +16,6 @@ import Collections from "@/pages/collections";
 import Authors from "@/pages/authors";
 import AuthorItems from "@/pages/author-items";
 import Favorites from "@/pages/favorites";
-import SimpleImport from "@/pages/simple-import";
 import { ProtectedRoute } from "@/components/protected-route";
 
 function Router() {
@@ -34,11 +33,6 @@ function Router() {
       <Route path="/favorites">
         <ProtectedRoute>
           <Favorites />
-        </ProtectedRoute>
-      </Route>
-      <Route path="/import-nfts">
-        <ProtectedRoute>
-          <SimpleImport />
         </ProtectedRoute>
       </Route>
       <Route component={NotFound} />
