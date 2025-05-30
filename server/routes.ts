@@ -199,13 +199,15 @@ export function registerRoutes(app: Express) {
   // Set up session
   app.use(session({
     secret: process.env.SESSION_SECRET || 'portfolio-secret-key',
-    resave: true,
-    saveUninitialized: true,
+    resave: false,
+    saveUninitialized: false,
     cookie: {
       secure: false, // Allow HTTP in development
       httpOnly: true,
-      maxAge: 1000 * 60 * 60 * 24 // 1 day
-    }
+      maxAge: 1000 * 60 * 60 * 24, // 1 day
+      sameSite: 'lax'
+    },
+    name: 'portfolio.sid'
   }));
   
   // Authentication routes
