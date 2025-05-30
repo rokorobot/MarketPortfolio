@@ -575,7 +575,7 @@ export function registerRoutes(app: Express) {
   app.get("/api/auth/me", getCurrentUserHandler);
   app.get("/api/user", getCurrentUserHandler);
   app.get("/api/items", async (req, res) => {
-    const { category, page = '1', pageSize } = req.query;
+    const { category, page = '1', pageSize, creatorView } = req.query;
     
     try {
       // Get items_per_page from site settings if pageSize isn't provided
@@ -594,7 +594,13 @@ export function registerRoutes(app: Express) {
       
       // Get the user ID and role from the session if available
       const userId = req.session?.userId;
-      const userRole = req.session?.userRole;
+      let userRole = req.session?.userRole;
+      
+      // Handle creator view toggle - force show only user's items when creatorView is true
+      if (creatorView === 'true' && userId) {
+        // Temporarily override role behavior to show only user's own items
+        userRole = 'creator';
+      }
       
       // If category is provided, use category-specific pagination
       if (category && typeof category === 'string') {

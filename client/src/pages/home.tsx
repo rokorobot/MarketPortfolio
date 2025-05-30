@@ -20,8 +20,9 @@ export default function Home() {
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [selectedAuthor, setSelectedAuthor] = useState<string | null>(null);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [isCreatorView, setIsCreatorView] = useState(false);
   const [, setLocation] = useLocation();
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
   
   // Get URL parameters on component mount
   useEffect(() => {
@@ -54,6 +55,21 @@ export default function Home() {
 
     return () => clearTimeout(timer);
   }, [searchQuery]);
+
+  // Listen for view toggle changes
+  useEffect(() => {
+    const handleViewToggle = (event: CustomEvent) => {
+      setIsCreatorView(event.detail.isCreatorView);
+      // Reset to first page when changing view
+      setCurrentPage(1);
+    };
+
+    document.addEventListener('view-toggle-changed', handleViewToggle as EventListener);
+    
+    return () => {
+      document.removeEventListener('view-toggle-changed', handleViewToggle as EventListener);
+    };
+  }, []);
 
   // Define the paginated response type
   interface PaginatedResponse {
@@ -102,15 +118,21 @@ export default function Home() {
   
   // Update query to include pagination and handle paginated response
   const { data, isLoading } = useQuery<PaginatedResponse>({
-    queryKey: ["/api/items", selectedCategory, currentPage],
+    queryKey: ["/api/items", selectedCategory, currentPage, isCreatorView],
     queryFn: async ({ queryKey }) => {
       const category = queryKey[1] as string | null;
       const page = queryKey[2] as number;
+      const creatorView = queryKey[3] as boolean;
       
       const url = new URL("/api/items", window.location.origin);
       
       // Add pagination params
       url.searchParams.append("page", page.toString());
+      
+      // Add creator view filter
+      if (creatorView && user) {
+        url.searchParams.append("creatorView", "true");
+      }
       
       // Add site settings items per page
       const { data: settings } = await queryClient.fetchQuery({
