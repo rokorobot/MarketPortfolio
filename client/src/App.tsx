@@ -90,6 +90,20 @@ function Router() {
 }
 
 function App() {
+  // Temporary diagnostic mode
+  const isDiagnostic = window.location.search.includes('diagnostic');
+  
+  if (isDiagnostic) {
+    return (
+      <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
+        <h1>Portfolio App Diagnostic</h1>
+        <p>If you see this page, React is loading correctly.</p>
+        <p>Your server is running and serving data successfully.</p>
+        <p>Remove ?diagnostic from the URL to return to the full app.</p>
+      </div>
+    );
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="dark-green" storageKey="portfolio-theme">
