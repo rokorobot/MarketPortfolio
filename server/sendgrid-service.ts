@@ -142,12 +142,13 @@ Email: ${email}
 Message:
 ${message}`;
   
-  // Use the same simple format as the API tests
+  // Use the same simple format as the API tests with required HTML content
   return await sendEmail({
     to,
     from: process.env.VERIFIED_EMAIL || 'customer@nftfolio.app',
     subject,
     text,
+    html: text.replace(/\n/g, '<br>'), // Convert text to simple HTML
     replyTo: email // Allow direct reply to the sender
   });
 }
