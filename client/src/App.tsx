@@ -16,6 +16,7 @@ import Collections from "@/pages/collections";
 import Authors from "@/pages/authors";
 import AuthorItems from "@/pages/author-items";
 import Favorites from "@/pages/favorites";
+import CreatorDashboard from "@/pages/creator-dashboard";
 import { ProtectedRoute } from "@/components/protected-route";
 
 function Router() {
@@ -33,6 +34,11 @@ function Router() {
       <Route path="/favorites">
         <ProtectedRoute>
           <Favorites />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/creator/dashboard">
+        <ProtectedRoute>
+          <CreatorDashboard />
         </ProtectedRoute>
       </Route>
       <Route component={NotFound} />
