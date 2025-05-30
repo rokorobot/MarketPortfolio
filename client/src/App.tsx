@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ThemeProvider } from "@/components/theme-provider";
+import { ShowcaseProvider } from "@/hooks/use-showcase";
 
 // Start with minimal components first
 function SimpleHome() {
@@ -11,7 +12,7 @@ function SimpleHome() {
     <div style={{ padding: '20px' }}>
       <h1>Portfolio Home</h1>
       <p>Home page loaded successfully</p>
-      <p>Theme and Auth providers added</p>
+      <p>All providers working (Theme, Auth, Showcase)</p>
     </div>
   );
 }
@@ -32,8 +33,10 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="dark-green" storageKey="portfolio-theme">
         <AuthProvider>
-          <Router />
-          <Toaster />
+          <ShowcaseProvider>
+            <Router />
+            <Toaster />
+          </ShowcaseProvider>
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
