@@ -1,0 +1,560 @@
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+contentScript.ts-Cu3Jaq3F.js:1 Nightly Wallet Injected Successfully
+inject.ts-C5uzPIY3.js:14 Nightly: Overwrites EVM default provider
+null:1 
+ Failed to load resource: the server responded with a status of 404 ()
+inject.ts-C5uzPIY3.js:14 TypeError: Failed to construct 'URL': Invalid URL
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+secp256k1-xQ_MRlLs.js:53 using deprecated parameters for the initialization function; pass a single object instead
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+
+[object DOMException]
+inject.ts-C5uzPIY3.js:14 Attempt to overwrite window.ethereum detected
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+contentScript.ts-Cu3Jaq3F.js:1 Nightly Wallet Injected Successfully
+inject.ts-C5uzPIY3.js:14 Nightly: Overwrites EVM default provider
+null:1 
+ Failed to load resource: the server responded with a status of 404 ()
+inject.ts-C5uzPIY3.js:14 TypeError: Failed to construct 'URL': Invalid URL
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+secp256k1-xQ_MRlLs.js:53 using deprecated parameters for the initialization function; pass a single object instead
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133
+[object DOMException]
+﻿
+
