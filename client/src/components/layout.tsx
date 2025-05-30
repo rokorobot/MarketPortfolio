@@ -278,18 +278,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
             
             {/* Import NFTs button - available only to creators, admin, and superadmin */}
             {user && (user.role === 'creator' || user.role === 'admin' || user.role === 'superadmin') && (
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => {
-                  // Direct API access for NFT importing without frontend wallet connection
-                  window.open('/api/nfts/tezos?address=tz1...', '_blank');
-                }}
-                className="gap-2"
-              >
-                <Download className="mr-2 h-4 w-4" />
-                Import NFTs (API)
-              </Button>
+              <Link href="/import-nfts">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="gap-2"
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Import NFTs
+                </Button>
+              </Link>
             )}
             
             {/* View Toggle - available to creators and collectors */}

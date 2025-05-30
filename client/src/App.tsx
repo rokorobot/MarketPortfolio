@@ -18,6 +18,7 @@ import AuthorItems from "@/pages/author-items";
 import Favorites from "@/pages/favorites";
 import CreatorDashboard from "@/pages/creator-dashboard";
 import AdminDashboard from "@/pages/admin-dashboard";
+import SimpleImportPage from "@/pages/simple-import";
 import { ProtectedRoute } from "@/components/protected-route";
 
 function Router() {
@@ -45,6 +46,11 @@ function Router() {
       <Route path="/admin/dashboard">
         <ProtectedRoute>
           <AdminDashboard />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/import-nfts">
+        <ProtectedRoute>
+          <SimpleImportPage />
         </ProtectedRoute>
       </Route>
       <Route component={NotFound} />
