@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useMutation } from '@tanstack/react-query';
 import { Layout } from '@/components/layout';
 import { apiRequest, queryClient } from '@/lib/queryClient';
-import { Loader2, Download } from 'lucide-react';
+import { Loader2, ChevronRight, MinusCircle, PlusCircle } from 'lucide-react';
 import { useLocation } from 'wouter';
 import axios from 'axios';
 
@@ -12,6 +12,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -42,8 +43,9 @@ const SimpleImportPage = () => {
   const [nfts, setNfts] = useState<NFT[]>([]);
   const [selectedNfts, setSelectedNfts] = useState<Record<string, boolean>>({});
   const [selectAll, setSelectAll] = useState(false);
-  const [nftLimit, setNftLimit] = useState<number>(100);
-  const [nftOffset, setNftOffset] = useState<number>(0);
+  const [nftLimit, setNftLimit] = useState<number>(500); // Default to 500 NFTs
+  const [nftOffset, setNftOffset] = useState<number>(0); // Start from the beginning by default
+  const [totalNfts, setTotalNfts] = useState<number>(0);
   
   // Import result states
   const [importResult, setImportResult] = useState<{
@@ -78,14 +80,16 @@ const SimpleImportPage = () => {
         `/api/nfts/tezos?address=${encodeURIComponent(walletAddress)}&limit=${nftLimit}&offset=${nftOffset}`
       );
       setNfts(response.data.nfts || []);
+      setTotalNfts(response.data.total || 0);
       
       // Reset selected NFTs when new ones are loaded
       setSelectedNfts({});
       setSelectAll(false);
       
+      // Show toast with the number of NFTs fetched
       toast({
         title: 'NFTs Loaded',
-        description: `Found ${response.data.nfts?.length || 0} NFTs from this wallet`,
+        description: `Found ${response.data.nfts?.length || 0} NFTs starting from #${nftOffset} (total: ${response.data.total}).`,
       });
     } catch (error: any) {
       console.error('Failed to fetch Tezos NFTs:', error);
@@ -99,57 +103,78 @@ const SimpleImportPage = () => {
     }
   }, [walletAddress, nftLimit, nftOffset, toast]);
 
-  // Import selected NFTs mutation
   const importMutation = useMutation({
-    mutationFn: async () => {
-      const selectedNftList = nfts.filter(nft => selectedNfts[nft.id]);
-      
+    mutationFn: async ({ selectedNftIds }: { selectedNftIds?: string[] }) => {
       const response = await apiRequest('POST', '/api/nfts/tezos/import', {
-        nfts: selectedNftList,
-        walletAddress: walletAddress
+        address: walletAddress,
+        selectedNftIds,
+        limit: nftLimit,
+        offset: nftOffset
+      });
+      return await response.json();
+    },
+    onSuccess: (data) => {
+      // Display a more detailed result message
+      const { imported, skipped, message } = data;
+      
+      // Show toast with detailed information
+      toast({
+        title: 'Import Results',
+        description: message || `Imported ${imported || 0} NFTs${skipped ? `, skipped ${skipped} duplicates` : ''}`,
+        duration: 5000, // Show for 5 seconds before redirecting
       });
       
-      return response.json();
-    },
-    onSuccess: (result) => {
+      // Update the items list
+      queryClient.invalidateQueries({ queryKey: ['/api/items'] });
+      
+      // Set the import result to display on page
       setImportResult({
-        message: result.message,
-        imported: result.imported,
-        skipped: result.skipped,
+        message: message || `Successfully imported ${imported || 0} NFTs${skipped ? `, skipped ${skipped} duplicates` : ''}`,
+        imported: imported || 0,
+        skipped: skipped || 0,
         isVisible: true
       });
       
-      queryClient.invalidateQueries({ queryKey: ['/api/items'] });
-      
-      toast({
-        title: 'Import Complete',
-        description: `Successfully imported ${result.imported} NFTs`,
-      });
+      // Delay navigation to home to give time to see the results
+      setTimeout(() => {
+        setImportResult(null); // Clear the result when navigating
+        navigate('/');
+      }, 4000); // A bit longer to ensure users see the message
     },
     onError: (error: any) => {
       toast({
-        title: 'Import Failed',
-        description: error.message || 'Failed to import NFTs',
+        title: 'Error',
+        description: `Failed to import NFTs: ${error.message}`,
         variant: 'destructive',
       });
-    }
+    },
   });
 
-  const handleSelectAll = (checked: boolean) => {
-    setSelectAll(checked);
-    const newSelected: Record<string, boolean> = {};
-    if (checked) {
-      nfts.forEach(nft => {
-        newSelected[nft.id] = true;
-      });
-    }
-    setSelectedNfts(newSelected);
+  const handleImportNFTs = () => {
+    const selectedNftIds = Object.entries(selectedNfts)
+      .filter(([_, isSelected]) => isSelected)
+      .map(([id]) => id);
+
+    importMutation.mutate({
+      selectedNftIds: selectedNftIds.length > 0 ? selectedNftIds : undefined // If none selected, import all
+    });
   };
 
-  const handleSelectNft = (nftId: string, checked: boolean) => {
+  const handleToggleSelectAll = () => {
+    const newSelectAll = !selectAll;
+    setSelectAll(newSelectAll);
+    
+    const newSelectedNfts = { ...selectedNfts };
+    nfts.forEach((nft) => {
+      newSelectedNfts[nft.id] = newSelectAll;
+    });
+    setSelectedNfts(newSelectedNfts);
+  };
+
+  const handleToggleNft = (id: string) => {
     setSelectedNfts(prev => ({
       ...prev,
-      [nftId]: checked
+      [id]: !prev[id]
     }));
   };
 
@@ -158,9 +183,9 @@ const SimpleImportPage = () => {
   return (
     <Layout>
       <div className="container py-6">
-        <h1 className="text-3xl font-bold mb-6">Import NFTs</h1>
+        <h1 className="text-3xl font-bold mb-6">Import NFTs from OBJKT</h1>
         
-        <Card className="mb-6">
+        <Card className="mb-8">
           <CardHeader>
             <CardTitle>Import from Tezos Wallet</CardTitle>
             <CardDescription>
@@ -168,126 +193,193 @@ const SimpleImportPage = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex gap-2">
-              <Input
-                placeholder="Enter Tezos wallet address (tz1...)"
-                value={walletAddress}
-                onChange={(e) => setWalletAddress(e.target.value)}
-                className="flex-1"
-              />
-              <Button
-                onClick={fetchTezosNfts}
-                disabled={isLoadingNfts || !walletAddress.trim()}
-              >
-                {isLoadingNfts ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Loading...
-                  </>
-                ) : (
-                  <>
-                    <Download className="mr-2 h-4 w-4" />
-                    Fetch NFTs
-                  </>
-                )}
-              </Button>
-            </div>
-            
-            <div className="flex gap-4">
-              <div className="flex-1">
-                <label className="text-sm font-medium">Limit</label>
-                <Input
-                  type="number"
-                  value={nftLimit}
-                  onChange={(e) => setNftLimit(parseInt(e.target.value) || 100)}
-                  min="1"
-                  max="1000"
-                />
-              </div>
-              <div className="flex-1">
-                <label className="text-sm font-medium">Offset</label>
-                <Input
-                  type="number"
-                  value={nftOffset}
-                  onChange={(e) => setNftOffset(parseInt(e.target.value) || 0)}
-                  min="0"
-                />
+            <div className="space-y-4">
+              <p>
+                Enter a Tezos wallet address to fetch NFTs associated with that wallet.
+                You can then select which ones to import into your portfolio.
+              </p>
+              <div className="flex flex-col space-y-4">
+                <div className="flex space-x-2">
+                  <div className="flex-1">
+                    <Input
+                      placeholder="Tezos wallet address (tz...)"
+                      value={walletAddress}
+                      onChange={(e) => setWalletAddress(e.target.value)}
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex justify-between items-end gap-4">
+                  <div className="w-1/3">
+                    <label htmlFor="nft-offset" className="text-sm font-medium mb-1 block">
+                      Start from NFT #
+                    </label>
+                    <div className="flex items-center w-full">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="h-10 w-10 rounded-r-none"
+                        onClick={() => setNftOffset(Math.max(0, nftOffset - 100))}
+                        disabled={nftOffset === 0}
+                      >
+                        <MinusCircle className="h-4 w-4" />
+                      </Button>
+                      <Input
+                        id="nft-offset"
+                        type="number"
+                        min="0"
+                        step="100"
+                        className="h-10 rounded-none text-center"
+                        value={nftOffset}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value, 10);
+                          if (!isNaN(val) && val >= 0) {
+                            setNftOffset(val);
+                          }
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="h-10 w-10 rounded-l-none"
+                        onClick={() => setNftOffset(nftOffset + 100)}
+                      >
+                        <PlusCircle className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="w-1/3">
+                    <label htmlFor="nft-limit" className="text-sm font-medium mb-1 block">
+                      Maximum NFTs to fetch
+                    </label>
+                    <select 
+                      id="nft-limit"
+                      className="w-full h-10 px-3 py-2 bg-background text-foreground rounded-md border border-input"
+                      value={nftLimit}
+                      onChange={(e) => setNftLimit(parseInt(e.target.value, 10))}
+                    >
+                      <option value="50">50 NFTs</option>
+                      <option value="100">100 NFTs</option>
+                      <option value="200">200 NFTs</option>
+                      <option value="300">300 NFTs</option>
+                      <option value="500">500 NFTs</option>
+                    </select>
+                  </div>
+                  <Button 
+                    onClick={fetchTezosNfts} 
+                    disabled={isLoadingNfts}
+                  >
+                    {isLoadingNfts ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Fetching...
+                      </>
+                    ) : (
+                      'Fetch NFTs'
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* NFT Selection */}
-        {nfts.length > 0 && (
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>Select NFTs to Import ({nfts.length} found)</span>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="select-all"
-                    checked={selectAll}
-                    onCheckedChange={handleSelectAll}
-                  />
-                  <label htmlFor="select-all" className="text-sm">
-                    Select All
-                  </label>
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
-                {nfts.map((nft) => (
-                  <div key={nft.id} className="border rounded-lg p-3 space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`nft-${nft.id}`}
-                        checked={selectedNfts[nft.id] || false}
-                        onCheckedChange={(checked) => handleSelectNft(nft.id, checked as boolean)}
-                      />
-                      <label htmlFor={`nft-${nft.id}`} className="text-sm font-medium truncate">
-                        {nft.name || 'Untitled'}
-                      </label>
-                    </div>
-                    {nft.image && (
-                      <img
-                        src={nft.image}
-                        alt={nft.name || 'NFT'}
-                        className="w-full h-24 object-cover rounded"
-                      />
-                    )}
-                    <p className="text-xs text-muted-foreground truncate">
-                      {nft.description || 'No description'}
-                    </p>
-                  </div>
-                ))}
+        {isLoadingNfts && (
+          <div className="flex flex-col justify-center items-center h-40 space-y-4">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <span className="text-center">
+              Loading NFTs from the Tezos blockchain...<br />
+              <span className="text-sm text-muted-foreground">
+                This may take a while for large collections (up to {nftLimit} NFTs).
+              </span>
+            </span>
+          </div>
+        )}
+
+        {!isLoadingNfts && nfts.length > 0 && (
+          <>
+            <div className="flex flex-col md:flex-row md:justify-between items-start md:items-center mb-4 gap-4">
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="select-all" 
+                  checked={selectAll} 
+                  onCheckedChange={handleToggleSelectAll} 
+                />
+                <label 
+                  htmlFor="select-all" 
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  Select All NFTs
+                </label>
+                <span className="text-sm text-muted-foreground ml-2">
+                  (Found {totalNfts} NFTs in total)
+                </span>
               </div>
-              
-              {selectedCount > 0 && (
-                <div className="mt-4 pt-4 border-t">
-                  <Button
-                    onClick={() => importMutation.mutate()}
-                    disabled={importMutation.isPending}
-                    className="w-full"
-                  >
-                    {importMutation.isPending ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Importing {selectedCount} NFTs...
-                      </>
+              <div className="flex items-center">
+                <span className="mr-4 text-sm font-medium">
+                  {selectedCount} of {nfts.length} selected
+                </span>
+                <Button 
+                  onClick={handleImportNFTs} 
+                  disabled={importMutation.isPending}
+                >
+                  {importMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Importing...
+                    </>
+                  ) : (
+                    <>
+                      Import Selected
+                      <ChevronRight className="ml-2 h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {nfts.map((nft) => (
+                <Card key={nft.id} className="overflow-hidden">
+                  <div className="relative">
+                    <div className="absolute top-2 left-2 z-10">
+                      <Checkbox 
+                        checked={selectedNfts[nft.id] || false} 
+                        onCheckedChange={() => handleToggleNft(nft.id)}
+                      />
+                    </div>
+                    {nft.image ? (
+                      <img 
+                        src={nft.image} 
+                        alt={nft.name} 
+                        className="w-full h-48 object-cover"
+                      />
                     ) : (
-                      `Import Selected NFTs (${selectedCount})`
+                      <div className="w-full h-48 bg-muted flex items-center justify-center">
+                        <span className="text-muted-foreground">No Image</span>
+                      </div>
                     )}
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                  </div>
+                  <CardContent className="p-3">
+                    <h3 className="font-medium text-sm mb-1 truncate">
+                      {nft.name || 'Untitled'}
+                    </h3>
+                    <p className="text-xs text-muted-foreground line-clamp-2">
+                      {nft.description || 'No description available'}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </>
         )}
 
         {/* Import Results */}
         {importResult?.isVisible && (
-          <Card>
+          <Card className="mt-8">
             <CardHeader>
               <CardTitle>Import Results</CardTitle>
             </CardHeader>
