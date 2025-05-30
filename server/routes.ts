@@ -346,8 +346,31 @@ export function registerRoutes(app: Express) {
         
         if (emailService === 'sendgrid') {
           try {
-            const success = await sendgridService.sendEmail(emailParams);
+            // Use direct SendGrid API call like the working test
+            const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${process.env.SENDGRID_API_KEY}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                personalizations: [{
+                  to: [{ email: emailParams.to }]
+                }],
+                from: { email: emailParams.from },
+                subject: emailParams.subject,
+                content: [
+                  { type: "text/plain", value: emailParams.text },
+                  { type: "text/html", value: emailParams.html }
+                ]
+              })
+            });
+            
+            const success = response.ok;
             console.log(`SendGrid verification email result: ${success ? 'Success' : 'Failed'}`);
+            if (!success) {
+              console.error('SendGrid API error:', await response.text());
+            }
           } catch (sendgridError) {
             console.error("SendGrid verification email error:", sendgridError);
           }
