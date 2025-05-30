@@ -8,16 +8,19 @@ try {
   const { createRoot } = await import("react-dom/client");
   document.body.innerHTML = '<div style="padding: 20px; color: white; background: green;">React DOM loaded, loading App...</div>';
   
-  // Try loading just React first without CSS
-  const App = (await import("./App")).default;
-  document.body.innerHTML = '<div style="padding: 20px; color: white; background: purple;">App component loaded, rendering...</div>';
+  // Try a minimal App component first
+  function MinimalApp() {
+    return <div style={{ padding: '20px', color: 'white', background: 'orange' }}>Minimal React App Working!</div>;
+  }
+  
+  document.body.innerHTML = '<div style="padding: 20px; color: white; background: purple;">Testing minimal React...</div>';
 
   // Simple test component without CSS imports
   function TestApp() {
     return (
       <div style={{ padding: '20px', fontSize: '24px', color: 'black', background: 'yellow' }}>
-        React is working! Loading full app...
-        <App />
+        React is working! Loading minimal app...
+        <MinimalApp />
       </div>
     );
   }
