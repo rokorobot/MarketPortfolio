@@ -2,6 +2,8 @@ import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
+import { AuthProvider } from "@/hooks/use-auth";
+import { ThemeProvider } from "@/components/theme-provider";
 
 // Start with minimal components first
 function SimpleHome() {
@@ -9,6 +11,7 @@ function SimpleHome() {
     <div style={{ padding: '20px' }}>
       <h1>Portfolio Home</h1>
       <p>Home page loaded successfully</p>
+      <p>Theme and Auth providers added</p>
     </div>
   );
 }
@@ -27,8 +30,12 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router />
-      <Toaster />
+      <ThemeProvider defaultTheme="dark-green" storageKey="portfolio-theme">
+        <AuthProvider>
+          <Router />
+          <Toaster />
+        </AuthProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
