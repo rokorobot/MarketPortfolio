@@ -276,18 +276,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               </TooltipProvider>
             )}
             
-            {/* Import NFTs button - available only to creators, admin, and superadmin */}
-            {user && (user.role === 'creator' || user.role === 'admin' || user.role === 'superadmin') && !location.startsWith("/import-nfts") && (
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => navigate("/import-nfts")}
-                className="gap-2"
-              >
-                <Download className="mr-2 h-4 w-4" />
-                Import NFTs
-              </Button>
-            )}
+            {/* Import NFTs button - temporarily disabled due to browser compatibility issues */}
             
             {/* View Toggle - available to creators and collectors */}
             {user && (user.role === 'creator' || user.role === 'collector') && (
