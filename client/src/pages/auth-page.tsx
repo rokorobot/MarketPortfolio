@@ -153,6 +153,25 @@ export default function AuthPage() {
 
   return (
     <div className="container py-10 max-w-screen-xl mx-auto">
+      {/* Verification Message Banner */}
+      {verificationMessage && (
+        <div className="mb-6 p-4 rounded-lg bg-green-50 border border-green-200 text-center">
+          <p className={`text-lg font-medium ${verificationMessage.includes("successfully") ? "text-green-800" : "text-red-800"}`}>
+            {verificationMessage}
+          </p>
+        </div>
+      )}
+      
+      {/* Verification Loading State */}
+      {verifying && (
+        <div className="mb-6 p-4 rounded-lg bg-blue-50 border border-blue-200 text-center">
+          <div className="flex items-center justify-center gap-2">
+            <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+            <p className="text-lg font-medium text-blue-800">Verifying your email...</p>
+          </div>
+        </div>
+      )}
+      
       <div className="grid md:grid-cols-2 gap-8 items-center">
         {/* Auth Forms */}
         <div>
