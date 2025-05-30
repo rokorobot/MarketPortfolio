@@ -22,7 +22,10 @@ import AddCollection from "@/pages/add-collection";
 import ManageCategories from "@/pages/manage-categories";
 import SiteSettings from "@/pages/site-settings";
 import ManageAuthors from "@/pages/manage-authors";
-// Adding the remaining admin management components
+import ImportNFTs from "@/pages/import-nfts";
+import AdminDashboard from "@/pages/admin-dashboard";
+import CreatorDashboard from "@/pages/creator-dashboard";
+// All components restored
 
 function Router() {
   return (
@@ -64,6 +67,21 @@ function Router() {
       <Route path="/manage-authors">
         <ProtectedRoute requireAdmin>
           <ManageAuthors />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/import-nfts">
+        <ProtectedRoute>
+          <ImportNFTs />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/admin/dashboard">
+        <ProtectedRoute requireAdmin>
+          <AdminDashboard />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/creator/dashboard">
+        <ProtectedRoute>
+          <CreatorDashboard />
         </ProtectedRoute>
       </Route>
       <Route component={NotFound} />
