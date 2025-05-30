@@ -5,22 +5,12 @@ import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ShowcaseProvider } from "@/hooks/use-showcase";
-
-// Start with minimal components first
-function SimpleHome() {
-  return (
-    <div style={{ padding: '20px' }}>
-      <h1>Portfolio Home</h1>
-      <p>Home page loaded successfully</p>
-      <p>All providers working (Theme, Auth, Showcase)</p>
-    </div>
-  );
-}
+import Home from "@/pages/home";
 
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={SimpleHome} />
+      <Route path="/" component={Home} />
       <Route>
         <div>Page not found</div>
       </Route>
