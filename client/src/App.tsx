@@ -17,6 +17,7 @@ import Authors from "@/pages/authors";
 import AuthorItems from "@/pages/author-items";
 import Favorites from "@/pages/favorites";
 import CreatorDashboard from "@/pages/creator-dashboard";
+import AdminDashboard from "@/pages/admin-dashboard";
 import { ProtectedRoute } from "@/components/protected-route";
 
 function Router() {
@@ -39,6 +40,11 @@ function Router() {
       <Route path="/creator/dashboard">
         <ProtectedRoute>
           <CreatorDashboard />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/admin/dashboard">
+        <ProtectedRoute>
+          <AdminDashboard />
         </ProtectedRoute>
       </Route>
       <Route component={NotFound} />
