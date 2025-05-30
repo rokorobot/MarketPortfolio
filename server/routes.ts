@@ -1704,21 +1704,21 @@ export function registerRoutes(app: Express) {
       }
       
       try {
-        // Try to send email via Nodemailer (preferred method)
-        console.log("Attempting to send email via Nodemailer...");
-        const result = await nodemailerService.sendContactFormEmail(name, email, message, adminEmail);
+        // Use SendGrid as the primary email service
+        console.log("Attempting to send email via SendGrid...");
+        const result = await sendgridService.sendContactFormEmail(name, email, message, adminEmail);
         
         if (result) {
           res.status(200).json({ 
             success: true, 
-            message: "Your message has been sent successfully! Check the console for the Ethereal email preview link."
+            message: "Your message has been sent successfully!"
           });
         } else {
-          // Fallback to SendGrid if Nodemailer fails
-          console.log("Nodemailer failed, trying SendGrid as fallback...");
-          const sendGridResult = await sendgridService.sendContactFormEmail(name, email, message, adminEmail);
+          // Fallback to Nodemailer if SendGrid fails
+          console.log("SendGrid failed, trying Nodemailer as fallback...");
+          const nodemailerResult = await nodemailerService.sendContactFormEmail(name, email, message, adminEmail);
           
-          if (sendGridResult) {
+          if (nodemailerResult) {
             res.status(200).json({ 
               success: true, 
               message: "Your message has been sent successfully via SendGrid!"
