@@ -3,12 +3,16 @@ document.body.style.background = 'red';
 document.body.innerHTML = '<div style="padding: 20px; font-size: 24px; color: white;">JavaScript is running - checking React...</div>';
 
 try {
+  document.body.innerHTML = '<div style="padding: 20px; color: white; background: blue;">Loading React components...</div>';
+  
   const { createRoot } = await import("react-dom/client");
+  document.body.innerHTML = '<div style="padding: 20px; color: white; background: green;">React DOM loaded, loading App...</div>';
+  
+  // Try loading just React first without CSS
   const App = (await import("./App")).default;
-  await import("./index.css");
-  await import("./grey-theme.css");
+  document.body.innerHTML = '<div style="padding: 20px; color: white; background: purple;">App component loaded, rendering...</div>';
 
-  // Simple test component
+  // Simple test component without CSS imports
   function TestApp() {
     return (
       <div style={{ padding: '20px', fontSize: '24px', color: 'black', background: 'yellow' }}>
@@ -23,5 +27,5 @@ try {
   createRoot(document.getElementById("root")!).render(<TestApp />);
   
 } catch (error) {
-  document.body.innerHTML = `<div style="padding: 20px; color: white; background: red;">Error loading React: ${error.message}</div>`;
+  document.body.innerHTML = `<div style="padding: 20px; color: white; background: red;">Error loading React: ${error.message}<br/>Stack: ${error.stack}</div>`;
 }
