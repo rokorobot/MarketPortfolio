@@ -17,15 +17,6 @@ import Authors from "@/pages/authors";
 import AuthorItems from "@/pages/author-items";
 import Favorites from "@/pages/favorites";
 import { ProtectedRoute } from "@/components/protected-route";
-import AddItem from "@/pages/add-item";
-import AddCollection from "@/pages/add-collection";
-import ManageCategories from "@/pages/manage-categories";
-import SiteSettings from "@/pages/site-settings";
-import ManageAuthors from "@/pages/manage-authors";
-import ImportNFTs from "@/pages/import-nfts";
-import AdminDashboard from "@/pages/admin-dashboard";
-import CreatorDashboard from "@/pages/creator-dashboard";
-// All components restored
 
 function Router() {
   return (
@@ -44,46 +35,6 @@ function Router() {
           <Favorites />
         </ProtectedRoute>
       </Route>
-      <Route path="/add-item">
-        <ProtectedRoute requireAdmin>
-          <AddItem />
-        </ProtectedRoute>
-      </Route>
-      <Route path="/add-collection">
-        <ProtectedRoute requireAdmin>
-          <AddCollection />
-        </ProtectedRoute>
-      </Route>
-      <Route path="/manage-categories">
-        <ProtectedRoute requireAdmin>
-          <ManageCategories />
-        </ProtectedRoute>
-      </Route>
-      <Route path="/site-settings">
-        <ProtectedRoute requireAdmin>
-          <SiteSettings />
-        </ProtectedRoute>
-      </Route>
-      <Route path="/manage-authors">
-        <ProtectedRoute requireAdmin>
-          <ManageAuthors />
-        </ProtectedRoute>
-      </Route>
-      <Route path="/import-nfts">
-        <ProtectedRoute>
-          <ImportNFTs />
-        </ProtectedRoute>
-      </Route>
-      <Route path="/admin/dashboard">
-        <ProtectedRoute requireAdmin>
-          <AdminDashboard />
-        </ProtectedRoute>
-      </Route>
-      <Route path="/creator/dashboard">
-        <ProtectedRoute>
-          <CreatorDashboard />
-        </ProtectedRoute>
-      </Route>
       <Route component={NotFound} />
     </Switch>
   );
@@ -91,10 +42,16 @@ function Router() {
 
 function App() {
   return (
-    <div style={{ padding: '20px', fontSize: '24px', background: 'white', minHeight: '100vh' }}>
-      <h1 style={{ color: 'black' }}>Simple Test App</h1>
-      <p style={{ color: 'black' }}>Testing if React renders at all...</p>
-    </div>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider defaultTheme="dark-green" storageKey="portfolio-theme">
+        <AuthProvider>
+          <ShowcaseProvider>
+            <Router />
+            <Toaster />
+          </ShowcaseProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }
 
