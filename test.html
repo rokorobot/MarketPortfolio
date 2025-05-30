@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Page</title>
+</head>
+<body>
+    <h1>Direct Test Page</h1>
+    <p>If you can see this, the server is working correctly.</p>
+    <script>
+        fetch('/api/items')
+            .then(response => response.json())
+            .then(data => {
+                document.body.innerHTML += '<h2>API Test:</h2><pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            })
+            .catch(error => {
+                document.body.innerHTML += '<h2>API Error:</h2><p>' + error + '</p>';
+            });
+    </script>
+</body>
+</html>
