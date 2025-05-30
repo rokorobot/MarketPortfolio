@@ -157,10 +157,9 @@ ${message}
   `;
   
   // Always use the verified email as the sender
-  // The verified email is set in the environment variable VERIFIED_EMAIL or defaults to customer@nftfolio.app
   return await sendEmail({
-    to,
-    from: process.env.VERIFIED_EMAIL || 'customer@nftfolio.app',
+    to: process.env.VERIFIED_EMAIL || to,
+    from: process.env.VERIFIED_EMAIL || 'noreply@nftfolio.app',
     subject,
     text,
     html,
