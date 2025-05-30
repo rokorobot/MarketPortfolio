@@ -76,22 +76,48 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
     console.log(`Using verified sender address: ${verifiedEmail}`);
     
     // Create the email with the verified sender
-    const mailData: SendGridMailData = {
-      to: params.to,
-      from: verifiedEmail, // Always use the verified email address
+    // Use the exact same structure as the working direct API calls
+    const mailData = {
+      personalizations: [
+        {
+          to: [
+            {
+              email: params.to
+            }
+          ]
+        }
+      ],
+      from: {
+        email: verifiedEmail
+      },
       subject: params.subject,
-      text: params.text || '',
-      html: params.html || '',
+      content: [
+        {
+          type: "text/plain",
+          value: params.text || ''
+        }
+      ]
     };
     
+    // Add HTML content if provided
+    if (params.html) {
+      mailData.content.push({
+        type: "text/html",
+        value: params.html
+      });
+    }
+    
+    // Add reply-to if provided
     if (params.replyTo) {
-      mailData.replyTo = params.replyTo;
+      (mailData as any).replyTo = {
+        email: params.replyTo
+      };
     }
     
     // Send the email
     console.log('Sending email with SendGrid...');
     console.log('Mail data being sent:', JSON.stringify(mailData, null, 2));
-    await mailService.send(mailData as any); // Cast to any to bypass typechecking issue
+    await mailService.send(mailData as any);
     console.log(`Email sent successfully to ${params.to}`);
     return true;
   } catch (err) {
