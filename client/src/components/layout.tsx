@@ -290,9 +290,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
             )}
             
             {/* View Toggle - available only to creators and collectors */}
-            {user && (user.role === 'creator' || user.role === 'collector') && (
+            {/* Temporarily disabled: {user && (user.role === 'creator' || user.role === 'collector') && (
               <ViewToggle user={user} />
-            )}
+            )} */}
             
             <ShowcaseButton />
             
