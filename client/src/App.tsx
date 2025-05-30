@@ -17,7 +17,10 @@ import Authors from "@/pages/authors";
 import AuthorItems from "@/pages/author-items";
 import Favorites from "@/pages/favorites";
 import { ProtectedRoute } from "@/components/protected-route";
-// Adding batch of simpler components to speed up testing
+import ImportNFTs from "@/pages/import-nfts";
+import AdminDashboard from "@/pages/admin-dashboard";
+import CreatorDashboard from "@/pages/creator-dashboard";
+// Testing admin components that might be problematic
 
 function Router() {
   return (
@@ -34,6 +37,21 @@ function Router() {
       <Route path="/favorites">
         <ProtectedRoute>
           <Favorites />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/import-nfts">
+        <ProtectedRoute>
+          <ImportNFTs />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/admin/dashboard">
+        <ProtectedRoute requireAdmin>
+          <AdminDashboard />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/creator/dashboard">
+        <ProtectedRoute>
+          <CreatorDashboard />
         </ProtectedRoute>
       </Route>
       <Route component={NotFound} />
