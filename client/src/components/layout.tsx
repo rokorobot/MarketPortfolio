@@ -29,8 +29,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Footer } from "@/components/footer";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
+// import { Switch } from "@/components/ui/switch";
+// import { Label } from "@/components/ui/label";
 
 // Showcase interval setting component for dropdown menu
 const ShowcaseIntervalSetting = () => {
