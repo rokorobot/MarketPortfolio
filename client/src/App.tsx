@@ -7,6 +7,8 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { ShowcaseProvider } from "@/hooks/use-showcase";
 import Home from "@/pages/home";
 import AuthPage from "@/pages/auth-page";
+import Item from "@/pages/item";
+import NotFound from "@/pages/not-found";
 // Adding other imports one by one to identify the problematic component
 
 function Router() {
@@ -14,9 +16,8 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/auth" component={AuthPage} />
-      <Route>
-        <div>Page not found</div>
-      </Route>
+      <Route path="/item/:id" component={Item} />
+      <Route component={NotFound} />
     </Switch>
   );
 }
