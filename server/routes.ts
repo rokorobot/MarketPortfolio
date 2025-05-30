@@ -1483,97 +1483,40 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  // Import collections from Tezos address
-  app.post("/api/categories/import-from-tezos", requireAuth, requireAdmin, async (req: Request, res: Response) => {
+  // Enhance existing collections (update names and images from OBJKT)
+  app.post("/api/categories/enhance-collections", requireAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
-      const { address } = req.body;
-      const userId = (req.session as SessionData).userId!;
-
-      if (!address || typeof address !== 'string') {
-        return res.status(400).json({ message: "Tezos address is required" });
-      }
-
-      // Fetch NFTs from the address to get collection data
-      const nfts = await fetchTezosNFTs(address, 500, 0);
+      const { migrateCollectionAddresses } = await import('./collection-migration');
+      const { migrateCollectionDescriptions } = await import('./collection-description-migration');
       
-      // Extract unique collections
-      const collectionsMap = new Map<string, {name: string, imageUrl: string | null}>();
-      
-      nfts.forEach(nft => {
-        if (nft.collectionName && !collectionsMap.has(nft.collectionName.toLowerCase())) {
-          collectionsMap.set(nft.collectionName.toLowerCase(), {
-            name: nft.collectionName,
-            imageUrl: nft.collectionImage || null
-          });
-        }
-      });
-
-      // Get existing categories to avoid duplicates
-      const existingCategories = await storage.getCategories();
-      const existingNames = new Set(existingCategories.map(c => c.name.toLowerCase()));
-
-      let imported = 0;
-      let skipped = 0;
-
-      // Create new categories for collections that don't exist
-      for (const collection of collectionsMap.values()) {
-        if (!existingNames.has(collection.name.toLowerCase())) {
-          try {
-            await storage.createCategory({
-              name: collection.name,
-              description: `Collection imported from Tezos blockchain`,
-              imageUrl: collection.imageUrl,
-              createdById: userId
-            });
-            imported++;
-          } catch (error: any) {
-            console.error(`Failed to create category for ${collection.name}:`, error);
-            skipped++;
-          }
-        } else {
-          skipped++;
-        }
-      }
-
-      return res.json({ imported, skipped });
-    } catch (error: any) {
-      console.error("Error importing from Tezos:", error);
-      return res.status(500).json({ message: "Failed to import collections", error: error.message });
-    }
-  });
-
-  // Refresh collection images from OBJKT
-  app.post("/api/categories/refresh-images", requireAuth, requireAdmin, async (req: Request, res: Response) => {
-    try {
-      const categories = await storage.getCategories();
       let updated = 0;
       let failed = 0;
 
-      for (const category of categories) {
-        try {
-          // Try to fetch fresh collection data from OBJKT if it looks like a contract address
-          if (category.name.startsWith('KT1') && category.name.length === 36) {
-            const objktData = await fetchObjktCollectionProfile(category.name);
-            if (objktData && objktData.collectionImage) {
-              await storage.updateCategory(category.id, {
-                imageUrl: objktData.collectionImage,
-                description: objktData.description || category.description
-              });
-              updated++;
-            } else {
-              failed++;
-            }
-          }
-        } catch (error: any) {
-          console.error(`Failed to refresh image for ${category.name}:`, error);
-          failed++;
-        }
+      try {
+        // First migrate collection addresses to proper names
+        await migrateCollectionAddresses();
+        console.log("Collection addresses migrated successfully");
+        updated++;
+      } catch (error: any) {
+        console.error("Failed to migrate collection addresses:", error);
+        failed++;
+      }
+
+      try {
+        // Then migrate collection descriptions and images
+        const result = await migrateCollectionDescriptions();
+        console.log("Collection descriptions migrated successfully");
+        updated += result.updated || 0;
+        failed += result.failed || 0;
+      } catch (error: any) {
+        console.error("Failed to migrate collection descriptions:", error);
+        failed++;
       }
 
       return res.json({ updated, failed });
     } catch (error: any) {
-      console.error("Error refreshing images:", error);
-      return res.status(500).json({ message: "Failed to refresh images", error: error.message });
+      console.error("Error enhancing collections:", error);
+      return res.status(500).json({ message: "Failed to enhance collections", error: error.message });
     }
   });
   

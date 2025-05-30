@@ -29,8 +29,6 @@ export default function ManageCategories() {
   const [editingCategory, setEditingCategory] = useState<CategoryModel | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
-  const [importFromTezosAddress, setImportFromTezosAddress] = useState("");
-  const [isImportingFromTezos, setIsImportingFromTezos] = useState(false);
   const [isRefreshingImages, setIsRefreshingImages] = useState(false);
 
   const form = useForm<CategoryFormData>({
@@ -109,45 +107,22 @@ export default function ManageCategories() {
     },
   });
 
-  // Import collections from Tezos mutation
-  const importFromTezosMutation = useMutation({
-    mutationFn: async (address: string) => {
-      const response = await apiRequest("POST", "/api/categories/import-from-tezos", { address });
-      return response.json();
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
-      toast({ 
-        title: `Successfully imported ${data.imported} collections from Tezos`,
-        description: data.skipped > 0 ? `${data.skipped} collections were skipped (already exist)` : undefined
-      });
-      setImportFromTezosAddress("");
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Failed to import from Tezos",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Refresh collection images mutation
+  // Enhance existing collections mutation
   const refreshImagesMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("POST", "/api/categories/refresh-images");
+      const response = await apiRequest("POST", "/api/categories/enhance-collections");
       return response.json();
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
       toast({ 
-        title: `Successfully updated ${data.updated} collection images`,
-        description: data.failed > 0 ? `${data.failed} images could not be updated` : undefined
+        title: `Successfully enhanced ${data.updated} collections`,
+        description: `Updated names and images for collections with imported NFTs. ${data.failed > 0 ? `${data.failed} collections could not be updated.` : ''}`
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Failed to refresh images",
+        title: "Failed to enhance collections",
         description: error.message,
         variant: "destructive",
       });
@@ -187,22 +162,7 @@ export default function ManageCategories() {
     }
   };
 
-  // Handle import from Tezos
-  const handleImportFromTezos = () => {
-    if (!importFromTezosAddress.trim()) {
-      toast({
-        title: "Address required",
-        description: "Please enter a Tezos wallet address",
-        variant: "destructive",
-      });
-      return;
-    }
-    setIsImportingFromTezos(true);
-    importFromTezosMutation.mutate(importFromTezosAddress.trim());
-    setIsImportingFromTezos(false);
-  };
-
-  // Handle refresh collection images
+  // Handle enhance collections
   const handleRefreshImages = () => {
     setIsRefreshingImages(true);
     refreshImagesMutation.mutate();
@@ -267,37 +227,35 @@ export default function ManageCategories() {
         </div>
       </div>
 
-      {/* Import from Tezos Section */}
+      {/* Collection Enhancement Tools */}
       <Card className="mb-6">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Download className="h-5 w-5" />
-            Import Collections from Tezos
+            <RefreshCw className="h-5 w-5" />
+            Collection Enhancement Tools
           </CardTitle>
           <CardDescription>
-            Enter a Tezos wallet address to automatically import all collections from that wallet
+            Update and enhance existing collections that were created during NFT imports
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="flex gap-2">
-            <Input
-              placeholder="Enter Tezos wallet address (tz1...)"
-              value={importFromTezosAddress}
-              onChange={(e) => setImportFromTezosAddress(e.target.value)}
-              className="flex-1"
-            />
+        <CardContent className="space-y-4">
+          <div className="flex flex-col sm:flex-row gap-2">
             <Button
-              onClick={handleImportFromTezos}
-              disabled={isImportingFromTezos || importFromTezosMutation.isPending || !importFromTezosAddress.trim()}
+              onClick={handleRefreshImages}
+              disabled={isRefreshingImages || refreshImagesMutation.isPending}
+              className="flex-1"
             >
-              {isImportingFromTezos || importFromTezosMutation.isPending ? (
+              {isRefreshingImages || refreshImagesMutation.isPending ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
-                <Download className="mr-2 h-4 w-4" />
+                <RefreshCw className="mr-2 h-4 w-4" />
               )}
-              Import
+              Update Collection Names & Images
             </Button>
           </div>
+          <p className="text-sm text-muted-foreground">
+            This will fetch proper collection names and images from OBJKT for collections that were created during NFT imports.
+          </p>
         </CardContent>
       </Card>
 
