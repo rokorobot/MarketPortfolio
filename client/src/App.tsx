@@ -9,7 +9,15 @@ import Home from "@/pages/home";
 import AuthPage from "@/pages/auth-page";
 import Item from "@/pages/item";
 import NotFound from "@/pages/not-found";
-// Adding other imports one by one to identify the problematic component
+import SharePage from "@/pages/share";
+import AboutPage from "@/pages/about";
+import ContactPage from "@/pages/contact";
+import Collections from "@/pages/collections";
+import Authors from "@/pages/authors";
+import AuthorItems from "@/pages/author-items";
+import Favorites from "@/pages/favorites";
+import { ProtectedRoute } from "@/components/protected-route";
+// Adding batch of simpler components to speed up testing
 
 function Router() {
   return (
@@ -17,6 +25,17 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/auth" component={AuthPage} />
       <Route path="/item/:id" component={Item} />
+      <Route path="/share/:shareCode" component={SharePage} />
+      <Route path="/about" component={AboutPage} />
+      <Route path="/contact" component={ContactPage} />
+      <Route path="/collections/:category?" component={Collections} />
+      <Route path="/authors" component={Authors} />
+      <Route path="/items/author/:authorName" component={AuthorItems} />
+      <Route path="/favorites">
+        <ProtectedRoute>
+          <Favorites />
+        </ProtectedRoute>
+      </Route>
       <Route component={NotFound} />
     </Switch>
   );
