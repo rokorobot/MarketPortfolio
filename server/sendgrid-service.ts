@@ -71,7 +71,7 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
     
     // Use the verified sender email address from environment variables
     // This must be an email that you've manually verified in SendGrid dashboard
-    const verifiedEmail = process.env.VERIFIED_EMAIL || 'customer@nftfolio.app';
+    const verifiedEmail = process.env.VERIFIED_EMAIL || 'robertes@gmail.com';
     
     console.log(`Using verified sender address: ${verifiedEmail}`);
     
