@@ -140,25 +140,18 @@ const ViewToggle = ({ user }: { user: any }) => {
   };
   
   return (
-    <div className="flex items-center space-x-2">
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div className="flex items-center space-x-2">
-              <Users className="h-4 w-4 text-muted-foreground" />
-              <Switch
-                id="view-toggle"
-                checked={isCreatorView}
-                onCheckedChange={handleToggle}
-              />
-              <Eye className="h-4 w-4 text-muted-foreground" />
-            </div>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>{isCreatorView ? "Creator View: Only your items" : "Collector View: All items"}</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+    <div className="flex items-center space-x-3 px-3 py-1.5 border rounded-md bg-background">
+      <span className={`text-sm font-medium ${!isCreatorView ? 'text-primary' : 'text-muted-foreground'}`}>
+        Collector View
+      </span>
+      <Switch
+        id="view-toggle"
+        checked={isCreatorView}
+        onCheckedChange={handleToggle}
+      />
+      <span className={`text-sm font-medium ${isCreatorView ? 'text-primary' : 'text-muted-foreground'}`}>
+        Creator View
+      </span>
     </div>
   );
 };
