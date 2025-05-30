@@ -289,7 +289,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
               </Button>
             )}
             
-            {/* View Toggle - temporarily removed to restore working state */}
+            {/* View Toggle - available to creators and collectors */}
+            {user && (user.role === 'creator' || user.role === 'collector') && (
+              <ViewToggle user={user} />
+            )}
             
             <ShowcaseButton />
             
