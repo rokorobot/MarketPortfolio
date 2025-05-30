@@ -1,0 +1,99 @@
+yntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133Understand this error
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133Understand this error
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133Understand this error
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133Understand this error
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133Understand this error
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133Understand this error
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133Understand this error
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133Understand this error
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133Understand this error
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133Understand this error
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133Understand this error
+SyntaxError: Failed to execute 'postMessage' on 'Window': Invalid target origin 'null' in a call to 'postMessage'.
+    at o.postMessage (contentScript.ts-CETYQh2v.js:1:2084)
+    at o.onStartEvent (contentScript.ts-CETYQh2v.js:1:912)
+    at o.connectAndAttachListeners (contentScript.ts-CETYQh2v.js:1:1332)
+    at new o (contentScript.ts-CETYQh2v.js:1:864)
+    at o.start (contentScript.ts-CETYQh2v.js:1:1687)
+    at contentScript.ts-CETYQh2v.js:1:2133Understand this error
+
+                
+          
+          
+          
+         Chrome is moving towards a new experience that allows users to choose to browse without third-party cookies.Understand this warning
+stallwart.build.js:1 stallwart: failed ping 1
+stallwart.build.js:1 stallwart: failed ping 2
+
+                
+          
+          
+          
+         Chrome is moving towards a new experience that allows users to choose to browse without third-party cookies.Understand this warning
+content.js:899 using deprecated parameters for the initialization function; pass a single object instead

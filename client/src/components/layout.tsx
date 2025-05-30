@@ -127,34 +127,34 @@ const ShowcaseIntervalSetting = () => {
   );
 };
 
-// View Toggle component for switching between creator and collector views
-const ViewToggle = ({ user }: { user: any }) => {
-  const [isCreatorView, setIsCreatorView] = useState(false);
-  
-  const handleToggle = (checked: boolean) => {
-    setIsCreatorView(checked);
-    // Dispatch custom event to notify components about view change
-    document.dispatchEvent(new CustomEvent('view-toggle-changed', {
-      detail: { isCreatorView: checked }
-    }));
-  };
-  
-  return (
-    <div className="flex items-center space-x-3 px-3 py-1.5 border rounded-md bg-background">
-      <span className={`text-sm font-medium ${!isCreatorView ? 'text-primary' : 'text-muted-foreground'}`}>
-        Collector View
-      </span>
-      <Switch
-        id="view-toggle"
-        checked={isCreatorView}
-        onCheckedChange={handleToggle}
-      />
-      <span className={`text-sm font-medium ${isCreatorView ? 'text-primary' : 'text-muted-foreground'}`}>
-        Creator View
-      </span>
-    </div>
-  );
-};
+// View Toggle component - temporarily disabled due to Switch component issue
+// const ViewToggle = ({ user }: { user: any }) => {
+//   const [isCreatorView, setIsCreatorView] = useState(false);
+//   
+//   const handleToggle = (checked: boolean) => {
+//     setIsCreatorView(checked);
+//     // Dispatch custom event to notify components about view change
+//     document.dispatchEvent(new CustomEvent('view-toggle-changed', {
+//       detail: { isCreatorView: checked }
+//     }));
+//   };
+//   
+//   return (
+//     <div className="flex items-center space-x-3 px-3 py-1.5 border rounded-md bg-background">
+//       <span className={`text-sm font-medium ${!isCreatorView ? 'text-primary' : 'text-muted-foreground'}`}>
+//         Collector View
+//       </span>
+//       <Switch
+//         id="view-toggle"
+//         checked={isCreatorView}
+//         onCheckedChange={handleToggle}
+//       />
+//       <span className={`text-sm font-medium ${isCreatorView ? 'text-primary' : 'text-muted-foreground'}`}>
+//         Creator View
+//       </span>
+//     </div>
+//   );
+// };
 
 // Showcase Button component that triggers the slideshow of portfolio items
 const ShowcaseButton = () => {
