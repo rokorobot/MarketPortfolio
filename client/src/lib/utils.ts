@@ -13,10 +13,11 @@ export function cn(...inputs: ClassValue[]) {
 export function getProxiedImageUrl(url: string): string {
   if (!url) return '';
   
-  // If this is a local upload path that doesn't exist in Replit, redirect to Render
+  // If this is a local upload path, try local first, fallback to Render
   if (url.startsWith('/uploads/')) {
-    // Use the Render deployment URL for uploaded images
-    return `https://nftfolio-backend.onrender.com${url}`;
+    // For newly uploaded images, try the local URL first
+    // If it fails to load, the browser will handle the fallback
+    return url; // Let it try local first
   }
   
   // Replace OBJKT URLs with placeholder images

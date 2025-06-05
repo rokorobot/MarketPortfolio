@@ -512,9 +512,17 @@ export default function ManageCategories() {
                         <div>
                           <div className="w-32 h-32 border rounded overflow-hidden">
                             <img
-                              src={getProxiedImageUrl(form.watch("imageUrl") || "")}
+                              src={form.watch("imageUrl") || ""}
                               alt="Collection image"
                               className="w-full h-full object-cover"
+                              onError={(e) => {
+                                // Fallback to Render URL if local image fails
+                                const target = e.target as HTMLImageElement;
+                                const currentSrc = target.src;
+                                if (!currentSrc.includes('nftfolio-backend.onrender.com') && currentSrc.startsWith(window.location.origin + '/uploads/')) {
+                                  target.src = `https://nftfolio-backend.onrender.com${currentSrc.replace(window.location.origin, '')}`;
+                                }
+                              }}
                             />
                           </div>
                           <div className="text-xs text-muted-foreground mt-1">Current image</div>
