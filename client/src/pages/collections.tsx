@@ -149,10 +149,10 @@ export default function Collections() {
                                   window.location.hostname.includes('replit.app') ||
                                   window.location.hostname.includes('replit.co');
                   
-                  // Only try Render fallback when running on Replit
-                  if (isReplit && !currentSrc.includes('nftfolio-backend.onrender.com') && !target.dataset.triedRender && selectedCategoryData.imageUrl) {
-                    target.dataset.triedRender = 'true';
-                    target.src = `https://nftfolio-backend.onrender.com${selectedCategoryData.imageUrl}`;
+                  // Only try local fallback when running on Replit and Render failed
+                  if (isReplit && currentSrc.includes('nftfolio-backend.onrender.com') && !target.dataset.triedLocal && selectedCategoryData.imageUrl) {
+                    target.dataset.triedLocal = 'true';
+                    target.src = selectedCategoryData.imageUrl;
                   } else {
                     // Hide the image if all attempts fail
                     target.style.display = 'none';
@@ -257,10 +257,10 @@ export default function Collections() {
                       
                       // Only try fallbacks when running on Replit
                       if (isReplit) {
-                        // If local URL failed, try Render as fallback
-                        if (!currentSrc.includes('nftfolio-backend.onrender.com') && !target.dataset.triedRender && category.imageUrl) {
-                          target.dataset.triedRender = 'true';
-                          target.src = `https://nftfolio-backend.onrender.com${category.imageUrl}`;
+                        // If Render URL failed, try local as fallback
+                        if (currentSrc.includes('nftfolio-backend.onrender.com') && !target.dataset.triedLocal && category.imageUrl) {
+                          target.dataset.triedLocal = 'true';
+                          target.src = category.imageUrl;
                           return;
                         }
                       }
