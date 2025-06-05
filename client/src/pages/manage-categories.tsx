@@ -29,6 +29,7 @@ export default function ManageCategories() {
   const [editingCategory, setEditingCategory] = useState<CategoryModel | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isRefreshingImages, setIsRefreshingImages] = useState(false);
 
   const form = useForm<CategoryFormData>({
@@ -134,7 +135,11 @@ export default function ManageCategories() {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // Create preview URL immediately
+    const previewUrl = URL.createObjectURL(file);
+    setPreviewImage(previewUrl);
     setUploadingImage(true);
+
     try {
       const formData = new FormData();
       formData.append("image", file);
@@ -151,12 +156,19 @@ export default function ManageCategories() {
       const data = await response.json();
       form.setValue("imageUrl", data.imageUrl);
       toast({ title: "Image uploaded successfully" });
+      
+      // Clear preview after successful upload
+      setPreviewImage(null);
+      URL.revokeObjectURL(previewUrl);
     } catch (error: any) {
       toast({
         title: "Failed to upload image",
         description: error.message,
         variant: "destructive",
       });
+      // Clear preview on error
+      setPreviewImage(null);
+      URL.revokeObjectURL(previewUrl);
     } finally {
       setUploadingImage(false);
     }
@@ -297,6 +309,11 @@ export default function ManageCategories() {
     setIsDialogOpen(false);
     setEditingCategory(null);
     form.reset();
+    // Clear preview image when closing dialog
+    if (previewImage) {
+      URL.revokeObjectURL(previewImage);
+      setPreviewImage(null);
+    }
   };
 
   return (
@@ -467,15 +484,42 @@ export default function ManageCategories() {
                   )}
                 />
 
-                {form.watch("imageUrl") && (
+                {(form.watch("imageUrl") || previewImage) && (
                   <div>
                     <FormLabel>Image Preview:</FormLabel>
-                    <div className="w-32 h-32 border rounded overflow-hidden mt-2">
-                      <img
-                        src={getProxiedImageUrl(form.watch("imageUrl") || "")}
-                        alt="Preview"
-                        className="w-full h-full object-cover"
-                      />
+                    <div className="flex gap-4 mt-2">
+                      {/* Upload preview (temporary) */}
+                      {previewImage && (
+                        <div className="relative">
+                          <div className="w-24 h-24 border rounded overflow-hidden">
+                            <img
+                              src={previewImage}
+                              alt="Uploading preview"
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          {uploadingImage && (
+                            <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded">
+                              <Loader2 className="h-4 w-4 animate-spin text-white" />
+                            </div>
+                          )}
+                          <div className="text-xs text-muted-foreground mt-1">Uploading...</div>
+                        </div>
+                      )}
+                      
+                      {/* Final uploaded image */}
+                      {form.watch("imageUrl") && !previewImage && (
+                        <div>
+                          <div className="w-32 h-32 border rounded overflow-hidden">
+                            <img
+                              src={getProxiedImageUrl(form.watch("imageUrl") || "")}
+                              alt="Collection image"
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-1">Current image</div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
