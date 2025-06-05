@@ -90,10 +90,10 @@ export default function AuthorItemsPage() {
                                       window.location.hostname.includes('replit.app') ||
                                       window.location.hostname.includes('replit.co');
                       
-                      // Only try local fallback when running on Replit and Render failed
-                      if (isReplit && currentSrc.includes('nftfolio-backend.onrender.com') && !target.dataset.triedLocal && authorDetails.profileImage) {
-                        target.dataset.triedLocal = 'true';
-                        target.src = authorDetails.profileImage;
+                      // Only try Render fallback when running on Replit and local failed
+                      if (isReplit && !currentSrc.includes('nftfolio-backend.onrender.com') && !target.dataset.triedRender && authorDetails.profileImage) {
+                        target.dataset.triedRender = 'true';
+                        target.src = `https://nftfolio-backend.onrender.com${authorDetails.profileImage}`;
                       } else {
                         // Hide image and show fallback
                         target.style.display = 'none';

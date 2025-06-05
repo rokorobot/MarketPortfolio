@@ -351,10 +351,10 @@ function AuthorEditor({ author, onCancel, onSave, isSaving }: AuthorEditorProps)
                                     window.location.hostname.includes('replit.app') ||
                                     window.location.hostname.includes('replit.co');
                     
-                    // Only try local fallback when running on Replit and Render failed
-                    if (isReplit && currentSrc.includes('nftfolio-backend.onrender.com') && !target.dataset.triedLocal) {
-                      target.dataset.triedLocal = 'true';
-                      target.src = previewImage || form.watch("authorProfileImage") || '';
+                    // Only try Render fallback when running on Replit and local failed
+                    if (isReplit && !currentSrc.includes('nftfolio-backend.onrender.com') && !target.dataset.triedRender) {
+                      target.dataset.triedRender = 'true';
+                      target.src = `https://nftfolio-backend.onrender.com${previewImage || form.watch("authorProfileImage") || ''}`;
                     }
                     e.currentTarget.src = "https://placehold.co/150x150/gray/white?text=Invalid+Image";
                   }}

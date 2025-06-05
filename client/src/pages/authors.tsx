@@ -92,10 +92,10 @@ export default function AuthorsPage() {
                         
                         // Only try fallbacks when running on Replit
                         if (isReplit) {
-                          // If Render URL failed, try local as fallback
-                          if (currentSrc.includes('nftfolio-backend.onrender.com') && !target.dataset.triedLocal && author.profileImage) {
-                            target.dataset.triedLocal = 'true';
-                            target.src = author.profileImage;
+                          // If local URL failed, try Render as fallback
+                          if (!currentSrc.includes('nftfolio-backend.onrender.com') && !target.dataset.triedRender && author.profileImage) {
+                            target.dataset.triedRender = 'true';
+                            target.src = `https://nftfolio-backend.onrender.com${author.profileImage}`;
                             return;
                           }
                         }

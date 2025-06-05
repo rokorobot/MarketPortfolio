@@ -257,10 +257,10 @@ export default function Collections() {
                       
                       // Only try fallbacks when running on Replit
                       if (isReplit) {
-                        // If Render URL failed, try local as fallback
-                        if (currentSrc.includes('nftfolio-backend.onrender.com') && !target.dataset.triedLocal && category.imageUrl) {
-                          target.dataset.triedLocal = 'true';
-                          target.src = category.imageUrl;
+                        // If local URL failed, try Render as fallback
+                        if (!currentSrc.includes('nftfolio-backend.onrender.com') && !target.dataset.triedRender && category.imageUrl) {
+                          target.dataset.triedRender = 'true';
+                          target.src = `https://nftfolio-backend.onrender.com${category.imageUrl}`;
                           return;
                         }
                       }
