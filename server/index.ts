@@ -9,6 +9,7 @@ import { migrateItemCollectors } from "./collector-migration";
 import { migrateFavorites } from "./favorites-migration";
 import { initializeDatabase } from "./db";
 import { databaseSync } from "./database-sync";
+import { imageSyncService } from "./image-sync";
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -91,6 +92,22 @@ app.use((req, res, next) => {
   const stats = await databaseSync.getDatabaseStats();
   if (stats) {
     console.log(`📊 Database Stats: ${stats.total_items} items, ${stats.total_authors} authors, ${stats.total_categories} categories, ${stats.total_users} users`);
+  }
+  
+  // Synchronize missing images from Render deployment
+  console.log('Checking image file integrity...');
+  const imageIntegrity = await imageSyncService.verifyImageIntegrity();
+  console.log(`📸 Image Status: ${imageIntegrity.present}/${imageIntegrity.total} images present locally`);
+  
+  if (imageIntegrity.missing > 0) {
+    console.log(`Synchronizing ${imageIntegrity.missing} missing images...`);
+    await imageSyncService.synchronizeImages();
+    
+    // Verify sync results
+    const finalStats = await imageSyncService.getImageStats();
+    console.log(`💾 Local Images: ${finalStats.count} files (${finalStats.totalSizeMB} MB)`);
+  } else {
+    console.log('All images are present locally');
   }
   
   // Run all migrations
