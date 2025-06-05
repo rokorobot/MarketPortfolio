@@ -30,6 +30,10 @@ export default function ManageCategories() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [isRefreshingImages, setIsRefreshingImages] = useState(false);
+  const [isUpdatingAddresses, setIsUpdatingAddresses] = useState(false);
+  const [isUpdatingDescriptions, setIsUpdatingDescriptions] = useState(false);
+  const [isAddingObjktUrls, setIsAddingObjktUrls] = useState(false);
+  const [isFetchingFromObjkt, setIsFetchingFromObjkt] = useState(false);
 
   const form = useForm<CategoryFormData>({
     resolver: zodResolver(categorySchema),
@@ -162,6 +166,114 @@ export default function ManageCategories() {
     }
   };
 
+  // Update collection addresses mutation
+  const updateAddressesMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/collections/migrate-addresses");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
+      toast({ title: "Collection addresses updated successfully" });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to update addresses",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update descriptions mutation
+  const updateDescriptionsMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/collections/migrate-descriptions");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
+      toast({ title: "Collection descriptions updated successfully" });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to update descriptions",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Add OBJKT URLs mutation
+  const addObjktUrlsMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/items/migrate-objkt-urls");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
+      toast({ title: "OBJKT URLs added successfully" });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to add OBJKT URLs",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Fetch collection data from OBJKT
+  const fetchFromObjktMutation = useMutation({
+    mutationFn: async (categoryName: string) => {
+      const response = await apiRequest("POST", "/api/collections/fetch-from-objkt", { categoryName });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      if (data.imageUrl) {
+        form.setValue("imageUrl", data.imageUrl);
+      }
+      if (data.description) {
+        form.setValue("description", data.description);
+      }
+      toast({ title: "Collection data fetched from OBJKT successfully" });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to fetch from OBJKT",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Handle functions
+  const handleUpdateAddresses = () => {
+    setIsUpdatingAddresses(true);
+    updateAddressesMutation.mutate();
+    setIsUpdatingAddresses(false);
+  };
+
+  const handleUpdateDescriptions = () => {
+    setIsUpdatingDescriptions(true);
+    updateDescriptionsMutation.mutate();
+    setIsUpdatingDescriptions(false);
+  };
+
+  const handleAddObjktUrls = () => {
+    setIsAddingObjktUrls(true);
+    addObjktUrlsMutation.mutate();
+    setIsAddingObjktUrls(false);
+  };
+
+  const handleFetchFromObjkt = () => {
+    if (editingCategory) {
+      setIsFetchingFromObjkt(true);
+      fetchFromObjktMutation.mutate(editingCategory.name);
+      setIsFetchingFromObjkt(false);
+    }
+  };
+
   // Handle enhance collections
   const handleRefreshImages = () => {
     setIsRefreshingImages(true);
@@ -203,61 +315,65 @@ export default function ManageCategories() {
     <Layout>
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-4xl font-bold">Manage Collections</h1>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button
             variant="outline"
-            onClick={handleRefreshImages}
-            disabled={isRefreshingImages || refreshImagesMutation.isPending}
+            size="sm"
+            onClick={() => {/* TODO: Sort functionality */}}
           >
-            {isRefreshingImages || refreshImagesMutation.isPending ? (
+            Sort by: Date Added ↑
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleUpdateAddresses}
+            disabled={isUpdatingAddresses}
+          >
+            {isUpdatingAddresses ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
               <RefreshCw className="mr-2 h-4 w-4" />
             )}
-            Refresh Images
+            Update Collection Addresses
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleUpdateDescriptions}
+            disabled={isUpdatingDescriptions}
+          >
+            {isUpdatingDescriptions ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Edit2 className="mr-2 h-4 w-4" />
+            )}
+            Update Descriptions
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleAddObjktUrls}
+            disabled={isAddingObjktUrls}
+          >
+            {isAddingObjktUrls ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="mr-2 h-4 w-4" />
+            )}
+            Add OBJKT URLs
           </Button>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button>
+              <Button className="bg-green-600 hover:bg-green-700">
                 <Plus className="mr-2 h-4 w-4" />
-                Create Collection
+                Add New
               </Button>
             </DialogTrigger>
           </Dialog>
         </div>
       </div>
 
-      {/* Collection Enhancement Tools */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <RefreshCw className="h-5 w-5" />
-            Collection Enhancement Tools
-          </CardTitle>
-          <CardDescription>
-            Update and enhance existing collections that were created during NFT imports
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-col sm:flex-row gap-2">
-            <Button
-              onClick={handleRefreshImages}
-              disabled={isRefreshingImages || refreshImagesMutation.isPending}
-              className="flex-1"
-            >
-              {isRefreshingImages || refreshImagesMutation.isPending ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <RefreshCw className="mr-2 h-4 w-4" />
-              )}
-              Update Collection Names & Images
-            </Button>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            This will fetch proper collection names and images from OBJKT for collections that were created during NFT imports.
-          </p>
-        </CardContent>
-      </Card>
+
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-md">
@@ -303,48 +419,79 @@ export default function ManageCategories() {
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="imageUrl"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Collection Image</FormLabel>
-                    <div className="space-y-2">
-                      <div className="flex gap-2">
-                        <FormControl>
-                          <Input placeholder="Image URL (optional)" {...field} />
-                        </FormControl>
-                        <div className="relative">
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleImageUpload}
-                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                            disabled={uploadingImage}
-                          />
-                          <Button
-                            type="button"
-                            variant="outline"
-                            disabled={uploadingImage}
-                          >
-                            <Upload className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                      {field.value && (
-                        <div className="w-20 h-20 border rounded overflow-hidden">
-                          <img
-                            src={getProxiedImageUrl(field.value)}
-                            alt="Preview"
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      )}
+              <div className="space-y-4">
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                  >
+                    Image URL
+                  </Button>
+                  <div className="relative">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      disabled={uploadingImage}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={uploadingImage}
+                      className="flex items-center gap-2"
+                    >
+                      <Upload className="h-4 w-4" />
+                      Upload Image
+                    </Button>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleFetchFromObjkt}
+                    disabled={isFetchingFromObjkt || fetchFromObjktMutation.isPending}
+                    className="flex items-center gap-2"
+                  >
+                    {isFetchingFromObjkt || fetchFromObjktMutation.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Download className="h-4 w-4" />
+                    )}
+                    Fetch from OBJKT
+                  </Button>
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="imageUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Collection Image URL</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Provide a URL to an image that represents this collection" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {form.watch("imageUrl") && (
+                  <div>
+                    <FormLabel>Image Preview:</FormLabel>
+                    <div className="w-32 h-32 border rounded overflow-hidden mt-2">
+                      <img
+                        src={getProxiedImageUrl(form.watch("imageUrl") || "")}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
+                      />
                     </div>
-                    <FormMessage />
-                  </FormItem>
+                  </div>
                 )}
-              />
+              </div>
 
               <div className="flex justify-end gap-2">
                 <Button type="button" variant="outline" onClick={handleDialogClose}>

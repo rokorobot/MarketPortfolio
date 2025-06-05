@@ -1483,40 +1483,33 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  // Enhance existing collections (update names and images from OBJKT)
-  app.post("/api/categories/enhance-collections", requireAuth, requireAdmin, async (req: Request, res: Response) => {
+  // Fetch collection data from OBJKT
+  app.post("/api/collections/fetch-from-objkt", requireAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
-      const { migrateCollectionAddresses } = await import('./collection-migration');
-      const { migrateCollectionDescriptions } = await import('./collection-description-migration');
+      const { categoryName } = req.body;
       
-      let updated = 0;
-      let failed = 0;
-
-      try {
-        // First migrate collection addresses to proper names
-        await migrateCollectionAddresses();
-        console.log("Collection addresses migrated successfully");
-        updated++;
-      } catch (error: any) {
-        console.error("Failed to migrate collection addresses:", error);
-        failed++;
+      if (!categoryName) {
+        return res.status(400).json({ message: "Category name is required" });
       }
 
-      try {
-        // Then migrate collection descriptions and images
-        const result = await migrateCollectionDescriptions();
-        console.log("Collection descriptions migrated successfully");
-        updated += result.updated || 0;
-        failed += result.failed || 0;
-      } catch (error: any) {
-        console.error("Failed to migrate collection descriptions:", error);
-        failed++;
+      // Import the OBJKT service function
+      const { fetchObjktCollectionProfile } = await import('./objkt-service');
+      
+      // Try to fetch collection data from OBJKT
+      const objktData = await fetchObjktCollectionProfile(categoryName);
+      
+      if (objktData) {
+        return res.json({
+          imageUrl: objktData.collectionImage,
+          description: objktData.description,
+          name: objktData.name
+        });
+      } else {
+        return res.status(404).json({ message: "Collection not found on OBJKT" });
       }
-
-      return res.json({ updated, failed });
     } catch (error: any) {
-      console.error("Error enhancing collections:", error);
-      return res.status(500).json({ message: "Failed to enhance collections", error: error.message });
+      console.error("Error fetching from OBJKT:", error);
+      return res.status(500).json({ message: "Failed to fetch collection data from OBJKT", error: error.message });
     }
   });
   
