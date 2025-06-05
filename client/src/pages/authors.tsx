@@ -84,9 +84,27 @@ export default function AuthorsPage() {
                       alt={`${author.name} profile`} 
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        console.log('Author profile image failed to load:', author.profileImage);
-                        e.currentTarget.onerror = null;
-                        e.currentTarget.src = "https://placehold.co/400x400/gray/white?text=Author";
+                        const target = e.currentTarget;
+                        const currentSrc = target.src;
+                        const isReplit = window.location.hostname.includes('replit.dev') || 
+                                        window.location.hostname.includes('replit.app') ||
+                                        window.location.hostname.includes('replit.co');
+                        
+                        // Only try fallbacks when running on Replit
+                        if (isReplit) {
+                          // If Render URL failed, try local as fallback
+                          if (currentSrc.includes('nftfolio-backend.onrender.com') && !target.dataset.triedLocal && author.profileImage) {
+                            target.dataset.triedLocal = 'true';
+                            target.src = author.profileImage;
+                            return;
+                          }
+                        }
+                        
+                        // Final fallback to placeholder
+                        if (!target.dataset.triedPlaceholder) {
+                          target.dataset.triedPlaceholder = 'true';
+                          target.src = "https://placehold.co/400x400/gray/white?text=Author";
+                        }
                       }}
                       crossOrigin="anonymous"
                     />

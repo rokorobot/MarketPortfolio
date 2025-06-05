@@ -345,7 +345,17 @@ function AuthorEditor({ author, onCancel, onSave, isSaving }: AuthorEditorProps)
                   alt="Author profile preview" 
                   className="w-full h-full object-cover"
                   onError={(e) => {
-                    console.log('Author profile preview image failed to load:', previewImage || form.watch("authorProfileImage"));
+                    const target = e.currentTarget;
+                    const currentSrc = target.src;
+                    const isReplit = window.location.hostname.includes('replit.dev') || 
+                                    window.location.hostname.includes('replit.app') ||
+                                    window.location.hostname.includes('replit.co');
+                    
+                    // Only try local fallback when running on Replit and Render failed
+                    if (isReplit && currentSrc.includes('nftfolio-backend.onrender.com') && !target.dataset.triedLocal) {
+                      target.dataset.triedLocal = 'true';
+                      target.src = previewImage || form.watch("authorProfileImage") || '';
+                    }
                     e.currentTarget.src = "https://placehold.co/150x150/gray/white?text=Invalid+Image";
                   }}
                   crossOrigin="anonymous"

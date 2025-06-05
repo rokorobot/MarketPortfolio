@@ -84,10 +84,22 @@ export default function AuthorItemsPage() {
                     alt={`${authorName} profile`} 
                     className="w-32 h-32 rounded-full object-cover shadow-md"
                     onError={(e) => {
-                      console.log("Author profile image failed to load:", authorDetails.profileImage);
-                      e.currentTarget.style.display = 'none';
-                      const fallback = document.getElementById(`fallback-${authorName}`);
-                      if (fallback) fallback.style.display = 'flex';
+                      const target = e.currentTarget;
+                      const currentSrc = target.src;
+                      const isReplit = window.location.hostname.includes('replit.dev') || 
+                                      window.location.hostname.includes('replit.app') ||
+                                      window.location.hostname.includes('replit.co');
+                      
+                      // Only try local fallback when running on Replit and Render failed
+                      if (isReplit && currentSrc.includes('nftfolio-backend.onrender.com') && !target.dataset.triedLocal && authorDetails.profileImage) {
+                        target.dataset.triedLocal = 'true';
+                        target.src = authorDetails.profileImage;
+                      } else {
+                        // Hide image and show fallback
+                        target.style.display = 'none';
+                        const fallback = document.getElementById(`fallback-${authorName}`);
+                        if (fallback) fallback.style.display = 'flex';
+                      }
                     }}
                     crossOrigin="anonymous"
                   />
