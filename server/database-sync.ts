@@ -92,10 +92,6 @@ export class DatabaseSyncService {
         FROM portfolio_items 
         WHERE author_profile_image IS NOT NULL
         UNION
-        SELECT DISTINCT collection_image_url as image_path 
-        FROM portfolio_items 
-        WHERE collection_image_url IS NOT NULL
-        UNION
         SELECT DISTINCT image_url as image_path 
         FROM categories 
         WHERE image_url IS NOT NULL
