@@ -22,15 +22,9 @@ function isRunningOnReplit(): boolean {
 export function getProxiedImageUrl(url: string): string {
   if (!url) return '';
   
-  // If this is a local upload path, handle based on environment
+  // If this is a local upload path, always use local paths
   if (url.startsWith('/uploads/')) {
-    if (isRunningOnReplit()) {
-      // On Replit, use local paths first (images exist locally), Render URLs as fallback handled by onError
-      return url;
-    } else {
-      // On Render, use local paths only
-      return url;
-    }
+    return url;
   }
   
   // Replace OBJKT URLs with placeholder images

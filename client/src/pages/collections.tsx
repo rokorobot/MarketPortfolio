@@ -255,17 +255,7 @@ export default function Collections() {
                                       window.location.hostname.includes('replit.app') ||
                                       window.location.hostname.includes('replit.co');
                       
-                      // Only try fallbacks when running on Replit
-                      if (isReplit) {
-                        // If local URL failed, try Render as fallback
-                        if (!currentSrc.includes('nftfolio-backend.onrender.com') && !target.dataset.triedRender && category.imageUrl) {
-                          target.dataset.triedRender = 'true';
-                          target.src = `https://nftfolio-backend.onrender.com${category.imageUrl}`;
-                          return;
-                        }
-                      }
-                      
-                      // Final fallback to placeholder (for both environments)
+                      // Fallback to placeholder
                       if (!target.dataset.triedPlaceholder) {
                         target.dataset.triedPlaceholder = 'true';
                         target.src = "https://placehold.co/200x200/gray/white?text=Collection";

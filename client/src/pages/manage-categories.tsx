@@ -523,11 +523,7 @@ export default function ManageCategories() {
                                                 window.location.hostname.includes('replit.app') ||
                                                 window.location.hostname.includes('replit.co');
                                 
-                                if (isReplit && !currentSrc.includes('nftfolio-backend.onrender.com') && !target.dataset.triedRender) {
-                                  // Try Render URL as fallback for existing images (only on Replit)
-                                  target.dataset.triedRender = 'true';
-                                  target.src = `https://nftfolio-backend.onrender.com${form.watch("imageUrl") || ''}`;
-                                }
+                                // Image failed to load, no additional fallbacks needed
                               }}
                             />
                           </div>

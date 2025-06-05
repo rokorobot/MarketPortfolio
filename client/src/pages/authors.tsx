@@ -85,22 +85,6 @@ export default function AuthorsPage() {
                       className="w-full h-full object-cover"
                       onError={(e) => {
                         const target = e.currentTarget;
-                        const currentSrc = target.src;
-                        const isReplit = window.location.hostname.includes('replit.dev') || 
-                                        window.location.hostname.includes('replit.app') ||
-                                        window.location.hostname.includes('replit.co');
-                        
-                        // Only try fallbacks when running on Replit
-                        if (isReplit) {
-                          // If local URL failed, try Render as fallback
-                          if (!currentSrc.includes('nftfolio-backend.onrender.com') && !target.dataset.triedRender && author.profileImage) {
-                            target.dataset.triedRender = 'true';
-                            target.src = `https://nftfolio-backend.onrender.com${author.profileImage}`;
-                            return;
-                          }
-                        }
-                        
-                        // Final fallback to placeholder
                         if (!target.dataset.triedPlaceholder) {
                           target.dataset.triedPlaceholder = 'true';
                           target.src = "https://placehold.co/400x400/gray/white?text=Author";

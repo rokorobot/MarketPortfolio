@@ -84,22 +84,10 @@ export default function AuthorItemsPage() {
                     alt={`${authorName} profile`} 
                     className="w-32 h-32 rounded-full object-cover shadow-md"
                     onError={(e) => {
-                      const target = e.currentTarget;
-                      const currentSrc = target.src;
-                      const isReplit = window.location.hostname.includes('replit.dev') || 
-                                      window.location.hostname.includes('replit.app') ||
-                                      window.location.hostname.includes('replit.co');
-                      
-                      // Only try Render fallback when running on Replit and local failed
-                      if (isReplit && !currentSrc.includes('nftfolio-backend.onrender.com') && !target.dataset.triedRender && authorDetails.profileImage) {
-                        target.dataset.triedRender = 'true';
-                        target.src = `https://nftfolio-backend.onrender.com${authorDetails.profileImage}`;
-                      } else {
-                        // Hide image and show fallback
-                        target.style.display = 'none';
-                        const fallback = document.getElementById(`fallback-${authorName}`);
-                        if (fallback) fallback.style.display = 'flex';
-                      }
+                      // Hide image and show fallback
+                      e.currentTarget.style.display = 'none';
+                      const fallback = document.getElementById(`fallback-${authorName}`);
+                      if (fallback) fallback.style.display = 'flex';
                     }}
                     crossOrigin="anonymous"
                   />
