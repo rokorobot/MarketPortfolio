@@ -516,10 +516,14 @@ export default function ManageCategories() {
                               alt="Collection image"
                               className="w-full h-full object-cover"
                               onError={(e) => {
-                                // Fallback to Render URL if local image fails
+                                // Smart fallback: if running on Replit and local image fails, try Render
                                 const target = e.target as HTMLImageElement;
                                 const currentSrc = target.src;
-                                if (!currentSrc.includes('nftfolio-backend.onrender.com') && currentSrc.startsWith(window.location.origin + '/uploads/')) {
+                                const isReplit = window.location.hostname.includes('replit.dev') || 
+                                                window.location.hostname.includes('replit.app') ||
+                                                window.location.hostname.includes('replit.co');
+                                
+                                if (isReplit && !currentSrc.includes('nftfolio-backend.onrender.com') && currentSrc.includes('/uploads/')) {
                                   target.src = `https://nftfolio-backend.onrender.com${currentSrc.replace(window.location.origin, '')}`;
                                 }
                               }}

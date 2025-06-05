@@ -10,14 +10,27 @@ export function cn(...inputs: ClassValue[]) {
  * @param url The original image URL
  * @returns A processed URL that can be used in img tags
  */
+/**
+ * Detect if we're running on Replit or Render based on the hostname
+ */
+function isRunningOnReplit(): boolean {
+  return window.location.hostname.includes('replit.dev') || 
+         window.location.hostname.includes('replit.app') ||
+         window.location.hostname.includes('replit.co');
+}
+
 export function getProxiedImageUrl(url: string): string {
   if (!url) return '';
   
-  // If this is a local upload path, try local first, fallback to Render
+  // If this is a local upload path, handle based on environment
   if (url.startsWith('/uploads/')) {
-    // For newly uploaded images, try the local URL first
-    // If it fails to load, the browser will handle the fallback
-    return url; // Let it try local first
+    if (isRunningOnReplit()) {
+      // On Replit, try local first, then fallback to Render for older images
+      return url;
+    } else {
+      // On Render or other environments, use the URL as-is
+      return url;
+    }
   }
   
   // Replace OBJKT URLs with placeholder images

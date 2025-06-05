@@ -55,6 +55,11 @@ async function checkUserLimits(userId: number, additionalItemSize: number = 0): 
       return { canUpload: false, reason: "User not found" };
     }
 
+    // Special case: rokoroko has unlimited imports
+    if (user.username === 'rokoroko') {
+      return { canUpload: true };
+    }
+
     // For now, treat all users as free users since subscription_type isn't implemented yet
     // TODO: Add subscription_type check when implemented
     
