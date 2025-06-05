@@ -149,10 +149,10 @@ export default function Collections() {
                                   window.location.hostname.includes('replit.app') ||
                                   window.location.hostname.includes('replit.co');
                   
-                  // If we're on Replit and the Render URL failed, try local path
-                  if (isReplit && currentSrc.includes('nftfolio-backend.onrender.com') && !target.dataset.triedLocal && selectedCategoryData.imageUrl) {
-                    target.dataset.triedLocal = 'true';
-                    target.src = selectedCategoryData.imageUrl;
+                  // If we're on Replit and local URL failed, try Render as fallback
+                  if (isReplit && !currentSrc.includes('nftfolio-backend.onrender.com') && !target.dataset.triedRender && selectedCategoryData.imageUrl) {
+                    target.dataset.triedRender = 'true';
+                    target.src = `https://nftfolio-backend.onrender.com${selectedCategoryData.imageUrl}`;
                   } else {
                     // Hide the image if all attempts fail
                     target.style.display = 'none';
@@ -255,12 +255,18 @@ export default function Collections() {
                                       window.location.hostname.includes('replit.app') ||
                                       window.location.hostname.includes('replit.co');
                       
-                      // If we're on Replit and the Render URL failed, try local path
-                      if (isReplit && currentSrc.includes('nftfolio-backend.onrender.com') && !target.dataset.triedLocal && category.imageUrl) {
-                        target.dataset.triedLocal = 'true';
-                        target.src = category.imageUrl;
-                      } else if (!target.dataset.triedPlaceholder) {
-                        // Final fallback to placeholder
+                      // Only try fallbacks when running on Replit
+                      if (isReplit) {
+                        // If local URL failed, try Render as fallback
+                        if (!currentSrc.includes('nftfolio-backend.onrender.com') && !target.dataset.triedRender && category.imageUrl) {
+                          target.dataset.triedRender = 'true';
+                          target.src = `https://nftfolio-backend.onrender.com${category.imageUrl}`;
+                          return;
+                        }
+                      }
+                      
+                      // Final fallback to placeholder (for both environments)
+                      if (!target.dataset.triedPlaceholder) {
                         target.dataset.triedPlaceholder = 'true';
                         target.src = "https://placehold.co/200x200/gray/white?text=Collection";
                       }

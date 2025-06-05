@@ -516,17 +516,17 @@ export default function ManageCategories() {
                               alt="Collection image"
                               className="w-full h-full object-cover"
                               onError={(e) => {
-                                // Fallback to local if Render fails (for newly uploaded images)
+                                // Smart fallback for uploaded collection images
                                 const target = e.target as HTMLImageElement;
                                 const currentSrc = target.src;
                                 const isReplit = window.location.hostname.includes('replit.dev') || 
                                                 window.location.hostname.includes('replit.app') ||
                                                 window.location.hostname.includes('replit.co');
                                 
-                                if (isReplit && currentSrc.includes('nftfolio-backend.onrender.com') && currentSrc.includes('/uploads/')) {
-                                  // Try local URL as fallback for newly uploaded images
-                                  const localPath = currentSrc.replace('https://nftfolio-backend.onrender.com', '');
-                                  target.src = localPath;
+                                if (isReplit && !currentSrc.includes('nftfolio-backend.onrender.com') && !target.dataset.triedRender) {
+                                  // Try Render URL as fallback for existing images
+                                  target.dataset.triedRender = 'true';
+                                  target.src = `https://nftfolio-backend.onrender.com${form.watch("imageUrl")}`;
                                 }
                               }}
                             />
