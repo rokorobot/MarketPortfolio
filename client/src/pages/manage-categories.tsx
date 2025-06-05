@@ -30,10 +30,6 @@ export default function ManageCategories() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [isRefreshingImages, setIsRefreshingImages] = useState(false);
-  const [isUpdatingAddresses, setIsUpdatingAddresses] = useState(false);
-  const [isUpdatingDescriptions, setIsUpdatingDescriptions] = useState(false);
-  const [isAddingObjktUrls, setIsAddingObjktUrls] = useState(false);
-  const [isFetchingFromObjkt, setIsFetchingFromObjkt] = useState(false);
 
   const form = useForm<CategoryFormData>({
     resolver: zodResolver(categorySchema),
@@ -249,28 +245,20 @@ export default function ManageCategories() {
 
   // Handle functions
   const handleUpdateAddresses = () => {
-    setIsUpdatingAddresses(true);
     updateAddressesMutation.mutate();
-    setIsUpdatingAddresses(false);
   };
 
   const handleUpdateDescriptions = () => {
-    setIsUpdatingDescriptions(true);
     updateDescriptionsMutation.mutate();
-    setIsUpdatingDescriptions(false);
   };
 
   const handleAddObjktUrls = () => {
-    setIsAddingObjktUrls(true);
     addObjktUrlsMutation.mutate();
-    setIsAddingObjktUrls(false);
   };
 
   const handleFetchFromObjkt = () => {
     if (editingCategory) {
-      setIsFetchingFromObjkt(true);
       fetchFromObjktMutation.mutate(editingCategory.name);
-      setIsFetchingFromObjkt(false);
     }
   };
 
@@ -327,9 +315,9 @@ export default function ManageCategories() {
             variant="outline"
             size="sm"
             onClick={handleUpdateAddresses}
-            disabled={isUpdatingAddresses}
+            disabled={updateAddressesMutation.isPending}
           >
-            {isUpdatingAddresses ? (
+            {updateAddressesMutation.isPending ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
               <RefreshCw className="mr-2 h-4 w-4" />
@@ -340,9 +328,9 @@ export default function ManageCategories() {
             variant="outline"
             size="sm"
             onClick={handleUpdateDescriptions}
-            disabled={isUpdatingDescriptions}
+            disabled={updateDescriptionsMutation.isPending}
           >
-            {isUpdatingDescriptions ? (
+            {updateDescriptionsMutation.isPending ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
               <Edit2 className="mr-2 h-4 w-4" />
@@ -353,9 +341,9 @@ export default function ManageCategories() {
             variant="outline"
             size="sm"
             onClick={handleAddObjktUrls}
-            disabled={isAddingObjktUrls}
+            disabled={addObjktUrlsMutation.isPending}
           >
-            {isAddingObjktUrls ? (
+            {addObjktUrlsMutation.isPending ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
               <RefreshCw className="mr-2 h-4 w-4" />
