@@ -7,6 +7,8 @@ import { migrateDatabase } from "./migration";
 import { migrateNFTFields } from "./nft-migration";
 import { migrateItemCollectors } from "./collector-migration";
 import { migrateFavorites } from "./favorites-migration";
+import { initializeDatabase } from "./db";
+import { databaseSync } from "./database-sync";
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -81,7 +83,17 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-    // Run all migrations
+  // Initialize shared database connection
+  console.log('Initializing shared database connection...');
+  await initializeDatabase();
+  
+  // Display database statistics
+  const stats = await databaseSync.getDatabaseStats();
+  if (stats) {
+    console.log(`📊 Database Stats: ${stats.total_items} items, ${stats.total_authors} authors, ${stats.total_categories} categories, ${stats.total_users} users`);
+  }
+  
+  // Run all migrations
   console.log('Starting database migration...');
   await migrateDatabase();
   await migrateNFTFields();
