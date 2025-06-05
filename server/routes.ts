@@ -1753,6 +1753,44 @@ export function registerRoutes(app: Express) {
       res.status(500).json({ message: "Error creating/updating site setting" });
     }
   });
+
+  // Image transfer endpoints for syncing between environments
+  app.post("/api/images/upload-to-database", requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const { renderImageSync } = await import('./render-image-sync');
+      
+      const imagePaths = await renderImageSync.getAllImagePaths();
+      let uploadedCount = 0;
+      
+      for (const imagePath of imagePaths) {
+        const success = await renderImageSync.storeImageInDatabase(imagePath);
+        if (success) uploadedCount++;
+      }
+      
+      res.json({ 
+        success: true, 
+        message: `Uploaded ${uploadedCount} images to database`,
+        totalProcessed: imagePaths.length
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to upload images to database" });
+    }
+  });
+
+  app.post("/api/images/download-from-database", requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const { renderImageSync } = await import('./render-image-sync');
+      
+      await renderImageSync.downloadAllAvailableImages();
+      
+      res.json({ 
+        success: true, 
+        message: "Downloaded available images from database"
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to download images from database" });
+    }
+  });
   
   // Contact form endpoint
   app.post("/api/contact", async (req, res) => {

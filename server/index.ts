@@ -10,6 +10,7 @@ import { migrateFavorites } from "./favorites-migration";
 import { initializeDatabase } from "./db";
 import { databaseSync } from "./database-sync";
 import { imageSyncService } from "./image-sync";
+import { renderImageSync } from "./render-image-sync";
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -100,10 +101,15 @@ app.use((req, res, next) => {
   console.log(`📸 Image Status: ${imageIntegrity.present}/${imageIntegrity.total} images present locally`);
   
   if (imageIntegrity.missing > 0) {
-    console.log(`Synchronizing ${imageIntegrity.missing} missing images...`);
+    console.log(`Attempting to restore ${imageIntegrity.missing} missing images from Render...`);
+    
+    // First, try to download missing images from shared database
+    await renderImageSync.downloadAllAvailableImages();
+    
+    // Then clean up any remaining broken references
     await imageSyncService.synchronizeImages();
     
-    // Verify sync results
+    // Verify final results
     const finalStats = await imageSyncService.getImageStats();
     console.log(`💾 Local Images: ${finalStats.count} files (${finalStats.totalSizeMB} MB)`);
   } else {
