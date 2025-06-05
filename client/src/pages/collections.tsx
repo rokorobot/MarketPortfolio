@@ -143,8 +143,20 @@ export default function Collections() {
                 alt={selectedCategoryName || selectedCategory}
                 className="w-full h-full object-cover"
                 onError={(e) => {
-                  console.log('Collection image failed to load:', selectedCategoryData.imageUrl);
-                  e.currentTarget.style.display = 'none';
+                  const target = e.currentTarget;
+                  const currentSrc = target.src;
+                  const isReplit = window.location.hostname.includes('replit.dev') || 
+                                  window.location.hostname.includes('replit.app') ||
+                                  window.location.hostname.includes('replit.co');
+                  
+                  // If we're on Replit and the Render URL failed, try local path
+                  if (isReplit && currentSrc.includes('nftfolio-backend.onrender.com') && !target.dataset.triedLocal && selectedCategoryData.imageUrl) {
+                    target.dataset.triedLocal = 'true';
+                    target.src = selectedCategoryData.imageUrl;
+                  } else {
+                    // Hide the image if all attempts fail
+                    target.style.display = 'none';
+                  }
                 }}
                 crossOrigin="anonymous"
               />
@@ -237,8 +249,21 @@ export default function Collections() {
                     alt={category.name} 
                     className="w-full h-full object-cover"
                     onError={(e) => {
-                      e.currentTarget.src = "https://placehold.co/200x200/gray/white?text=Collection";
-                      console.log('Collection image failed to load:', category.imageUrl);
+                      const target = e.currentTarget;
+                      const currentSrc = target.src;
+                      const isReplit = window.location.hostname.includes('replit.dev') || 
+                                      window.location.hostname.includes('replit.app') ||
+                                      window.location.hostname.includes('replit.co');
+                      
+                      // If we're on Replit and the Render URL failed, try local path
+                      if (isReplit && currentSrc.includes('nftfolio-backend.onrender.com') && !target.dataset.triedLocal && category.imageUrl) {
+                        target.dataset.triedLocal = 'true';
+                        target.src = category.imageUrl;
+                      } else if (!target.dataset.triedPlaceholder) {
+                        // Final fallback to placeholder
+                        target.dataset.triedPlaceholder = 'true';
+                        target.src = "https://placehold.co/200x200/gray/white?text=Collection";
+                      }
                     }}
                     crossOrigin="anonymous"
                   />
