@@ -13,6 +13,12 @@ export function cn(...inputs: ClassValue[]) {
 export function getProxiedImageUrl(url: string): string {
   if (!url) return '';
   
+  // If this is a local upload path that doesn't exist in Replit, redirect to Render
+  if (url.startsWith('/uploads/')) {
+    // Use the Render deployment URL for uploaded images
+    return `https://nftfolio-backend.onrender.com${url}`;
+  }
+  
   // Replace OBJKT URLs with placeholder images
   if (url.includes('objkt.com') || url.includes('assets.objkt.media')) {
     // Return a placeholder image from placehold.co based on the original URL
