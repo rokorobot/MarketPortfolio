@@ -25,8 +25,8 @@ export function getProxiedImageUrl(url: string): string {
   // If this is a local upload path, handle based on environment
   if (url.startsWith('/uploads/')) {
     if (isRunningOnReplit()) {
-      // On Replit, try local first, then fallback to Render for older images
-      return url;
+      // On Replit, prefer Render URLs for existing images since they're more likely to exist there
+      return `https://nftfolio-backend.onrender.com${url}`;
     } else {
       // On Render or other environments, use the URL as-is
       return url;

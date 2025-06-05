@@ -512,19 +512,21 @@ export default function ManageCategories() {
                         <div>
                           <div className="w-32 h-32 border rounded overflow-hidden">
                             <img
-                              src={form.watch("imageUrl") || ""}
+                              src={getProxiedImageUrl(form.watch("imageUrl") || "")}
                               alt="Collection image"
                               className="w-full h-full object-cover"
                               onError={(e) => {
-                                // Smart fallback: if running on Replit and local image fails, try Render
+                                // Fallback to local if Render fails (for newly uploaded images)
                                 const target = e.target as HTMLImageElement;
                                 const currentSrc = target.src;
                                 const isReplit = window.location.hostname.includes('replit.dev') || 
                                                 window.location.hostname.includes('replit.app') ||
                                                 window.location.hostname.includes('replit.co');
                                 
-                                if (isReplit && !currentSrc.includes('nftfolio-backend.onrender.com') && currentSrc.includes('/uploads/')) {
-                                  target.src = `https://nftfolio-backend.onrender.com${currentSrc.replace(window.location.origin, '')}`;
+                                if (isReplit && currentSrc.includes('nftfolio-backend.onrender.com') && currentSrc.includes('/uploads/')) {
+                                  // Try local URL as fallback for newly uploaded images
+                                  const localPath = currentSrc.replace('https://nftfolio-backend.onrender.com', '');
+                                  target.src = localPath;
                                 }
                               }}
                             />
