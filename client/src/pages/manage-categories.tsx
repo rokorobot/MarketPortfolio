@@ -441,10 +441,10 @@ export default function ManageCategories() {
                     variant="outline"
                     size="sm"
                     onClick={handleFetchFromObjkt}
-                    disabled={isFetchingFromObjkt || fetchFromObjktMutation.isPending}
+                    disabled={fetchFromObjktMutation.isPending}
                     className="flex items-center gap-2"
                   >
-                    {isFetchingFromObjkt || fetchFromObjktMutation.isPending ? (
+                    {fetchFromObjktMutation.isPending ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
                       <Download className="h-4 w-4" />
