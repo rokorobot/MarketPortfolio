@@ -149,7 +149,7 @@ export default function Collections() {
                                   window.location.hostname.includes('replit.app') ||
                                   window.location.hostname.includes('replit.co');
                   
-                  // If we're on Replit and local URL failed, try Render as fallback
+                  // Only try Render fallback when running on Replit
                   if (isReplit && !currentSrc.includes('nftfolio-backend.onrender.com') && !target.dataset.triedRender && selectedCategoryData.imageUrl) {
                     target.dataset.triedRender = 'true';
                     target.src = `https://nftfolio-backend.onrender.com${selectedCategoryData.imageUrl}`;

@@ -516,7 +516,7 @@ export default function ManageCategories() {
                               alt="Collection image"
                               className="w-full h-full object-cover"
                               onError={(e) => {
-                                // Smart fallback for uploaded collection images
+                                // Only try Render fallback when running on Replit
                                 const target = e.target as HTMLImageElement;
                                 const currentSrc = target.src;
                                 const isReplit = window.location.hostname.includes('replit.dev') || 
@@ -524,7 +524,7 @@ export default function ManageCategories() {
                                                 window.location.hostname.includes('replit.co');
                                 
                                 if (isReplit && !currentSrc.includes('nftfolio-backend.onrender.com') && !target.dataset.triedRender) {
-                                  // Try Render URL as fallback for existing images
+                                  // Try Render URL as fallback for existing images (only on Replit)
                                   target.dataset.triedRender = 'true';
                                   target.src = `https://nftfolio-backend.onrender.com${form.watch("imageUrl")}`;
                                 }
