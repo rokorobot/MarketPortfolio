@@ -69,7 +69,7 @@ export default function ManageCategories() {
   // Update category mutation
   const updateMutation = useMutation({
     mutationFn: async (data: CategoryFormData & { id: number }) => {
-      const response = await apiRequest("PUT", `/api/categories/${data.id}`, data);
+      const response = await apiRequest("PATCH", `/api/categories/${data.id}`, data);
       return response.json();
     },
     onSuccess: () => {
