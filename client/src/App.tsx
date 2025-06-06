@@ -23,6 +23,7 @@ import ManageCategories from "@/pages/manage-categories";
 import AddItem from "@/pages/add-item";
 import AddCollection from "@/pages/add-collection";
 import ManageAuthors from "@/pages/manage-authors";
+import PricingPage from "@/pages/pricing";
 import { ProtectedRoute } from "@/components/protected-route";
 
 function Router() {
@@ -34,6 +35,7 @@ function Router() {
       <Route path="/share/:shareCode" component={SharePage} />
       <Route path="/about" component={AboutPage} />
       <Route path="/contact" component={ContactPage} />
+      <Route path="/pricing" component={PricingPage} />
       <Route path="/collections/:category?" component={Collections} />
       <Route path="/authors" component={Authors} />
       <Route path="/items/author/:authorName" component={AuthorItems} />

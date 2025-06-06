@@ -22,6 +22,7 @@ import session from "express-session";
 import { z } from "zod";
 import { permissionService } from "./permission-service";
 import { quotaService } from "./quota-service";
+import Stripe from "stripe";
 
 // Extend express-session with our custom properties
 declare module 'express-session' {
@@ -51,62 +52,6 @@ declare global {
 // Helper function to check if user has reached limits using quota service
 async function checkUserLimits(userId: number, additionalItemSize: number = 0): Promise<{ canUpload: boolean; reason?: string }> {
   return await quotaService.canUserUpload(userId, additionalItemSize);
-}
-  try {
-    // Get user info to check subscription type
-    const user = await storage.getUser(userId);
-    if (!user) {
-      return { canUpload: false, reason: "User not found" };
-    }
-
-    // Special case: rokoroko has unlimited imports
-    if (user.username === 'rokoroko') {
-      return { canUpload: true };
-    }
-
-    // For now, treat all users as free users since subscription_type isn't implemented yet
-    // TODO: Add subscription_type check when implemented
-    
-    // Get site settings for limits
-    const settings = await storage.getSiteSettings();
-    const itemLimitSetting = settings.find(s => s.key === 'free_user_item_limit');
-    const storageLimitSetting = settings.find(s => s.key === 'free_user_storage_limit_mb');
-    
-    const itemLimit = parseInt(itemLimitSetting?.value || "50");
-    const storageLimitMB = parseInt(storageLimitSetting?.value || "50");
-
-    // Count user's current items
-    const userItems = await storage.getItemsByUserId(userId);
-    const currentItemCount = userItems.length;
-
-    // Calculate current storage usage in MB
-    const currentStorageMB = userItems.reduce((total: number, item: any) => {
-      const sizeInMB = (item.file_size_bytes || 0) / (1024 * 1024);
-      return total + sizeInMB;
-    }, 0);
-
-    // Check item count limit
-    if (currentItemCount >= itemLimit) {
-      return { 
-        canUpload: false, 
-        reason: `You've reached your limit of ${itemLimit} items. Upgrade to premium for unlimited items.` 
-      };
-    }
-
-    // Check storage limit (including the size of the item being added)
-    const additionalSizeMB = additionalItemSize / (1024 * 1024);
-    if (currentStorageMB + additionalSizeMB > storageLimitMB) {
-      return { 
-        canUpload: false, 
-        reason: `Adding this item would exceed your ${storageLimitMB}MB storage limit. Upgrade to premium for unlimited storage.` 
-      };
-    }
-
-    return { canUpload: true };
-  } catch (error) {
-    console.error('Error checking user limits:', error);
-    return { canUpload: false, reason: "Error checking limits" };
-  }
 }
 
 // Auth middleware

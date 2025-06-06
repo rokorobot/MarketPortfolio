@@ -267,17 +267,18 @@ export class QuotaService {
     itemUsagePercent: number;
     storageUsagePercent: number;
   }>> {
-    const users = await db
+    const userTable = users;
+    const userList = await db
       .select({
-        userId: users.id,
-        username: users.username,
-        maxItems: users.maxItems,
-        maxStorageMB: users.maxStorageMB,
-        currentStorageUsedMB: users.currentStorageUsedMB,
-        subscriptionType: users.subscriptionType
+        userId: userTable.id,
+        username: userTable.username,
+        maxItems: userTable.maxItems,
+        maxStorageMB: userTable.maxStorageMB,
+        currentStorageUsedMB: userTable.currentStorageUsedMB,
+        subscriptionType: userTable.subscriptionType
       })
-      .from(users)
-      .where(eq(users.subscriptionType, 'free'));
+      .from(userTable)
+      .where(eq(userTable.subscriptionType, 'free'));
 
     const itemCounts = await db
       .select({
@@ -296,7 +297,7 @@ export class QuotaService {
       storageUsagePercent: number;
     }> = [];
 
-    users.forEach(user => {
+    userList.forEach((user: any) => {
       const userItemCount = itemCountMap.get(user.userId) || 0;
       const itemUsagePercent = user.maxItems ? userItemCount / user.maxItems : 0;
       const storageUsagePercent = user.maxStorageMB ? (user.currentStorageUsedMB || 0) / user.maxStorageMB : 0;
