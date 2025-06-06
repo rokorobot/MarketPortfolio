@@ -51,7 +51,7 @@ export default function AuthorsPage() {
       if (!response.ok) throw new Error("Failed to fetch authors");
       return response.json();
     },
-    enabled: !!user || viewMode === "collector"
+    enabled: true // Always allow query, let server handle filtering
   });
 
   if (isLoading) {

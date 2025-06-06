@@ -692,10 +692,10 @@ export function registerRoutes(app: Express) {
       
       console.log(`Categories API called - viewAll: ${viewAll}, userId: ${userId}, userRole: ${userRole}`);
       
-      // If viewAll is true, show all categories regardless of user
-      if (viewAll) {
+      // If viewAll is true OR user is not logged in, show all categories
+      if (viewAll || !userId) {
         const categories = await storage.getCategories();
-        console.log(`ViewAll mode: returning ${categories.length} categories`);
+        console.log(`ViewAll/Anonymous mode: returning ${categories.length} categories`);
         res.json(categories);
       } else {
         const categories = await storage.getCategories(userId, userRole);
@@ -2028,10 +2028,10 @@ export function registerRoutes(app: Express) {
       
       console.log(`Authors API called - viewAll: ${viewAll}, userId: ${userId}, userRole: ${userRole}`);
       
-      // If viewAll is true, show all authors regardless of user
-      if (viewAll) {
+      // If viewAll is true OR user is not logged in, show all authors
+      if (viewAll || !userId) {
         const authors = await storage.getUniqueAuthors();
-        console.log(`ViewAll mode: returning ${authors.length} authors`);
+        console.log(`ViewAll/Anonymous mode: returning ${authors.length} authors`);
         res.json(authors);
       } else {
         const authors = await storage.getUniqueAuthors(userId, userRole);
