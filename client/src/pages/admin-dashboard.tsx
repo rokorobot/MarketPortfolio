@@ -16,6 +16,7 @@ import {
   Eye, Upload, Clock, FileImage, Zap, Lock, Calendar, BarChart3, ArrowLeft, Save,
   Download, CheckCircle, XCircle, RefreshCw
 } from "lucide-react";
+import { QuotaDashboard } from "@/components/quota-dashboard";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -491,12 +492,13 @@ export default function AdminDashboard() {
 
       {/* Detailed Tabs */}
       <Tabs defaultValue="users" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="activity">Activity</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
           <TabsTrigger value="system">System</TabsTrigger>
           <TabsTrigger value="storage">Storage</TabsTrigger>
+          <TabsTrigger value="quotas">Quotas</TabsTrigger>
           <TabsTrigger value="images">Images</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
@@ -1050,6 +1052,10 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="quotas" className="space-y-4">
+          <QuotaDashboard />
         </TabsContent>
 
         <TabsContent value="images" className="space-y-4">
