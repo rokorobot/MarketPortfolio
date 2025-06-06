@@ -627,21 +627,31 @@ export function registerRoutes(app: Express) {
       let userRole = req.session?.userRole;
       
       // Handle creator view toggle - force show only user's items when creatorView is true
+      // When creatorView is NOT true (collector mode), show all items regardless of user
+      let effectiveUserId = userId;
+      let effectiveUserRole = userRole;
+      
       if (creatorView === 'true' && userId) {
-        // Temporarily override role behavior to show only user's own items
-        userRole = 'creator';
+        // Creator mode: show only user's items
+        effectiveUserRole = 'creator';
+      } else {
+        // Collector mode: show all items (act like anonymous user)
+        effectiveUserId = undefined;
+        effectiveUserRole = 'guest';
       }
+      
+      console.log(`Items API called - creatorView: ${creatorView}, effectiveUserId: ${effectiveUserId}, effectiveUserRole: ${effectiveUserRole}`);
       
       // If category is provided, use category-specific pagination
       if (category && typeof category === 'string') {
-        // Pass userId and userRole to filter items by user
-        console.log(`Category filtering for: ${category}, User: ${userId}, Role: ${userRole}`);
-        const result = await storage.getItemsByCategoryPaginated(category, pageNum, pageSizeNum, userId, userRole);
+        console.log(`Category filtering for: ${category}, User: ${effectiveUserId}, Role: ${effectiveUserRole}`);
+        const result = await storage.getItemsByCategoryPaginated(category, pageNum, pageSizeNum, effectiveUserId, effectiveUserRole);
         console.log(`Category results for ${category}: ${result.total} items`);
         res.json(result);
       } else {
         // Use general pagination with user filtering
-        const result = await storage.getItemsPaginated(pageNum, pageSizeNum, userId, userRole);
+        const result = await storage.getItemsPaginated(pageNum, pageSizeNum, effectiveUserId, effectiveUserRole);
+        console.log(`General pagination: ${result.total} items, page ${pageNum}`);
         res.json(result);
       }
     } catch (error) {
