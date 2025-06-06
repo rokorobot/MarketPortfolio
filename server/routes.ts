@@ -2626,8 +2626,8 @@ export function registerRoutes(app: Express) {
 
       switch (tierName.toLowerCase()) {
         case 'basic':
-          maxItems = 100;
-          maxStorageMB = 300;
+          maxItems = 75;
+          maxStorageMB = 150;
           subscriptionType = 'basic';
           break;
         case 'professional':
@@ -2687,12 +2687,12 @@ export function registerRoutes(app: Express) {
 
             switch (tierName.toLowerCase()) {
               case 'basic':
-                maxItems = 100;
-                maxStorageMB = 500;
+                maxItems = 75;
+                maxStorageMB = 150;
                 break;
               case 'professional':
-                maxItems = 1000;
-                maxStorageMB = 5000;
+                maxItems = 500;
+                maxStorageMB = 1000;
                 break;
               case 'enterprise':
                 maxItems = null; // unlimited

@@ -70,8 +70,8 @@ const pricingTiers: PricingTier[] = [
       "Remove platform branding"
     ],
     limits: {
-      items: "100 items",
-      storage: "300 MB",
+      items: "75 items",
+      storage: "150 MB",
       collections: "15 collections",
       sharing: "Private & password protected",
       support: "Email support (24h response)"
@@ -98,8 +98,8 @@ const pricingTiers: PricingTier[] = [
       "Export capabilities"
     ],
     limits: {
-      items: "1,000 items",
-      storage: "5 GB",
+      items: "500 items",
+      storage: "1 GB",
       collections: "Unlimited",
       sharing: "Advanced privacy controls",
       support: "Priority support (4h response)"
