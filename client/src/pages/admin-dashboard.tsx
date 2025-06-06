@@ -13,7 +13,8 @@ import { useToast } from "@/hooks/use-toast";
 import { 
   Users, HardDrive, TrendingUp, Settings, Crown, Palette, Activity, Shield, 
   DollarSign, Globe, Server, Database, ChevronDown, ChevronRight, AlertTriangle,
-  Eye, Upload, Clock, FileImage, Zap, Lock, Calendar, BarChart3, ArrowLeft, Save
+  Eye, Upload, Clock, FileImage, Zap, Lock, Calendar, BarChart3, ArrowLeft, Save,
+  Download, CheckCircle, XCircle, RefreshCw
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -206,6 +207,132 @@ export default function AdminDashboard() {
     }
   };
 
+  // Image synchronization component
+  function ImageSyncControls() {
+    const [syncStatus, setSyncStatus] = useState<'idle' | 'uploading' | 'downloading' | 'success' | 'error'>('idle');
+    const [syncMessage, setSyncMessage] = useState('');
+    const { toast } = useToast();
+
+    const uploadImagesMutation = useMutation({
+      mutationFn: async () => {
+        const response = await apiRequest('POST', '/api/images/upload-to-database');
+        return response.json();
+      },
+      onSuccess: (data) => {
+        setSyncStatus('success');
+        setSyncMessage(`Successfully uploaded ${data.uploaded || 0} images to database`);
+        toast({
+          title: "Upload Complete",
+          description: `${data.uploaded || 0} images uploaded to shared database`,
+        });
+      },
+      onError: (error: Error) => {
+        setSyncStatus('error');
+        setSyncMessage(`Upload failed: ${error.message}`);
+        toast({
+          title: "Upload Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      },
+    });
+
+    const downloadImagesMutation = useMutation({
+      mutationFn: async () => {
+        const response = await apiRequest('POST', '/api/images/download-from-database');
+        return response.json();
+      },
+      onSuccess: (data) => {
+        setSyncStatus('success');
+        setSyncMessage(`Successfully downloaded ${data.downloaded || 0} images from database`);
+        toast({
+          title: "Download Complete", 
+          description: `${data.downloaded || 0} images downloaded from shared database`,
+        });
+      },
+      onError: (error: Error) => {
+        setSyncStatus('error');
+        setSyncMessage(`Download failed: ${error.message}`);
+        toast({
+          title: "Download Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      },
+    });
+
+    const handleUploadImages = () => {
+      setSyncStatus('uploading');
+      setSyncMessage('Uploading images to shared database...');
+      uploadImagesMutation.mutate();
+    };
+
+    const handleDownloadImages = () => {
+      setSyncStatus('downloading');
+      setSyncMessage('Downloading images from shared database...');
+      downloadImagesMutation.mutate();
+    };
+
+    return (
+      <div className="space-y-4">
+        <div className="p-4 border rounded-lg bg-blue-50 dark:bg-blue-950">
+          <h3 className="font-medium mb-2">Image Synchronization Status</h3>
+          <p className="text-sm text-muted-foreground mb-3">
+            Use this on Render to upload missing author images to the shared database, 
+            then use this on Replit to download them.
+          </p>
+          
+          {syncMessage && (
+            <div className={`flex items-center space-x-2 p-2 rounded ${
+              syncStatus === 'success' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+              syncStatus === 'error' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' :
+              'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+            }`}>
+              {syncStatus === 'success' && <CheckCircle className="h-4 w-4" />}
+              {syncStatus === 'error' && <XCircle className="h-4 w-4" />}
+              {(syncStatus === 'uploading' || syncStatus === 'downloading') && <RefreshCw className="h-4 w-4 animate-spin" />}
+              <span className="text-sm">{syncMessage}</span>
+            </div>
+          )}
+        </div>
+
+        <div className="grid gap-3 md:grid-cols-2">
+          <Button
+            onClick={handleUploadImages}
+            disabled={uploadImagesMutation.isPending || downloadImagesMutation.isPending}
+            className="flex items-center space-x-2"
+          >
+            {uploadImagesMutation.isPending ? (
+              <RefreshCw className="h-4 w-4 animate-spin" />
+            ) : (
+              <Upload className="h-4 w-4" />
+            )}
+            <span>Upload Images to Database</span>
+          </Button>
+
+          <Button
+            onClick={handleDownloadImages}
+            disabled={uploadImagesMutation.isPending || downloadImagesMutation.isPending}
+            variant="outline"
+            className="flex items-center space-x-2"
+          >
+            {downloadImagesMutation.isPending ? (
+              <RefreshCw className="h-4 w-4 animate-spin" />
+            ) : (
+              <Download className="h-4 w-4" />
+            )}
+            <span>Download Images from Database</span>
+          </Button>
+        </div>
+
+        <div className="text-xs text-muted-foreground space-y-1">
+          <p><strong>Step 1:</strong> Run "Upload Images to Database" on Render deployment (where images exist)</p>
+          <p><strong>Step 2:</strong> Run "Download Images from Database" on Replit deployment (where images are missing)</p>
+        </div>
+      </div>
+    );
+  }
+
   if (statsLoading || usersLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -364,12 +491,13 @@ export default function AdminDashboard() {
 
       {/* Detailed Tabs */}
       <Tabs defaultValue="users" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="activity">Activity</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
           <TabsTrigger value="system">System</TabsTrigger>
           <TabsTrigger value="storage">Storage</TabsTrigger>
+          <TabsTrigger value="images">Images</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
 
@@ -919,6 +1047,25 @@ export default function AdminDashboard() {
                     {updateLimitsMutation.isPending ? "Saving..." : "Update Limits"}
                   </Button>
                 </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="images" className="space-y-4">
+          <div className="grid gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <FileImage className="h-4 w-4" />
+                  <span>Image Synchronization</span>
+                </CardTitle>
+                <CardDescription>
+                  Upload missing images from Render deployment to shared database
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ImageSyncControls />
               </CardContent>
             </Card>
           </div>
