@@ -480,7 +480,7 @@ onSuccess: (data) => {
                     )}
                     
                     {/* Delete button - shows for item owners and admins */}
-                    {canEdit && !isEditing && (
+                    {canDelete && !isEditing && (
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button variant="outline" size="icon" className="text-destructive hover:bg-destructive/10">

@@ -20,6 +20,7 @@ import {
 } from "./objkt-auth-service";
 import session from "express-session";
 import { z } from "zod";
+import { permissionService } from "./permission-service";
 
 // Extend express-session with our custom properties
 declare module 'express-session' {
@@ -604,6 +605,26 @@ export function registerRoutes(app: Express) {
   // Register both routes for compatibility
   app.get("/api/auth/me", getCurrentUserHandler);
   app.get("/api/user", getCurrentUserHandler);
+
+  // Get user permissions for a specific item
+  app.get("/api/items/:id/permissions", async (req: Request, res: Response) => {
+    try {
+      const itemId = parseInt(req.params.id);
+      if (isNaN(itemId)) {
+        return res.status(400).json({ message: "Invalid item ID" });
+      }
+
+      const userId = req.session?.userId || null;
+      const userRole = req.session?.userRole || 'visitor';
+
+      const permissions = await permissionService.getUserItemPermissions(itemId, userId, userRole);
+      
+      return res.json(permissions);
+    } catch (error) {
+      console.error("Error getting item permissions:", error);
+      return res.status(500).json({ message: "Failed to get permissions" });
+    }
+  });
   app.get("/api/items", async (req, res) => {
     const { category, page = '1', pageSize, creatorView } = req.query;
     

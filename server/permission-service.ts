@@ -53,6 +53,34 @@ export class PermissionService {
       };
     }
 
+    // For creators/collectors, check if they own the item
+    // Only item owners can edit/delete their own items
+    if (userRole === 'creator' || userRole === 'collector') {
+      if (item.userId === userId) {
+        // User owns this item - full permissions
+        return {
+          canView: true,
+          canEdit: true,
+          canDelete: true,
+          canShare: true,
+          canGrantPermissions: true,
+          ownershipType: "owner",
+          permissionLevel: "full"
+        };
+      } else {
+        // User doesn't own this item - view only
+        return {
+          canView: true,
+          canEdit: false,
+          canDelete: false,
+          canShare: false,
+          canGrantPermissions: false,
+          ownershipType: null,
+          permissionLevel: "view"
+        };
+      }
+    }
+
     // Original uploader always has full ownership
     if (item.userId === userId) {
       return {
