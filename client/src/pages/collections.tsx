@@ -30,8 +30,13 @@ export default function Collections() {
   const { user, isLoading: authLoading } = useAuth();
   const isContentManager = Boolean(user && (user.role === "admin" || user.role === "superadmin" || user.role === "creator"));
 
-  // Listen for global view toggle changes
+  // Get initial toggle state from localStorage and listen for changes
   useEffect(() => {
+    // Get initial state from localStorage
+    const savedToggle = localStorage.getItem('creator-view-toggle');
+    const isCreatorView = savedToggle !== null ? JSON.parse(savedToggle) : true;
+    setViewMode(isCreatorView ? "creator" : "collector");
+
     const handleViewToggle = (event: CustomEvent) => {
       setViewMode(event.detail.isCreatorView ? "creator" : "collector");
     };
