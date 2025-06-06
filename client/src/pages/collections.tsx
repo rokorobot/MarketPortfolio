@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
-import { ChevronLeft, Grid3X3, Settings, ArrowUpDown } from "lucide-react";
+import { ChevronLeft, Grid3X3, Settings, ArrowUpDown, User, Users } from "lucide-react";
 import { Layout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { type PortfolioItem, type CategoryModel } from "@shared/schema";
 import { getProxiedImageUrl } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { DraggableGrid } from "@/components/dnd-grid";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Function to truncate text to a specified number of words
 function truncateToWords(text: string, maxWords: number): string {
@@ -25,14 +26,19 @@ export default function Collections() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(category || null);
   const [selectedCategoryName, setSelectedCategoryName] = useState<string | null>(null);
   const [selectedCategoryData, setSelectedCategoryData] = useState<CategoryModel | null>(null);
+  const [viewMode, setViewMode] = useState<"creator" | "collector">("creator");
   const { user, isLoading: authLoading } = useAuth();
   const isContentManager = Boolean(user && (user.role === "admin" || user.role === "superadmin" || user.role === "creator"));
 
-  // Get all categories
+  // Get all categories based on view mode
   const { data: categories, isLoading: categoriesLoading } = useQuery<CategoryModel[]>({
-    queryKey: ["/api/categories"],
+    queryKey: ["/api/categories", viewMode],
     queryFn: async () => {
-      const response = await fetch("/api/categories");
+      const params = new URLSearchParams();
+      if (viewMode === "collector" || !user) {
+        params.append("viewAll", "true");
+      }
+      const response = await fetch(`/api/categories?${params}`);
       if (!response.ok) throw new Error("Failed to fetch categories");
       return response.json();
     }
@@ -213,7 +219,7 @@ export default function Collections() {
   // If no category parameter, show list of all collections
   return (
     <Layout>
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex justify-between items-center mb-6">
         <h1 className="text-4xl font-bold">Collections</h1>
         {isContentManager && (
           <Button 
@@ -226,6 +232,24 @@ export default function Collections() {
           </Button>
         )}
       </div>
+      
+      {/* Creator/Collector Toggle - only show for authenticated users */}
+      {user && (
+        <div className="flex justify-center mb-8">
+          <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as "creator" | "collector")}>
+            <TabsList className="grid w-[400px] grid-cols-2">
+              <TabsTrigger value="creator" className="flex items-center gap-2">
+                <User className="h-4 w-4" />
+                My Collections
+              </TabsTrigger>
+              <TabsTrigger value="collector" className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                All Collections
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+      )}
       
       {categoriesLoading ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">

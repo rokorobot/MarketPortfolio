@@ -1,13 +1,15 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Layout } from "@/components/layout";
-import { Loader2, User, Settings } from "lucide-react";
+import { Loader2, User, Settings, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { getProxiedImageUrl } from "@/lib/utils";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Define the type for author data
 interface Author {
@@ -20,10 +22,20 @@ export default function AuthorsPage() {
   const [location, navigate] = useLocation();
   const { toast } = useToast();
   const { user } = useAuth();
+  const [viewMode, setViewMode] = useState<"creator" | "collector">("creator");
   const isContentManager = Boolean(user && (user.role === "admin" || user.role === "superadmin" || user.role === "creator"));
   
   const { data: authors, isLoading, error } = useQuery<Author[]>({
-    queryKey: ["/api/authors"],
+    queryKey: ["/api/authors", viewMode],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (viewMode === "collector" || !user) {
+        params.append("viewAll", "true");
+      }
+      const response = await fetch(`/api/authors?${params}`);
+      if (!response.ok) throw new Error("Failed to fetch authors");
+      return response.json();
+    }
   });
 
   if (isLoading) {

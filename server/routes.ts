@@ -678,9 +678,16 @@ export function registerRoutes(app: Express) {
     try {
       const userId = req.session?.userId;
       const userRole = req.session?.userRole;
+      const viewAll = req.query.viewAll === "true";
       
-      const categories = await storage.getCategories(userId, userRole);
-      res.json(categories);
+      // If viewAll is true, show all categories regardless of user
+      if (viewAll) {
+        const categories = await storage.getCategories();
+        res.json(categories);
+      } else {
+        const categories = await storage.getCategories(userId, userRole);
+        res.json(categories);
+      }
     } catch (error) {
       console.error("Error fetching categories:", error);
       res.status(500).json({ message: "Failed to fetch categories" });
