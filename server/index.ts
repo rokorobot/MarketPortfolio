@@ -8,6 +8,7 @@ import { migrateNFTFields } from "./nft-migration";
 import { migrateItemCollectors } from "./collector-migration";
 import { migrateFavorites } from "./favorites-migration";
 import { migrateItemPermissions } from "./permission-migration";
+import { migrateUserQuotas } from "./quota-migration";
 import { initializeDatabase } from "./db";
 import { databaseSync } from "./database-sync";
 import { imageSyncService } from "./image-sync";
@@ -124,6 +125,7 @@ app.use((req, res, next) => {
   await migrateItemCollectors();
   await migrateFavorites();
   await migrateItemPermissions();
+  await migrateUserQuotas();
   console.log('All migrations completed successfully!');
   
   const server = registerRoutes(app);

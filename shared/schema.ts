@@ -99,6 +99,12 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
   isActive: boolean("is_active").notNull().default(true),
+  // Quota management fields
+  subscriptionType: text("subscription_type").notNull().default("free"), // free, paid
+  maxItems: integer("max_items").default(10), // Maximum number of items user can upload/import
+  maxStorageMB: integer("max_storage_mb").default(50), // Maximum storage in MB
+  currentStorageUsedMB: integer("current_storage_used_mb").default(0), // Current storage used
+  quotaResetDate: timestamp("quota_reset_date"), // When quota resets (for monthly limits)
 });
 
 export const insertUserSchema = createInsertSchema(users).omit({

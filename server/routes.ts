@@ -21,6 +21,7 @@ import {
 import session from "express-session";
 import { z } from "zod";
 import { permissionService } from "./permission-service";
+import { quotaService } from "./quota-service";
 
 // Extend express-session with our custom properties
 declare module 'express-session' {
@@ -47,8 +48,10 @@ declare global {
   }
 }
 
-// Helper function to check if user has reached limits
+// Helper function to check if user has reached limits using quota service
 async function checkUserLimits(userId: number, additionalItemSize: number = 0): Promise<{ canUpload: boolean; reason?: string }> {
+  return await quotaService.canUserUpload(userId, additionalItemSize);
+}
   try {
     // Get user info to check subscription type
     const user = await storage.getUser(userId);
