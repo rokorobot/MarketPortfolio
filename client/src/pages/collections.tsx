@@ -32,16 +32,17 @@ export default function Collections() {
 
   // Get all categories based on view mode
   const { data: categories, isLoading: categoriesLoading } = useQuery<CategoryModel[]>({
-    queryKey: ["/api/categories", viewMode],
+    queryKey: ["/api/categories", viewMode, user?.id],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (viewMode === "collector" || !user) {
+      if (viewMode === "collector") {
         params.append("viewAll", "true");
       }
       const response = await fetch(`/api/categories?${params}`);
       if (!response.ok) throw new Error("Failed to fetch categories");
       return response.json();
-    }
+    },
+    enabled: !authLoading
   });
 
   // Get items for a specific category

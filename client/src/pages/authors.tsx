@@ -26,16 +26,17 @@ export default function AuthorsPage() {
   const isContentManager = Boolean(user && (user.role === "admin" || user.role === "superadmin" || user.role === "creator"));
   
   const { data: authors, isLoading, error } = useQuery<Author[]>({
-    queryKey: ["/api/authors", viewMode],
+    queryKey: ["/api/authors", viewMode, user?.id],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (viewMode === "collector" || !user) {
+      if (viewMode === "collector") {
         params.append("viewAll", "true");
       }
       const response = await fetch(`/api/authors?${params}`);
       if (!response.ok) throw new Error("Failed to fetch authors");
       return response.json();
-    }
+    },
+    enabled: !!user || viewMode === "collector"
   });
 
   if (isLoading) {
