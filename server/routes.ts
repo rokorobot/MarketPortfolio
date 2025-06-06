@@ -24,6 +24,11 @@ import { permissionService } from "./permission-service";
 import { quotaService } from "./quota-service";
 import Stripe from "stripe";
 
+// Initialize Stripe
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: "2023-10-16",
+});
+
 // Extend express-session with our custom properties
 declare module 'express-session' {
   interface SessionData {
@@ -2551,6 +2556,153 @@ export function registerRoutes(app: Express) {
     } catch (error) {
       console.error("Error fetching admin users:", error);
       res.status(500).json({ message: "Failed to fetch users data" });
+    }
+  });
+
+  // Quota management endpoints
+  app.get("/api/quota/info", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session!.userId!;
+      const quotaInfo = await quotaService.getUserQuotaInfo(userId);
+      
+      if (!quotaInfo) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      res.json(quotaInfo);
+    } catch (error) {
+      console.error("Error fetching quota info:", error);
+      res.status(500).json({ message: "Error fetching quota information" });
+    }
+  });
+
+  // Admin endpoint to set user quotas
+  app.post("/api/admin/set-quota", requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const { userId, maxItems, maxStorageMB, subscriptionType } = req.body;
+      
+      const success = await quotaService.setUserQuota(userId, maxItems, maxStorageMB, subscriptionType);
+      
+      if (success) {
+        res.json({ message: "Quota updated successfully" });
+      } else {
+        res.status(500).json({ message: "Failed to update quota" });
+      }
+    } catch (error) {
+      console.error("Error setting quota:", error);
+      res.status(500).json({ message: "Error setting quota" });
+    }
+  });
+
+  // Admin endpoint to get quota statistics
+  app.get("/api/admin/quota-stats", requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const stats = await quotaService.getQuotaStatistics();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching quota stats:", error);
+      res.status(500).json({ message: "Error fetching quota statistics" });
+    }
+  });
+
+  // Stripe subscription endpoints
+  app.post("/api/create-subscription", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session!.userId!;
+      const { priceId, tierName } = req.body;
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Create Stripe checkout session
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        mode: 'subscription',
+        customer_email: user.email,
+        line_items: [
+          {
+            price: priceId,
+            quantity: 1,
+          },
+        ],
+        success_url: `${req.headers.origin}/pricing?success=true&tier=${tierName}`,
+        cancel_url: `${req.headers.origin}/pricing?canceled=true`,
+        metadata: {
+          userId: userId.toString(),
+          tierName: tierName,
+        },
+      });
+
+      res.json({ checkoutUrl: session.url });
+    } catch (error) {
+      console.error("Error creating subscription:", error);
+      res.status(500).json({ message: "Error creating subscription" });
+    }
+  });
+
+  // Stripe webhook to handle subscription events
+  app.post("/api/stripe-webhook", async (req: Request, res: Response) => {
+    try {
+      const sig = req.headers['stripe-signature'] as string;
+      let event: Stripe.Event;
+
+      try {
+        event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET!);
+      } catch (err) {
+        console.error('Webhook signature verification failed.', err);
+        return res.status(400).send('Webhook signature verification failed.');
+      }
+
+      // Handle the event
+      switch (event.type) {
+        case 'checkout.session.completed':
+          const session = event.data.object as Stripe.Checkout.Session;
+          const userId = parseInt(session.metadata?.userId || '0');
+          const tierName = session.metadata?.tierName;
+          
+          if (userId && tierName) {
+            // Update user subscription in database
+            let maxItems: number | null = null;
+            let maxStorageMB: number | null = null;
+            let subscriptionType = 'paid';
+
+            switch (tierName.toLowerCase()) {
+              case 'basic':
+                maxItems = 100;
+                maxStorageMB = 500;
+                break;
+              case 'professional':
+                maxItems = 1000;
+                maxStorageMB = 5000;
+                break;
+              case 'enterprise':
+                maxItems = null; // unlimited
+                maxStorageMB = null; // unlimited
+                subscriptionType = 'unlimited';
+                break;
+            }
+
+            await quotaService.setUserQuota(userId, maxItems, maxStorageMB, subscriptionType);
+          }
+          break;
+
+        case 'customer.subscription.deleted':
+          // Handle subscription cancellation
+          const subscription = event.data.object as Stripe.Subscription;
+          // Reset user to free tier
+          // Note: You'd need to implement a way to find the user by subscription ID
+          break;
+
+        default:
+          console.log(`Unhandled event type ${event.type}`);
+      }
+
+      res.json({ received: true });
+    } catch (error) {
+      console.error("Webhook error:", error);
+      res.status(500).json({ message: "Webhook error" });
     }
   });
 

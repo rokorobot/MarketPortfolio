@@ -237,6 +237,17 @@ export function Layout({ children }: { children: React.ReactNode }) {
             >
               Authors
             </div>
+            
+            <div
+              className={`text-2xl font-bold cursor-pointer ${
+                location === "/pricing" 
+                  ? "text-primary" 
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              onClick={() => navigate("/pricing")}
+            >
+              Pricing
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <ThemeToggle />

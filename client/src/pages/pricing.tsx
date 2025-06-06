@@ -195,7 +195,7 @@ export default function PricingPage() {
 
   const getCurrentTier = () => {
     if (!user) return "free";
-    return user.subscriptionType || "free";
+    return (user as any).subscriptionType || "free";
   };
 
   const currentTier = getCurrentTier();
