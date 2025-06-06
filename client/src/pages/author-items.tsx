@@ -20,7 +20,10 @@ export default function AuthorItemsPage() {
   const [, params] = useRoute<{ authorName: string }>("/items/author/:authorName");
   const authorName = params?.authorName ? decodeURIComponent(params.authorName) : "";
   const { toast } = useToast();
-  // No need for view mode state since we always show all items for any author
+  
+  // Get context from URL to determine if user came from "My Authors" or "All Authors"
+  const urlParams = new URLSearchParams(window.location.search);
+  const context = urlParams.get('context') || 'collector'; // default to showing all items
 
   // Get author details (profile image and item count)
   const { data: authorDetails, isLoading: isLoadingAuthor, error: authorError } = useQuery<Author>({
@@ -46,12 +49,17 @@ export default function AuthorItemsPage() {
   }, [authorError]);
 
   const { data: items, isLoading, error } = useQuery<PortfolioItem[]>({
-    queryKey: [`/api/items/author/${encodeURIComponent(authorName)}`],
+    queryKey: [`/api/items/author/${encodeURIComponent(authorName)}`, context],
     queryFn: async () => {
       const params = new URLSearchParams();
-      // Always show all items by this author, regardless of toggle state
-      params.append("viewAll", "true");
-      console.log(`Author items page: showing all items for author=${authorName}`);
+      // If context is "collector" (All Authors), show all items by this author
+      // If context is "creator" (My Authors), show only user's items by this author
+      if (context === "collector") {
+        params.append("viewAll", "true");
+        console.log(`Author items page: showing ALL items for author=${authorName} (from All Authors)`);
+      } else {
+        console.log(`Author items page: showing USER's items for author=${authorName} (from My Authors)`);
+      }
       const response = await fetch(`/api/items/author/${encodeURIComponent(authorName)}?${params}`);
       if (!response.ok) throw new Error("Failed to fetch author items");
       return response.json();

@@ -126,7 +126,7 @@ export default function AuthorsPage() {
               <Card 
                 key={author.name} 
                 className="aspect-square hover:border-primary cursor-pointer transition-colors overflow-hidden relative"
-                onClick={() => navigate(`/items/author/${encodeURIComponent(author.name)}`)}
+                onClick={() => navigate(`/items/author/${encodeURIComponent(author.name)}?context=${viewMode}`)}
               >
                 {/* Author image filling the entire card as background */}
                 {author.profileImage ? (
