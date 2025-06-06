@@ -58,6 +58,10 @@ export default function Item() {
   const [isEditing, setIsEditing] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
   
+  // Check if current user owns this item
+  const isOwner = item && user && item.userId === user.id;
+  const canEdit = isAdmin || isOwner;
+  
   // Image upload states
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
