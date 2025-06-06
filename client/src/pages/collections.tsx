@@ -30,13 +30,28 @@ export default function Collections() {
   const { user, isLoading: authLoading } = useAuth();
   const isContentManager = Boolean(user && (user.role === "admin" || user.role === "superadmin" || user.role === "creator"));
 
+  // Listen for global view toggle changes
+  useEffect(() => {
+    const handleViewToggle = (event: CustomEvent) => {
+      setViewMode(event.detail.isCreatorView ? "creator" : "collector");
+    };
+
+    document.addEventListener('view-toggle-changed', handleViewToggle as EventListener);
+    
+    return () => {
+      document.removeEventListener('view-toggle-changed', handleViewToggle as EventListener);
+    };
+  }, []);
+
   // Get all categories based on view mode
   const { data: categories, isLoading: categoriesLoading } = useQuery<CategoryModel[]>({
     queryKey: ["/api/categories", viewMode, user?.id],
     queryFn: async () => {
       const params = new URLSearchParams();
+      console.log(`Collections page: viewMode=${viewMode}, user=${user?.username}`);
       if (viewMode === "collector") {
         params.append("viewAll", "true");
+        console.log("Collections: Adding viewAll=true parameter");
       }
       const response = await fetch(`/api/categories?${params}`);
       if (!response.ok) throw new Error("Failed to fetch categories");

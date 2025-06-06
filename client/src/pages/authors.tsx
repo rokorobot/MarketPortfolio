@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,13 +24,28 @@ export default function AuthorsPage() {
   const { user } = useAuth();
   const [viewMode, setViewMode] = useState<"creator" | "collector">("creator");
   const isContentManager = Boolean(user && (user.role === "admin" || user.role === "superadmin" || user.role === "creator"));
+
+  // Listen for global view toggle changes
+  useEffect(() => {
+    const handleViewToggle = (event: CustomEvent) => {
+      setViewMode(event.detail.isCreatorView ? "creator" : "collector");
+    };
+
+    document.addEventListener('view-toggle-changed', handleViewToggle as EventListener);
+    
+    return () => {
+      document.removeEventListener('view-toggle-changed', handleViewToggle as EventListener);
+    };
+  }, []);
   
   const { data: authors, isLoading, error } = useQuery<Author[]>({
     queryKey: ["/api/authors", viewMode, user?.id],
     queryFn: async () => {
       const params = new URLSearchParams();
+      console.log(`Authors page: viewMode=${viewMode}, user=${user?.username}`);
       if (viewMode === "collector") {
         params.append("viewAll", "true");
+        console.log("Authors: Adding viewAll=true parameter");
       }
       const response = await fetch(`/api/authors?${params}`);
       if (!response.ok) throw new Error("Failed to fetch authors");
