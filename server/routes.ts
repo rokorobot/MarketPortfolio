@@ -2627,12 +2627,12 @@ export function registerRoutes(app: Express) {
       switch (tierName.toLowerCase()) {
         case 'basic':
           maxItems = 100;
-          maxStorageMB = 500;
+          maxStorageMB = 300;
           subscriptionType = 'basic';
           break;
         case 'professional':
-          maxItems = 1000;
-          maxStorageMB = 5000;
+          maxItems = 500;
+          maxStorageMB = 1000;
           subscriptionType = 'professional';
           break;
         case 'enterprise':

@@ -44,7 +44,7 @@ const pricingTiers: PricingTier[] = [
       "Community support"
     ],
     limits: {
-      items: "10 items",
+      items: "25 items",
       storage: "50 MB",
       collections: "3 collections",
       sharing: "Public links only",
@@ -71,7 +71,7 @@ const pricingTiers: PricingTier[] = [
     ],
     limits: {
       items: "100 items",
-      storage: "500 MB",
+      storage: "300 MB",
       collections: "15 collections",
       sharing: "Private & password protected",
       support: "Email support (24h response)"
