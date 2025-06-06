@@ -67,7 +67,7 @@ export default function AuthorsPage() {
   return (
     <Layout>
       <div className="container py-8">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">Authors</h1>
           {isContentManager && (
             <Button 
@@ -80,6 +80,24 @@ export default function AuthorsPage() {
             </Button>
           )}
         </div>
+        
+        {/* Creator/Collector Toggle - only show for authenticated users */}
+        {user && (
+          <div className="flex justify-center mb-8">
+            <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as "creator" | "collector")}>
+              <TabsList className="grid w-[400px] grid-cols-2">
+                <TabsTrigger value="creator" className="flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  My Authors
+                </TabsTrigger>
+                <TabsTrigger value="collector" className="flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  All Authors
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+        )}
         
         {authors && authors.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">

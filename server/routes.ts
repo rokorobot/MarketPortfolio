@@ -2010,9 +2010,16 @@ export function registerRoutes(app: Express) {
     try {
       const userId = req.session?.userId;
       const userRole = req.session?.userRole;
+      const viewAll = req.query.viewAll === "true";
       
-      const authors = await storage.getUniqueAuthors(userId, userRole);
-      res.json(authors);
+      // If viewAll is true, show all authors regardless of user
+      if (viewAll) {
+        const authors = await storage.getUniqueAuthors();
+        res.json(authors);
+      } else {
+        const authors = await storage.getUniqueAuthors(userId, userRole);
+        res.json(authors);
+      }
     } catch (error) {
       console.error("Error fetching authors:", error);
       res.status(500).json({ message: "Failed to fetch authors" });
