@@ -2653,8 +2653,6 @@ export function registerRoutes(app: Express) {
         message: `Successfully upgraded to ${tierName} plan`,
         redirectUrl: '/pricing?success=true&tier=' + tierName
       });
-
-      res.json({ checkoutUrl: session.url });
     } catch (error) {
       console.error("Error creating subscription:", error);
       res.status(500).json({ message: "Error creating subscription" });
