@@ -58,10 +58,6 @@ export default function Item() {
   const [isEditing, setIsEditing] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
   
-  // Check if current user owns this item
-  const isOwner = item && user && item.userId === user.id;
-  const canEdit = isAdmin || isOwner;
-  
   // Image upload states
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -71,6 +67,10 @@ export default function Item() {
   const { data: item, isLoading } = useQuery<PortfolioItem>({
     queryKey: [`/api/items/${params?.id}`],
   });
+  
+  // Check if current user owns this item (after item is loaded)
+  const isOwner = item && user && item.userId === user.id;
+  const canEdit = isAdmin || isOwner;
   
   // Check if item is favorited
   const { data: favoriteStatus, isLoading: isFavoriteLoading } = useQuery<{ isFavorited: boolean }>({
@@ -451,8 +451,8 @@ onSuccess: (data) => {
                       </Button>
                     )}
 
-                    {/* Edit button - only shows for admins */}
-                    {isAdmin && !isEditing && (
+                    {/* Edit button - shows for item owners and admins */}
+                    {canEdit && !isEditing && (
                       <Button
                         variant="outline"
                         size="icon"
@@ -463,8 +463,8 @@ onSuccess: (data) => {
                       </Button>
                     )}
                     
-                    {/* Delete button - only shows for admins */}
-                    {isAdmin && !isEditing && (
+                    {/* Delete button - shows for item owners and admins */}
+                    {canEdit && !isEditing && (
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button variant="outline" size="icon" className="text-destructive hover:bg-destructive/10">
