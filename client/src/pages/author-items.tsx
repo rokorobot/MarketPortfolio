@@ -27,7 +27,9 @@ export default function AuthorItemsPage() {
     // Get initial state from localStorage
     const savedToggle = localStorage.getItem('creator-view-toggle');
     const isCreatorView = savedToggle !== null ? JSON.parse(savedToggle) : true;
-    setViewMode(isCreatorView ? "creator" : "collector");
+    const initialMode = isCreatorView ? "creator" : "collector";
+    console.log(`Author items page: viewMode=${initialMode}, author=${authorName}`);
+    setViewMode(initialMode);
 
     const handleViewToggle = (event: CustomEvent) => {
       setViewMode(event.detail.isCreatorView ? "creator" : "collector");
@@ -38,7 +40,7 @@ export default function AuthorItemsPage() {
     return () => {
       document.removeEventListener('view-toggle-changed', handleViewToggle as EventListener);
     };
-  }, []);
+  }, [authorName]);
 
   // Get author details (profile image and item count)
   const { data: authorDetails, isLoading: isLoadingAuthor, error: authorError } = useQuery<Author>({
