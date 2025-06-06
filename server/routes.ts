@@ -337,9 +337,8 @@ export function registerRoutes(app: Express) {
       // Assign role based on user type
       let role = 'visitor';
       if (userType === 'creator_collector') {
-        // By default, new creator/collector accounts get the "collector" role
-        // They can be upgraded to "creator" by an admin later
-        role = 'collector';
+        // Creator/collector accounts get the "creator" role with full permissions
+        role = 'creator';
       }
       
       // Generate verification token

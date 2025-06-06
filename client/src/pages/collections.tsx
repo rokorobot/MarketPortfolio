@@ -26,7 +26,7 @@ export default function Collections() {
   const [selectedCategoryName, setSelectedCategoryName] = useState<string | null>(null);
   const [selectedCategoryData, setSelectedCategoryData] = useState<CategoryModel | null>(null);
   const { user, isLoading: authLoading } = useAuth();
-  const isAdmin = Boolean(user && (user.role === "admin" || user.role === "superadmin" || user.role === "creator"));
+  const isContentManager = Boolean(user && (user.role === "admin" || user.role === "superadmin" || user.role === "creator"));
 
   // Get all categories
   const { data: categories, isLoading: categoriesLoading } = useQuery<CategoryModel[]>({
@@ -215,7 +215,7 @@ export default function Collections() {
     <Layout>
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-4xl font-bold">Collections</h1>
-        {isAdmin && (
+        {isContentManager && (
           <Button 
             variant="outline" 
             onClick={() => navigate("/manage-categories")}
