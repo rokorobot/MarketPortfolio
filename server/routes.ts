@@ -143,6 +143,30 @@ async function requireAdmin(req: Request, res: Response, next: NextFunction) {
   return res.status(403).json({ message: "Admin access required" });
 }
 
+// Content management middleware - allows admin, superadmin, and creator roles
+async function requireContentManager(req: Request, res: Response, next: NextFunction) {
+  // Check session first - allow admin, superadmin, and creator roles
+  if (req.session && (req.session.userRole === 'admin' || req.session.userRole === 'superadmin' || req.session.userRole === 'creator')) {
+    return next();
+  }
+  
+  // Fallback: check user role directly from database if session role is missing
+  if (req.session?.userId) {
+    try {
+      const user = await storage.getUser(req.session.userId);
+      if (user && (user.role === 'admin' || user.role === 'superadmin' || user.role === 'creator')) {
+        // Update session with correct role
+        req.session.userRole = user.role;
+        return next();
+      }
+    } catch (error) {
+      console.error("Error checking user role:", error);
+    }
+  }
+  
+  return res.status(403).json({ message: "Content management access required" });
+}
+
 export function registerRoutes(app: Express) {
   // Open Graph meta tags for item pages (for social media previews)
   app.get('/item/:id', async (req: Request, res: Response) => {
@@ -1449,8 +1473,8 @@ export function registerRoutes(app: Express) {
     }
   });
   
-  // Upload collection image (admin only)
-  app.post("/api/collections/upload-image", requireAuth, requireAdmin, (req: Request, res: Response) => {
+  // Upload collection image (admin and creator access)
+  app.post("/api/collections/upload-image", requireAuth, requireContentManager, (req: Request, res: Response) => {
     try {
       const filesReq = req as FileRequest;
       
