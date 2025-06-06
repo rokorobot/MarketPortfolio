@@ -52,9 +52,25 @@ export const categorySchema = z.string();
 export type CategoryEnum = string; // Changed from enum to string type
 
 // User roles
-export const USER_ROLES = ["admin", "creator", "collector", "visitor"] as const;
+export const USER_ROLES = ["admin", "superadmin", "creator", "collector", "visitor"] as const;
 export const roleSchema = z.enum(USER_ROLES);
 export type Role = z.infer<typeof roleSchema>;
+
+// Item ownership types
+export const OWNERSHIP_TYPES = ["owner", "collaborator", "viewer"] as const;
+export const ownershipTypeSchema = z.enum(OWNERSHIP_TYPES);
+export type OwnershipType = z.infer<typeof ownershipTypeSchema>;
+
+// Permission levels for granular access control
+export const PERMISSION_LEVELS = [
+  "none",        // No access
+  "view",        // Can view item
+  "comment",     // Can view and comment
+  "edit",        // Can edit metadata
+  "full"         // Can edit, delete, share
+] as const;
+export const permissionLevelSchema = z.enum(PERMISSION_LEVELS);
+export type PermissionLevel = z.infer<typeof permissionLevelSchema>;
 
 // User types - used for signup process
 export const USER_TYPES = ["creator_collector", "visitor"] as const;
@@ -117,6 +133,30 @@ export const insertShareLinkSchema = createInsertSchema(shareLinks).omit({
 
 export type InsertShareLink = z.infer<typeof insertShareLinkSchema>;
 export type ShareLink = typeof shareLinks.$inferSelect;
+
+// Item permissions table for granular access control
+export const itemPermissions = pgTable("item_permissions", {
+  id: serial("id").primaryKey(),
+  itemId: integer("item_id").notNull().references(() => portfolioItems.id, { onDelete: 'cascade' }),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  ownershipType: text("ownership_type").notNull().default("viewer"), // owner, collaborator, viewer
+  permissionLevel: text("permission_level").notNull().default("view"), // none, view, comment, edit, full
+  grantedBy: integer("granted_by").references(() => users.id), // Who granted this permission
+  grantedAt: timestamp("granted_at").defaultNow(),
+  expiresAt: timestamp("expires_at"), // Optional expiration for temporary access
+  isActive: boolean("is_active").notNull().default(true),
+}, (table) => ({
+  // Unique constraint to prevent duplicate permissions for same user/item
+  userItemUnique: primaryKey({ columns: [table.userId, table.itemId] })
+}));
+
+export const insertItemPermissionSchema = createInsertSchema(itemPermissions).omit({
+  id: true,
+  grantedAt: true,
+});
+
+export type InsertItemPermission = z.infer<typeof insertItemPermissionSchema>;
+export type ItemPermission = typeof itemPermissions.$inferSelect;
 
 // Categories table
 export const categories = pgTable("categories", {

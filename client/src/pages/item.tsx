@@ -68,9 +68,25 @@ export default function Item() {
     queryKey: [`/api/items/${params?.id}`],
   });
   
-  // Check if current user owns this item (after item is loaded)
+  // Check user permissions for this item
+  const { data: userPermissions } = useQuery<{
+    canView: boolean;
+    canEdit: boolean;
+    canDelete: boolean;
+    canShare: boolean;
+    canGrantPermissions: boolean;
+    ownershipType: string | null;
+    permissionLevel: string;
+  }>({
+    queryKey: [`/api/items/${params?.id}/permissions`],
+    enabled: !!user && !!params?.id,
+  });
+
+  // Fallback to simple ownership check if permissions API is not available
   const isOwner = item && user && item.userId === user.id;
-  const canEdit = isAdmin || isOwner;
+  const canEdit = userPermissions?.canEdit || isAdmin || isOwner;
+  const canDelete = userPermissions?.canDelete || isAdmin || isOwner;
+  const canShare = userPermissions?.canShare || isAdmin || isOwner;
   
   // Check if item is favorited
   const { data: favoriteStatus, isLoading: isFavoriteLoading } = useQuery<{ isFavorited: boolean }>({
