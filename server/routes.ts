@@ -1570,6 +1570,17 @@ export function registerRoutes(app: Express) {
         imageUrl: req.body.imageUrl !== undefined ? req.body.imageUrl : existingCategory.imageUrl,
       };
       
+      // If the name is being changed, update all portfolio items that reference the old category name
+      if (req.body.name && req.body.name !== existingCategory.name) {
+        try {
+          await storage.updateItemsCategory(existingCategory.name, req.body.name);
+          console.log(`Updated all items from category "${existingCategory.name}" to "${req.body.name}"`);
+        } catch (error) {
+          console.error("Error updating items category:", error);
+          // Continue with category update even if items update fails
+        }
+      }
+      
       // Update the category
       const updatedCategory = await storage.updateCategory(id, updateData);
       res.status(200).json(updatedCategory);
