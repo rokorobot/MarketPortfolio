@@ -1513,7 +1513,7 @@ export function registerRoutes(app: Express) {
   });
 
   // Fetch collection data from OBJKT
-  app.post("/api/collections/fetch-from-objkt", requireAuth, requireAdmin, async (req: Request, res: Response) => {
+  app.post("/api/collections/fetch-from-objkt", requireAuth, requireContentManager, async (req: Request, res: Response) => {
     try {
       const { categoryName } = req.body;
       
@@ -2056,7 +2056,7 @@ export function registerRoutes(app: Express) {
   });
   
   // Upload author profile image (admin only)
-  app.post("/api/authors/upload-image", requireAuth, requireAdmin, (req: Request, res: Response) => {
+  app.post("/api/authors/upload-image", requireAuth, requireContentManager, (req: Request, res: Response) => {
     try {
       const filesReq = req as FileRequest;
       
