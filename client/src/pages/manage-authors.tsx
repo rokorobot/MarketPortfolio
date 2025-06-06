@@ -398,11 +398,12 @@ function AuthorEditor({ author, onCancel, onSave, isSaving }: AuthorEditorProps)
 export default function ManageAuthorsPage() {
   const [location, navigate] = useLocation();
   const { toast } = useToast();
-  const { isAdmin } = useAuth();
+  const { user } = useAuth();
+  const isContentManager = Boolean(user && (user.role === "admin" || user.role === "superadmin" || user.role === "creator"));
   const [editingAuthor, setEditingAuthor] = useState<string | null>(null);
   
-  // Redirect non-admin users
-  if (!isAdmin) {
+  // Redirect users without content management access
+  if (!isContentManager) {
     navigate("/");
     return null;
   }

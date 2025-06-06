@@ -22,6 +22,7 @@ import SimpleImportPage from "@/pages/simple-import";
 import ManageCategories from "@/pages/manage-categories";
 import AddItem from "@/pages/add-item";
 import AddCollection from "@/pages/add-collection";
+import ManageAuthors from "@/pages/manage-authors";
 import { ProtectedRoute } from "@/components/protected-route";
 
 function Router() {
@@ -69,6 +70,11 @@ function Router() {
       <Route path="/add-collection">
         <ProtectedRoute>
           <AddCollection />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/manage-authors">
+        <ProtectedRoute>
+          <ManageAuthors />
         </ProtectedRoute>
       </Route>
       <Route component={NotFound} />
