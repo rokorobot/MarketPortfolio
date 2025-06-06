@@ -187,7 +187,7 @@ export default function Collections() {
           <DraggableGrid 
             items={items} 
             queryKey={["/api/items/category", selectedCategory]}
-            canEdit={isAdmin}
+            canEdit={isContentManager}
             showShowcaseButton={true}
           />
         ) : (

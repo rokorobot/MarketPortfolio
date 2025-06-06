@@ -19,7 +19,8 @@ interface Author {
 export default function AuthorsPage() {
   const [location, navigate] = useLocation();
   const { toast } = useToast();
-  const { isAdmin } = useAuth();
+  const { user } = useAuth();
+  const isContentManager = Boolean(user && (user.role === "admin" || user.role === "superadmin" || user.role === "creator"));
   
   const { data: authors, isLoading, error } = useQuery<Author[]>({
     queryKey: ["/api/authors"],
@@ -56,7 +57,7 @@ export default function AuthorsPage() {
       <div className="container py-8">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Authors</h1>
-          {isAdmin && (
+          {isContentManager && (
             <Button 
               variant="outline" 
               onClick={() => navigate("/manage-authors")}
