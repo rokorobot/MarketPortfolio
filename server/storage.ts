@@ -567,12 +567,13 @@ export class DatabaseStorage implements IStorage {
   async updateItemsCategory(oldCategoryName: string, newCategoryName: string): Promise<boolean> {
     try {
       // Update all portfolio items that reference the old category name
-      await db
+      const result = await db
         .update(portfolioItems)
         .set({ category: newCategoryName })
-        .where(eq(portfolioItems.category, oldCategoryName));
+        .where(eq(portfolioItems.category, oldCategoryName))
+        .returning({ id: portfolioItems.id });
       
-      console.log(`Updated all items from category "${oldCategoryName}" to "${newCategoryName}"`);
+      console.log(`Updated ${result.length} items from category "${oldCategoryName}" to "${newCategoryName}"`);
       return true;
     } catch (error) {
       console.error('Error updating items category:', error);
