@@ -80,10 +80,61 @@ const pricingTiers: PricingTier[] = [
     stripePrice: "price_basic_monthly"
   },
   {
-    id: "professional",
-    name: "Professional",
+    id: "standard",
+    name: "Standard",
+    icon: <Zap className="w-6 h-6" />,
+    price: 19.99,
+    period: "month",
+    description: "Enhanced capacity for growing collections",
+    features: [
+      "Everything in Basic",
+      "Increased storage capacity",
+      "Enhanced analytics",
+      "Collaboration tools",
+      "Advanced export options",
+      "Priority support"
+    ],
+    limits: {
+      items: "150 items",
+      storage: "250 MB",
+      collections: "25 collections",
+      sharing: "Team collaboration",
+      support: "Priority support (12h response)"
+    },
+    ctaText: "Upgrade to Standard",
+    stripePrice: "price_standard_monthly"
+  },
+  {
+    id: "standard-plus",
+    name: "Standard Plus",
     icon: <Star className="w-6 h-6" />,
     price: 29.99,
+    period: "month",
+    description: "Professional features for serious collectors",
+    popular: true,
+    features: [
+      "Everything in Standard",
+      "Advanced portfolio customization",
+      "White-label options",
+      "API access",
+      "Advanced integrations",
+      "Dedicated account manager"
+    ],
+    limits: {
+      items: "300 items",
+      storage: "500 MB",
+      collections: "50 collections",
+      sharing: "Advanced privacy controls",
+      support: "Priority support (6h response)"
+    },
+    ctaText: "Upgrade to Standard Plus",
+    stripePrice: "price_standard_plus_monthly"
+  },
+  {
+    id: "professional",
+    name: "Professional",
+    icon: <Crown className="w-6 h-6" />,
+    price: 49.99,
     period: "month",
     description: "For serious collectors and professional artists",
     features: [

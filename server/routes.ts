@@ -2630,6 +2630,17 @@ export function registerRoutes(app: Express) {
           maxStorageMB = 150;
           subscriptionType = 'basic';
           break;
+        case 'standard':
+          maxItems = 150;
+          maxStorageMB = 250;
+          subscriptionType = 'standard';
+          break;
+        case 'standard-plus':
+        case 'standard plus':
+          maxItems = 300;
+          maxStorageMB = 500;
+          subscriptionType = 'standard-plus';
+          break;
         case 'professional':
           maxItems = 500;
           maxStorageMB = 1000;
@@ -2689,6 +2700,15 @@ export function registerRoutes(app: Express) {
               case 'basic':
                 maxItems = 75;
                 maxStorageMB = 150;
+                break;
+              case 'standard':
+                maxItems = 150;
+                maxStorageMB = 250;
+                break;
+              case 'standard-plus':
+              case 'standard plus':
+                maxItems = 300;
+                maxStorageMB = 500;
                 break;
               case 'professional':
                 maxItems = 500;
