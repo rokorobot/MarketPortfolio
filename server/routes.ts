@@ -680,12 +680,16 @@ export function registerRoutes(app: Express) {
       const userRole = req.session?.userRole;
       const viewAll = req.query.viewAll === "true";
       
+      console.log(`Categories API called - viewAll: ${viewAll}, userId: ${userId}, userRole: ${userRole}`);
+      
       // If viewAll is true, show all categories regardless of user
       if (viewAll) {
         const categories = await storage.getCategories();
+        console.log(`ViewAll mode: returning ${categories.length} categories`);
         res.json(categories);
       } else {
         const categories = await storage.getCategories(userId, userRole);
+        console.log(`User-filtered mode: returning ${categories.length} categories`);
         res.json(categories);
       }
     } catch (error) {
@@ -2012,12 +2016,16 @@ export function registerRoutes(app: Express) {
       const userRole = req.session?.userRole;
       const viewAll = req.query.viewAll === "true";
       
+      console.log(`Authors API called - viewAll: ${viewAll}, userId: ${userId}, userRole: ${userRole}`);
+      
       // If viewAll is true, show all authors regardless of user
       if (viewAll) {
         const authors = await storage.getUniqueAuthors();
+        console.log(`ViewAll mode: returning ${authors.length} authors`);
         res.json(authors);
       } else {
         const authors = await storage.getUniqueAuthors(userId, userRole);
+        console.log(`User-filtered mode: returning ${authors.length} authors`);
         res.json(authors);
       }
     } catch (error) {
