@@ -50,6 +50,7 @@ export interface IStorage {
   updateItem(id: number, item: Partial<PortfolioItem>): Promise<PortfolioItem>;
   deleteItem(id: number): Promise<boolean>;
   updateCollectionName(oldName: string, newName: string): Promise<boolean>;
+  updateItemsCategory(oldCategoryName: string, newCategoryName: string): Promise<boolean>;
   updateItemsOrder(items: {id: number, displayOrder: number}[]): Promise<boolean>;
   
   // Users
@@ -559,6 +560,22 @@ export class DatabaseStorage implements IStorage {
       return true;
     } catch (error) {
       console.error('Error updating collection name:', error);
+      return false;
+    }
+  }
+
+  async updateItemsCategory(oldCategoryName: string, newCategoryName: string): Promise<boolean> {
+    try {
+      // Update all portfolio items that reference the old category name
+      await db
+        .update(portfolioItems)
+        .set({ category: newCategoryName })
+        .where(eq(portfolioItems.category, oldCategoryName));
+      
+      console.log(`Updated all items from category "${oldCategoryName}" to "${newCategoryName}"`);
+      return true;
+    } catch (error) {
+      console.error('Error updating items category:', error);
       return false;
     }
   }
