@@ -154,7 +154,7 @@ export default function ManageCategories() {
       }
 
       const data = await response.json();
-      form.setValue("imageUrl", data.imageUrl);
+      form.setValue("imageUrl", data.imagePath);
       toast({ title: "Image uploaded successfully" });
       
       // Clear preview after successful upload
