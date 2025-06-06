@@ -20,6 +20,8 @@ import CreatorDashboard from "@/pages/creator-dashboard";
 import AdminDashboard from "@/pages/admin-dashboard";
 import SimpleImportPage from "@/pages/simple-import";
 import ManageCategories from "@/pages/manage-categories";
+import AddItem from "@/pages/add-item";
+import AddCollection from "@/pages/add-collection";
 import { ProtectedRoute } from "@/components/protected-route";
 
 function Router() {
@@ -57,6 +59,16 @@ function Router() {
       <Route path="/manage-categories">
         <ProtectedRoute>
           <ManageCategories />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/add-item">
+        <ProtectedRoute>
+          <AddItem />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/add-collection">
+        <ProtectedRoute>
+          <AddCollection />
         </ProtectedRoute>
       </Route>
       <Route component={NotFound} />

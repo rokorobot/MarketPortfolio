@@ -37,7 +37,8 @@ const formSchema = insertCategorySchema
 
 export default function AddCollection() {
   const { toast } = useToast();
-  const { user, isAdmin, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
+  const isContentManager = Boolean(user && (user.role === "admin" || user.role === "superadmin" || user.role === "creator"));
   const [, navigate] = useLocation();
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>("url");
@@ -198,8 +199,8 @@ export default function AddCollection() {
     );
   }
   
-  // Redirect if not logged in or not admin
-  if (!user || !isAdmin) {
+  // Redirect if not logged in or not content manager
+  if (!user || !isContentManager) {
     return <Redirect to="/" />;
   }
   
