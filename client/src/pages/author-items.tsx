@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { PortfolioItem } from "@shared/schema";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { getProxiedImageUrl } from "@/lib/utils";
 
 // Author type definition
@@ -20,6 +20,20 @@ export default function AuthorItemsPage() {
   const [, params] = useRoute<{ authorName: string }>("/items/author/:authorName");
   const authorName = params?.authorName ? decodeURIComponent(params.authorName) : "";
   const { toast } = useToast();
+  const [viewMode, setViewMode] = useState<"creator" | "collector">("creator");
+
+  // Listen for global view toggle changes
+  useEffect(() => {
+    const handleViewToggle = (event: CustomEvent) => {
+      setViewMode(event.detail.isCreatorView ? "creator" : "collector");
+    };
+
+    document.addEventListener('view-toggle-changed', handleViewToggle as EventListener);
+    
+    return () => {
+      document.removeEventListener('view-toggle-changed', handleViewToggle as EventListener);
+    };
+  }, []);
 
   // Get author details (profile image and item count)
   const { data: authorDetails, isLoading: isLoadingAuthor, error: authorError } = useQuery<Author>({
@@ -45,7 +59,18 @@ export default function AuthorItemsPage() {
   }, [authorError]);
 
   const { data: items, isLoading, error } = useQuery<PortfolioItem[]>({
-    queryKey: [`/api/items/author/${encodeURIComponent(authorName)}`],
+    queryKey: [`/api/items/author/${encodeURIComponent(authorName)}`, viewMode],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      console.log(`Author items page: viewMode=${viewMode}, author=${authorName}`);
+      if (viewMode === "collector") {
+        params.append("viewAll", "true");
+        console.log("Author items: Adding viewAll=true parameter");
+      }
+      const response = await fetch(`/api/items/author/${encodeURIComponent(authorName)}?${params}`);
+      if (!response.ok) throw new Error("Failed to fetch author items");
+      return response.json();
+    },
     enabled: !!authorName,
   });
 

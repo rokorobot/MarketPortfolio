@@ -2087,9 +2087,25 @@ export function registerRoutes(app: Express) {
       // Get the user ID and role from the session if available
       const userId = req.session?.userId;
       const userRole = req.session?.userRole;
+      const viewAll = req.query.viewAll === "true";
       
-      // Pass userId and userRole to filter items by user
-      const items = await storage.getItemsByAuthor(authorName, userId, userRole);
+      console.log(`Author items API called - author: ${authorName}, viewAll: ${viewAll}, userId: ${userId}, userRole: ${userRole}`);
+      
+      // Handle view mode - if viewAll is true, show all items by this author regardless of user
+      let effectiveUserId = userId;
+      let effectiveUserRole = userRole;
+      
+      if (viewAll) {
+        // Collector mode: show all items by this author (act like anonymous user)
+        effectiveUserId = undefined;
+        effectiveUserRole = 'guest';
+        console.log(`ViewAll mode: showing all items by ${authorName}`);
+      } else {
+        console.log(`User-filtered mode: showing user's items by ${authorName}`);
+      }
+      
+      const items = await storage.getItemsByAuthor(authorName, effectiveUserId, effectiveUserRole);
+      console.log(`Author items result: ${items.length} items for ${authorName}`);
       res.json(items);
     } catch (error) {
       console.error("Error fetching items by author:", error);
