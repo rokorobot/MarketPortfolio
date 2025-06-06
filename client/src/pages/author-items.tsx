@@ -20,27 +20,7 @@ export default function AuthorItemsPage() {
   const [, params] = useRoute<{ authorName: string }>("/items/author/:authorName");
   const authorName = params?.authorName ? decodeURIComponent(params.authorName) : "";
   const { toast } = useToast();
-  const [viewMode, setViewMode] = useState<"creator" | "collector">("creator");
-
-  // Get initial toggle state from localStorage and listen for changes
-  useEffect(() => {
-    // Get initial state from localStorage
-    const savedToggle = localStorage.getItem('creator-view-toggle');
-    const isCreatorView = savedToggle !== null ? JSON.parse(savedToggle) : true;
-    const initialMode = isCreatorView ? "creator" : "collector";
-    console.log(`Author items page: viewMode=${initialMode}, author=${authorName}`);
-    setViewMode(initialMode);
-
-    const handleViewToggle = (event: CustomEvent) => {
-      setViewMode(event.detail.isCreatorView ? "creator" : "collector");
-    };
-
-    document.addEventListener('view-toggle-changed', handleViewToggle as EventListener);
-    
-    return () => {
-      document.removeEventListener('view-toggle-changed', handleViewToggle as EventListener);
-    };
-  }, [authorName]);
+  // No need for view mode state since we always show all items for any author
 
   // Get author details (profile image and item count)
   const { data: authorDetails, isLoading: isLoadingAuthor, error: authorError } = useQuery<Author>({
@@ -66,14 +46,12 @@ export default function AuthorItemsPage() {
   }, [authorError]);
 
   const { data: items, isLoading, error } = useQuery<PortfolioItem[]>({
-    queryKey: [`/api/items/author/${encodeURIComponent(authorName)}`, viewMode],
+    queryKey: [`/api/items/author/${encodeURIComponent(authorName)}`],
     queryFn: async () => {
       const params = new URLSearchParams();
-      console.log(`Author items page: viewMode=${viewMode}, author=${authorName}`);
-      if (viewMode === "collector") {
-        params.append("viewAll", "true");
-        console.log("Author items: Adding viewAll=true parameter");
-      }
+      // Always show all items by this author, regardless of toggle state
+      params.append("viewAll", "true");
+      console.log(`Author items page: showing all items for author=${authorName}`);
       const response = await fetch(`/api/items/author/${encodeURIComponent(authorName)}?${params}`);
       if (!response.ok) throw new Error("Failed to fetch author items");
       return response.json();
