@@ -146,6 +146,7 @@ export function useAuth() {
   return {
     ...context,
     isAdmin: context.user?.role === 'admin' || context.user?.role === 'superadmin',
+    isSuperAdmin: context.user?.role === 'superadmin',
     logout: async () => {
       try {
         await context.logoutMutation.mutateAsync();

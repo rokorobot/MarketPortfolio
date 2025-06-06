@@ -30,6 +30,19 @@ export class PermissionService {
       };
     }
 
+    // Admin override - admins and superadmins can do anything
+    if (userRole === 'admin' || userRole === 'superadmin') {
+      return {
+        canView: true,
+        canEdit: true,
+        canDelete: true,
+        canShare: true,
+        canGrantPermissions: true,
+        ownershipType: "owner", // Admins are treated as owners for all items
+        permissionLevel: "full"
+      };
+    }
+
     // First check if user is the original uploader
     const [item] = await db
       .select({ userId: portfolioItems.userId })
