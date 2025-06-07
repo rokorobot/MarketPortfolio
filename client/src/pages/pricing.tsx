@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, Star, Zap, Crown, ArrowRight, Users, Database, Shield, Headphones } from "lucide-react";
+import { Check, Star, Zap, Crown, ArrowRight, Users, Database, Shield, Headphones, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Link } from "wouter";
@@ -252,23 +252,33 @@ export default function PricingPage() {
   const currentTier = getCurrentTier();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-background">
+      {/* Back Button */}
+      <div className="container mx-auto px-4 pt-8">
+        <Link href="/">
+          <Button variant="ghost" className="mb-4 text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Portfolio
+          </Button>
+        </Link>
+      </div>
+
       {/* Header */}
-      <div className="container mx-auto px-4 py-16 text-center">
+      <div className="container mx-auto px-4 py-8 text-center">
         <div className="mb-4">
           <Badge variant="secondary" className="mb-4">
             Pricing Plans
           </Badge>
         </div>
-        <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-6">
+        <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-primary to-green-400 bg-clip-text text-transparent mb-6">
           Choose Your Plan
         </h1>
-        <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
+        <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
           From free portfolios to enterprise solutions, find the perfect plan to showcase your NFT collection
         </p>
         
         {user && (
-          <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-800 px-4 py-2 rounded-full">
+          <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full border border-primary/20">
             <Shield className="w-4 h-4" />
             Currently on {currentTier.charAt(0).toUpperCase() + currentTier.slice(1)} plan
           </div>
@@ -279,10 +289,10 @@ export default function PricingPage() {
       <div className="container mx-auto px-4 pb-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
           {pricingTiers.map((tier) => (
-            <Card key={tier.id} className={`relative ${tier.popular ? 'border-2 border-blue-500 shadow-xl scale-105' : 'border shadow-lg'} transition-all hover:shadow-xl`}>
+            <Card key={tier.id} className={`relative ${tier.popular ? 'border-2 border-primary shadow-xl scale-105' : 'border shadow-lg'} transition-all hover:shadow-xl bg-card`}>
               {tier.popular && (
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <Badge className="bg-blue-500 text-white px-4 py-1">
+                  <Badge className="bg-primary text-primary-foreground px-4 py-1">
                     Most Popular
                   </Badge>
                 </div>
@@ -290,16 +300,16 @@ export default function PricingPage() {
               
               <CardHeader className="text-center pb-4">
                 <div className="flex justify-center mb-4">
-                  <div className={`p-3 rounded-full ${tier.popular ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'}`}>
+                  <div className={`p-3 rounded-full ${tier.popular ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
                     {tier.icon}
                   </div>
                 </div>
                 <CardTitle className="text-xl font-bold">{tier.name}</CardTitle>
                 <div className="mt-4">
-                  <span className="text-4xl font-bold">${tier.price}</span>
-                  <span className="text-gray-500">/{tier.period}</span>
+                  <span className="text-4xl font-bold text-foreground">${tier.price}</span>
+                  <span className="text-muted-foreground">/{tier.period}</span>
                 </div>
-                <p className="text-sm text-gray-600 mt-2">{tier.description}</p>
+                <p className="text-sm text-muted-foreground mt-2">{tier.description}</p>
               </CardHeader>
 
               <CardContent className="space-y-6">
