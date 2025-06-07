@@ -379,39 +379,39 @@ export default function PricingPage() {
       </div>
 
       {/* FAQ Section */}
-      <div className="bg-gray-50 py-16">
+      <div className="bg-muted/30 py-16">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Frequently Asked Questions</h2>
-            <p className="text-gray-600">Everything you need to know about our pricing plans</p>
+            <h2 className="text-3xl font-bold mb-4 text-foreground">Frequently Asked Questions</h2>
+            <p className="text-muted-foreground">Everything you need to know about our pricing plans</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             <div className="space-y-4">
-              <h3 className="font-semibold">Can I change plans anytime?</h3>
-              <p className="text-gray-600">Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately with prorated billing.</p>
+              <h3 className="font-semibold text-foreground">Can I change plans anytime?</h3>
+              <p className="text-muted-foreground">Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately with prorated billing.</p>
             </div>
             
             <div className="space-y-4">
-              <h3 className="font-semibold">What happens to my data if I downgrade?</h3>
-              <p className="text-gray-600">Your data remains safe. If you exceed the new limits, you'll need to reduce items or upgrade again to add more.</p>
+              <h3 className="font-semibold text-foreground">What happens to my data if I downgrade?</h3>
+              <p className="text-muted-foreground">Your data remains safe. If you exceed the new limits, you'll need to reduce items or upgrade again to add more.</p>
             </div>
             
             <div className="space-y-4">
-              <h3 className="font-semibold">Do you offer refunds?</h3>
-              <p className="text-gray-600">We offer a 30-day money-back guarantee on all paid plans if you're not completely satisfied.</p>
+              <h3 className="font-semibold text-foreground">Do you offer refunds?</h3>
+              <p className="text-muted-foreground">We offer a 30-day money-back guarantee on all paid plans if you're not completely satisfied.</p>
             </div>
             
             <div className="space-y-4">
-              <h3 className="font-semibold">Is there a setup fee?</h3>
-              <p className="text-gray-600">No setup fees ever. You only pay the monthly subscription fee for the plan you choose.</p>
+              <h3 className="font-semibold text-foreground">Is there a setup fee?</h3>
+              <p className="text-muted-foreground">No setup fees ever. You only pay the monthly subscription fee for the plan you choose.</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Bottom CTA */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 py-16 text-white">
+      <div className="bg-gradient-to-r from-primary to-green-600 py-16 text-primary-foreground">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-4">Ready to get started?</h2>
           <p className="text-xl mb-8 opacity-90">Join thousands of creators showcasing their NFT collections</p>
@@ -419,17 +419,17 @@ export default function PricingPage() {
           {!user ? (
             <div className="space-x-4">
               <Link href="/auth">
-                <Button size="lg" variant="secondary" className="bg-white text-blue-600 hover:bg-gray-100">
+                <Button size="lg" variant="secondary" className="bg-white text-primary hover:bg-gray-100">
                   Sign Up Free
                 </Button>
               </Link>
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600">
+              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-primary">
                 View Demo
               </Button>
             </div>
           ) : (
             <Link href="/">
-              <Button size="lg" variant="secondary" className="bg-white text-blue-600 hover:bg-gray-100">
+              <Button size="lg" variant="secondary" className="bg-white text-primary hover:bg-gray-100">
                 Go to Dashboard
               </Button>
             </Link>
