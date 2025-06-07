@@ -2390,6 +2390,26 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // User quota information
+  app.get("/api/user/quota", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      const quotaInfo = await quotaService.getUserQuotaInfo(userId);
+      if (!quotaInfo) {
+        return res.status(404).json({ message: "User quota information not found" });
+      }
+
+      res.json(quotaInfo);
+    } catch (error) {
+      console.error("Error fetching user quota:", error);
+      res.status(500).json({ message: "Failed to fetch quota information" });
+    }
+  });
+
   // Admin Dashboard Analytics Endpoints
 
   // Dashboard stats

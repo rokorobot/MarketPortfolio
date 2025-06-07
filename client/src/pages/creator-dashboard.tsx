@@ -3,8 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Progress } from "@/components/ui/progress";
 import { useLocation } from "wouter";
-import { ArrowLeft, Upload, Eye, Heart, TrendingUp, Grid, Users } from "lucide-react";
+import { ArrowLeft, Upload, Eye, Heart, TrendingUp, Grid, Users, HardDrive, Package, AlertTriangle } from "lucide-react";
 import { type PortfolioItem } from "@shared/schema";
 
 interface CreatorStats {
@@ -31,6 +32,21 @@ interface CreatorStats {
   }>;
 }
 
+interface UserQuotaInfo {
+  userId: number;
+  username: string;
+  subscriptionType: string;
+  maxItems: number | null;
+  maxStorageMB: number | null;
+  currentItems: number;
+  currentStorageUsedMB: number;
+  itemsRemaining: number | null;
+  storageRemainingMB: number | null;
+  isAtItemLimit: boolean;
+  isAtStorageLimit: boolean;
+  canUpload: boolean;
+}
+
 export default function CreatorDashboard() {
   const [location, navigate] = useLocation();
 
@@ -42,6 +58,11 @@ export default function CreatorDashboard() {
   // Fetch creator's items
   const { data: items, isLoading: itemsLoading } = useQuery<PortfolioItem[]>({
     queryKey: ['/api/creator/items'],
+  });
+
+  // Fetch user quota information
+  const { data: quotaInfo, isLoading: quotaLoading } = useQuery<UserQuotaInfo>({
+    queryKey: ['/api/user/quota'],
   });
 
   if (statsLoading) {
@@ -74,6 +95,107 @@ export default function CreatorDashboard() {
           <span className="text-sm font-medium">Creator Access</span>
         </div>
       </div>
+
+      {/* Quota Usage Section */}
+      {quotaInfo && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold flex items-center space-x-2">
+              <Package className="h-5 w-5" />
+              <span>Subscription Usage</span>
+              <span className="text-sm font-normal text-muted-foreground">
+                ({quotaInfo.subscriptionType.charAt(0).toUpperCase() + quotaInfo.subscriptionType.slice(1)} Plan)
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Items Usage */}
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-2">
+                  <Grid className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">Items Used</span>
+                  {quotaInfo.maxItems !== null && quotaInfo.currentItems / quotaInfo.maxItems >= 0.85 && (
+                    <AlertTriangle className="h-4 w-4 text-red-500" />
+                  )}
+                </div>
+                <span className="text-sm text-muted-foreground">
+                  {quotaInfo.currentItems} / {quotaInfo.maxItems === null ? '∞' : quotaInfo.maxItems}
+                </span>
+              </div>
+              <Progress 
+                value={quotaInfo.maxItems === null ? 0 : (quotaInfo.currentItems / quotaInfo.maxItems) * 100} 
+                className={`h-3 ${
+                  quotaInfo.maxItems !== null && quotaInfo.currentItems / quotaInfo.maxItems >= 0.85 
+                    ? '[&>[data-testid="progress-indicator"]]:bg-red-500' 
+                    : ''
+                }`}
+              />
+              {quotaInfo.maxItems !== null && (
+                <p className="text-xs text-muted-foreground">
+                  {quotaInfo.itemsRemaining} items remaining
+                  {quotaInfo.currentItems / quotaInfo.maxItems >= 0.85 && (
+                    <span className="text-red-500 ml-1 font-medium">- Near limit!</span>
+                  )}
+                </p>
+              )}
+            </div>
+
+            {/* Storage Usage */}
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-2">
+                  <HardDrive className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">Storage Used</span>
+                  {quotaInfo.maxStorageMB !== null && quotaInfo.currentStorageUsedMB / quotaInfo.maxStorageMB >= 0.85 && (
+                    <AlertTriangle className="h-4 w-4 text-red-500" />
+                  )}
+                </div>
+                <span className="text-sm text-muted-foreground">
+                  {quotaInfo.currentStorageUsedMB.toFixed(1)} MB / {quotaInfo.maxStorageMB === null ? '∞' : quotaInfo.maxStorageMB + ' MB'}
+                </span>
+              </div>
+              <Progress 
+                value={quotaInfo.maxStorageMB === null ? 0 : (quotaInfo.currentStorageUsedMB / quotaInfo.maxStorageMB) * 100} 
+                className={`h-3 ${
+                  quotaInfo.maxStorageMB !== null && quotaInfo.currentStorageUsedMB / quotaInfo.maxStorageMB >= 0.85 
+                    ? '[&>[data-testid="progress-indicator"]]:bg-red-500' 
+                    : ''
+                }`}
+              />
+              {quotaInfo.maxStorageMB !== null && (
+                <p className="text-xs text-muted-foreground">
+                  {quotaInfo.storageRemainingMB?.toFixed(1)} MB remaining
+                  {quotaInfo.currentStorageUsedMB / quotaInfo.maxStorageMB >= 0.85 && (
+                    <span className="text-red-500 ml-1 font-medium">- Near limit!</span>
+                  )}
+                </p>
+              )}
+            </div>
+
+            {/* Upgrade suggestion if near limits */}
+            {quotaInfo.maxItems !== null && quotaInfo.maxStorageMB !== null && 
+             (quotaInfo.currentItems / quotaInfo.maxItems >= 0.85 || quotaInfo.currentStorageUsedMB / quotaInfo.maxStorageMB >= 0.85) && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                <div className="flex items-center space-x-2">
+                  <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                  <span className="text-sm font-medium text-yellow-800">Approaching Limits</span>
+                </div>
+                <p className="text-xs text-yellow-700 mt-1">
+                  Consider upgrading your plan to avoid interruptions to your workflow.
+                </p>
+                <Button 
+                  size="sm" 
+                  className="mt-2" 
+                  onClick={() => navigate('/pricing')}
+                >
+                  View Plans
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Overview Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
