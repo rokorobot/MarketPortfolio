@@ -252,7 +252,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-3">
             <ThemeToggle />
             
-            {isAdmin && (
+            {user && (user.role === 'creator' || user.role === 'collector' || user.role === 'admin' || user.role === 'superadmin') && (
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
