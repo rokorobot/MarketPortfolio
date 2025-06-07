@@ -1,0 +1,13 @@
+git push https://rokorobot:PASTE_YOUR_TOKEN_HERE@github.com/rokorobot/MarketPortfolio.git main
+
+Instructions:
+1. Copy your GitHub token from the browser
+2. Edit this file and replace PASTE_YOUR_TOKEN_HERE with your actual token
+3. Copy the complete command from this file
+4. Paste it in the shell
+
+Alternative method if copy-paste doesn't work:
+1. Type the command manually in shell:
+   git push https://rokorobot:
+2. Then type your token
+3. Then continue typing: @github.com/rokorobot/MarketPortfolio.git main
