@@ -1,4 +1,4 @@
-git push https://rokorobot:PASTE_YOUR_TOKEN_HERE@github.com/rokorobot/MarketPortfolio.git main
+git push https://rokorobot:GITHUB_PERSONAL_ACCESS_TOKEN@github.com/rokorobot/MarketPortfolio.git main
 
 Instructions:
 1. Copy your GitHub token from the browser
