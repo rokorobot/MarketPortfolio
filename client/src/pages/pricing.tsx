@@ -315,31 +315,31 @@ export default function PricingPage() {
               <CardContent className="space-y-6">
                 {/* Key Limits */}
                 <div className="space-y-2">
-                  <h4 className="font-semibold text-sm text-gray-800">Limits</h4>
-                  <div className="space-y-1 text-sm text-gray-600">
+                  <h4 className="font-semibold text-sm text-foreground">Limits</h4>
+                  <div className="space-y-1 text-sm text-muted-foreground">
                     <div className="flex justify-between">
                       <span>Items:</span>
-                      <span className="font-medium">{tier.limits.items}</span>
+                      <span className="font-medium text-foreground">{tier.limits.items}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Storage:</span>
-                      <span className="font-medium">{tier.limits.storage}</span>
+                      <span className="font-medium text-foreground">{tier.limits.storage}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Collections:</span>
-                      <span className="font-medium">{tier.limits.collections}</span>
+                      <span className="font-medium text-foreground">{tier.limits.collections}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Features */}
                 <div className="space-y-3">
-                  <h4 className="font-semibold text-sm text-gray-800">Features</h4>
+                  <h4 className="font-semibold text-sm text-foreground">Features</h4>
                   <ul className="space-y-2">
                     {tier.features.map((feature, index) => (
                       <li key={index} className="flex items-start gap-2 text-sm">
-                        <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                        <span>{feature}</span>
+                        <Check className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                        <span className="text-muted-foreground">{feature}</span>
                       </li>
                     ))}
                   </ul>
@@ -347,18 +347,18 @@ export default function PricingPage() {
 
                 {/* Support */}
                 <div className="space-y-2">
-                  <h4 className="font-semibold text-sm text-gray-800 flex items-center gap-1">
+                  <h4 className="font-semibold text-sm text-foreground flex items-center gap-1">
                     <Headphones className="w-3 h-3" />
                     Support
                   </h4>
-                  <p className="text-sm text-gray-600">{tier.limits.support}</p>
+                  <p className="text-sm text-muted-foreground">{tier.limits.support}</p>
                 </div>
 
                 {/* CTA Button */}
                 <Button 
                   onClick={() => handleUpgrade(tier)}
                   disabled={isUpgrading === tier.id || currentTier === tier.id || isLoading}
-                  className={`w-full ${tier.popular ? 'bg-blue-600 hover:bg-blue-700' : ''} group`}
+                  className={`w-full ${tier.popular ? 'bg-primary hover:bg-primary/90' : ''} group`}
                   variant={tier.popular ? "default" : "outline"}
                 >
                   {isUpgrading === tier.id ? (
